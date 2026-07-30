@@ -1,0 +1,1627 @@
+/* =========================================================
+   chat.css
+   Uses the color/type/motion tokens already defined in
+   main.css (--bg, --surface, --border, --white, --muted,
+   --font-display, --font-body, --curve, --speed, ...) so the
+   chat tab feels native to the rest of Blur.
+   ========================================================= */
+
+:root{
+  --glass:rgba(16,16,16,.55);
+  --glass-strong:rgba(20,20,20,.78);
+  --glass-border:rgba(255,255,255,.07);
+}
+
+/* A bunch of rules below give their element an explicit
+   `display` (flex, etc.) so it lays out correctly when shown.
+   That display value otherwise wins over the browser's default
+   [hidden]{display:none}, which makes toggling `.hidden = true`
+   in JS a silent no-op — the element stays on screen. This one
+   rule makes `hidden` always win, everywhere in the chat UI. */
+.chat-app[hidden],
+.chat-messages[hidden],
+.chat-composer[hidden],
+.reply-preview[hidden],
+.friends-tabs[hidden],
+.friends-view[hidden],
+.friends-badge[hidden],
+.friends-tab-badge[hidden],
+.channel-list[hidden],
+.dm-list[hidden],
+.chat-sidebar-header[hidden],
+.chat-topbar-avatar[hidden],
+.dm-unread-dot[hidden]{
+  display:none;
+}
+
+/* Let the chat tab use the full main area instead of the
+   centered small-card layout other simple panels use. */
+main:has(.chat-panel.active){
+  padding:0;
+  overflow:hidden;
+  align-items:stretch;
+  justify-content:stretch;
+}
+
+.chat-panel{
+  width:100%;
+  height:100%;
+  position:relative;
+}
+
+#chat-root{
+  width:100%;
+  height:100%;
+  position:relative;
+}
+
+
+/* ============ APP SHELL ============ */
+
+.chat-app{
+  width:100%;
+  height:100%;
+  display:flex;
+}
+
+.chat-sidebar{
+  width:232px;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  padding:18px 10px;
+}
+
+.chat-sidebar-header{
+  font-family:var(--font-display);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--muted-dim);
+  padding:0 10px 12px;
+}
+
+.channel-list{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  flex:1;
+  overflow-y:auto;
+}
+
+.channel-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  height:38px;
+  padding:0 10px;
+  border-radius:9px;
+  color:var(--muted);
+  font-size:14.5px;
+  font-weight:500;
+  text-align:left;
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve), transform var(--speed) var(--curve-spring);
+}
+
+.channel-item:hover{
+  background:var(--surface);
+  color:var(--text);
+  transform:translateX(3px);
+}
+
+.channel-item.active{
+  background:var(--surface-2);
+  color:var(--white);
+}
+
+.channel-hash{
+  font-weight:700;
+  color:var(--muted-dim);
+  width:14px;
+  text-align:center;
+  flex-shrink:0;
+}
+
+.channel-item.active .channel-hash{
+  color:var(--white);
+}
+
+.channel-name{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.chat-user-bar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  margin-top:8px;
+  border-top:1px solid var(--border);
+}
+
+.user-bar-avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  object-fit:cover;
+  cursor:pointer;
+  background:var(--surface-2);
+  flex-shrink:0;
+}
+
+.user-bar-name{
+  flex:1;
+  font-size:13.5px;
+  font-weight:600;
+  cursor:pointer;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.user-bar-signout{
+  width:28px;
+  height:28px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--muted);
+  flex-shrink:0;
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve);
+}
+
+.user-bar-signout:hover{
+  background:var(--surface-2);
+  color:var(--text);
+}
+
+.user-bar-signout svg{
+  width:15px;
+  height:15px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+
+/* ============ MAIN COLUMN ============ */
+
+.chat-main{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+
+.chat-topbar{
+  height:52px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 20px;
+  border-bottom:1px solid var(--border);
+  background:var(--glass);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  z-index:2;
+}
+
+.chat-topbar-hash{
+  font-family:var(--font-display);
+  font-weight:800;
+  color:var(--muted-dim);
+}
+
+.chat-topbar-name{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:15px;
+  letter-spacing:-.01em;
+}
+
+.chat-messages{
+  flex:1;
+  overflow-y:auto;
+  padding:20px 20px 8px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.messages-loading{
+  margin:auto;
+  color:var(--muted-dim);
+  font-size:13.5px;
+}
+
+.message-row{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.message-avatar{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  object-fit:cover;
+  background:var(--surface-2);
+  flex-shrink:0;
+  cursor:pointer;
+  margin-top:2px;
+}
+
+.message-body{
+  min-width:0;
+}
+
+.message-meta{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  margin-bottom:2px;
+}
+
+.message-author{
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.message-author:hover{
+  text-decoration:underline;
+}
+
+.message-time{
+  font-size:11px;
+  color:var(--muted-dim);
+  font-family:var(--font-mono);
+}
+
+.message-text{
+  font-size:14.5px;
+  line-height:1.5;
+  color:var(--text);
+  overflow-wrap:anywhere;
+  white-space:pre-wrap;
+}
+
+.chat-composer{
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0 20px 20px;
+  padding:4px 4px 4px 18px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--glass-strong);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  transition:border-color var(--speed) var(--curve);
+}
+
+.chat-composer:focus-within{
+  border-color:var(--border-strong);
+}
+
+.chat-composer input{
+  flex:1;
+  height:46px;
+  background:none;
+  border:none;
+  outline:none;
+  color:var(--text);
+  font:inherit;
+  font-size:14.5px;
+}
+
+.chat-composer input::placeholder{
+  color:var(--muted-dim);
+}
+
+.chat-composer button{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--white);
+  transition:transform var(--speed) var(--curve-spring), opacity var(--speed) var(--curve);
+}
+
+.chat-composer button:hover{
+  transform:scale(1.05) rotate(-3deg);
+}
+
+.chat-composer button svg{
+  width:16px;
+  height:16px;
+  fill:var(--bg);
+}
+
+
+/* ============ REACTIONS ============ */
+
+.message-reactions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+}
+
+.reaction-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  height:26px;
+  padding:0 9px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  font-size:12.5px;
+  color:var(--muted);
+  transition:background var(--speed) var(--curve), border-color var(--speed) var(--curve), transform var(--speed) var(--curve-spring);
+}
+
+.reaction-pill:hover{
+  transform:translateY(-1px);
+  background:var(--surface-3);
+}
+
+.reaction-pill.mine{
+  border-color:var(--white);
+  color:var(--white);
+  background:var(--surface-3);
+}
+
+.reaction-pill span{
+  font-family:var(--font-mono);
+  font-size:11px;
+}
+
+.reaction-add{
+  width:26px;
+  height:26px;
+  border-radius:8px;
+  border:1px dashed var(--border);
+  color:var(--muted-dim);
+  font-size:14px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve), border-color var(--speed) var(--curve);
+}
+
+.reaction-add:hover{
+  background:var(--surface-2);
+  color:var(--text);
+  border-color:var(--border-strong);
+}
+
+.reaction-popover{
+  position:fixed;
+  z-index:50;
+  display:flex;
+  gap:2px;
+  padding:6px;
+  border-radius:12px;
+  border:1px solid var(--border-strong);
+  background:var(--glass-strong);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  box-shadow:0 12px 30px rgba(0,0,0,.4);
+}
+
+.reaction-popover button{
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  font-size:17px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:background var(--speed) var(--curve), transform var(--speed) var(--curve-spring);
+}
+
+.reaction-popover button:hover{
+  background:var(--surface-2);
+  transform:scale(1.15);
+}
+
+
+/* ============ AUTH SCREEN ============ */
+
+.auth-root:empty{
+  display:none;
+}
+
+.auth-screen{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--bg);
+  z-index:5;
+}
+
+.auth-card{
+  width:min(380px,88%);
+  padding:32px 28px;
+  border-radius:20px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  text-align:center;
+}
+
+.auth-mark{
+  width:44px;
+  height:44px;
+  margin:0 auto 18px;
+  border-radius:13px;
+  background:var(--white);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.auth-mark span{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:var(--bg);
+}
+
+.auth-card h2{
+  font-family:var(--font-display);
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-.02em;
+  color:var(--white);
+}
+
+.auth-sub{
+  font-size:13.5px;
+  color:var(--muted);
+  margin-top:6px;
+  line-height:1.5;
+}
+
+.auth-form{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-top:24px;
+  text-align:left;
+}
+
+.auth-form label,
+.username-form label,
+.edit-profile-form label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--muted);
+}
+
+.auth-form input,
+.username-form input,
+.edit-profile-form input,
+.edit-profile-form textarea{
+  height:42px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--text);
+  padding:0 13px;
+  font:inherit;
+  font-size:14px;
+  font-weight:400;
+  outline:none;
+  transition:border-color var(--speed) var(--curve);
+}
+
+.edit-profile-form textarea{
+  height:auto;
+  padding:10px 13px;
+  resize:vertical;
+  font-family:var(--font-body);
+}
+
+.auth-form input:focus,
+.username-form input:focus,
+.edit-profile-form input:focus,
+.edit-profile-form textarea:focus{
+  border-color:var(--border-strong);
+}
+
+.auth-error{
+  font-size:12.5px;
+  color:#f5f5f5;
+  background:var(--surface-3);
+  border:1px solid var(--border-strong);
+  border-radius:9px;
+  padding:9px 11px;
+  line-height:1.4;
+}
+
+.auth-submit{
+  height:44px;
+  border-radius:10px;
+  background:var(--white);
+  color:var(--bg);
+  font-weight:700;
+  font-size:14px;
+  margin-top:4px;
+  transition:transform var(--speed) var(--curve-spring), opacity var(--speed) var(--curve);
+}
+
+.auth-submit:hover{
+  transform:translateY(-1px);
+}
+
+.auth-submit:disabled{
+  opacity:.6;
+  cursor:default;
+}
+
+.auth-switch{
+  margin-top:18px;
+  font-size:12.5px;
+  color:var(--muted);
+}
+
+.auth-switch:hover{
+  color:var(--text);
+}
+
+
+/* ============ MODALS (username setup / profile popup / edit) ============ */
+
+.chat-overlay:empty{
+  display:none;
+}
+
+.modal-backdrop{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(6,6,6,.66);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  z-index:20;
+}
+
+.modal-card{
+  width:min(360px,88%);
+  max-height:86%;
+  overflow-y:auto;
+  padding:28px 26px;
+  border-radius:20px;
+  border:1px solid var(--border-strong);
+  background:var(--surface);
+  position:relative;
+  text-align:center;
+}
+
+.modal-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:28px;
+  height:28px;
+  border-radius:8px;
+  color:var(--muted);
+  font-size:20px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.modal-close:hover{
+  background:var(--surface-2);
+  color:var(--text);
+}
+
+.modal-sub{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:6px;
+  line-height:1.5;
+}
+
+.username-form,
+.edit-profile-form{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-top:20px;
+  text-align:left;
+}
+
+.modal-card h2{
+  font-family:var(--font-display);
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:-.01em;
+  color:var(--white);
+}
+
+/* ============ ADVANCED PROFILE POPUP ============ */
+
+.profile-card{
+  width:min(340px,88%);
+  padding:0;
+  overflow:visible;
+  text-align:left;
+}
+
+.profile-banner{
+  height:88px;
+  border-radius:20px 20px 0 0;
+  background-size:cover;
+  background-position:center;
+}
+
+.profile-card .modal-close{
+  background:rgba(0,0,0,.4);
+}
+
+.profile-card .modal-close:hover{
+  background:rgba(0,0,0,.6);
+}
+
+.profile-card-body{
+  padding:0 20px 22px;
+}
+
+.profile-avatar{
+  width:84px;
+  height:84px;
+  border-radius:50%;
+  object-fit:cover;
+  margin:-42px 0 12px;
+  background:var(--surface-2);
+  display:block;
+  border:5px solid var(--surface);
+  box-sizing:border-box;
+}
+
+.profile-namerow{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.profile-namerow h2{
+  margin:0;
+  font-size:19px;
+}
+
+.profile-pronouns{
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted-dim);
+}
+
+.profile-username{
+  font-size:12.5px;
+  color:var(--muted-dim);
+  margin-top:2px;
+}
+
+.profile-status-pill{
+  display:inline-block;
+  margin-top:10px;
+  padding:5px 10px;
+  border-radius:8px;
+  background:var(--surface-2);
+  font-size:12.5px;
+  color:var(--text);
+}
+
+.profile-divider{
+  height:1px;
+  background:var(--border);
+  margin:16px 0;
+}
+
+.profile-section + .profile-section{
+  margin-top:16px;
+}
+
+.profile-section-label{
+  display:block;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  color:var(--muted-dim);
+  margin-bottom:5px;
+}
+
+.profile-bio{
+  font-size:13.5px;
+  color:var(--text);
+  line-height:1.5;
+}
+
+.profile-joined{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:13px;
+  color:var(--text);
+}
+
+.profile-joined svg{
+  width:14px;
+  height:14px;
+  flex-shrink:0;
+  fill:none;
+  stroke:var(--muted-dim);
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.edit-profile-btn{
+  width:100%;
+  margin-top:20px;
+  height:40px;
+  padding:0 18px;
+  border-radius:10px;
+  border:1px solid var(--border-strong);
+  font-size:13.5px;
+  font-weight:600;
+  transition:background var(--speed) var(--curve);
+}
+
+.edit-profile-btn:hover{
+  background:var(--surface-2);
+}
+
+
+/* ---- Edit-profile preview + form ---- */
+
+.edit-profile-card{
+  width:min(380px,88%);
+}
+
+.edit-preview{
+  position:relative;
+  margin:18px -26px 0;
+}
+
+.edit-preview-banner{
+  height:64px;
+}
+
+.edit-preview-avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  object-fit:cover;
+  background:var(--surface-2);
+  border:4px solid var(--surface);
+  box-sizing:border-box;
+  position:absolute;
+  left:22px;
+  bottom:-16px;
+}
+
+.edit-preview-name{
+  position:absolute;
+  left:88px;
+  bottom:-14px;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:14px;
+  color:var(--white);
+}
+
+.edit-profile-form{
+  margin-top:34px;
+}
+
+.form-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.field-label{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.accent-picker{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:8px;
+}
+
+.accent-swatch{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:2px solid transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:transform var(--speed) var(--curve-spring), border-color var(--speed) var(--curve);
+}
+
+.accent-swatch:hover{
+  transform:scale(1.12);
+}
+
+.accent-swatch.selected{
+  border-color:var(--white);
+}
+
+.accent-check{
+  width:14px;
+  height:14px;
+  fill:none;
+  stroke:#fff;
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  opacity:0;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.5));
+  transition:opacity var(--speed) var(--curve);
+}
+
+.accent-swatch.selected .accent-check{
+  opacity:1;
+}
+
+
+/* ============ SCROLLBARS ============ */
+
+.chat-messages::-webkit-scrollbar,
+.channel-list::-webkit-scrollbar,
+.modal-card::-webkit-scrollbar{
+  width:8px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb,
+.channel-list::-webkit-scrollbar-thumb,
+.modal-card::-webkit-scrollbar-thumb{
+  background:var(--surface-3);
+  border-radius:8px;
+}
+
+.chat-messages::-webkit-scrollbar-track,
+.channel-list::-webkit-scrollbar-track,
+.modal-card::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+
+/* ============ RESPONSIVE ============ */
+
+@media (max-width:960px){
+
+  .chat-app{
+    flex-direction:column;
+  }
+
+  .chat-sidebar{
+    width:100%;
+    height:auto;
+    max-height:38%;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+
+  .chat-messages{
+    padding:16px 14px 6px;
+  }
+
+  .chat-composer{
+    margin:0 14px 14px;
+  }
+
+  .chat-topbar{
+    padding:0 14px;
+  }
+}
+
+/* =========================================================
+   chat-replies.css
+   Append this to chat.css. Styles for the reply-to-message
+   feature: hover reply button, quoted snippet on a message,
+   the "Replying to…" bar above the composer, and the
+   jump-to-message flash highlight.
+   ========================================================= */
+
+/* ---- hover reply button on each message row ---- */
+
+.message-row{
+  position:relative;
+}
+
+.message-reply-btn{
+  position:absolute;
+  top:-6px;
+  right:4px;
+  width:28px;
+  height:28px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  transform:translateY(2px);
+  transition:opacity var(--speed) var(--curve), transform var(--speed) var(--curve), background var(--speed) var(--curve), color var(--speed) var(--curve);
+  pointer-events:none;
+}
+
+.message-row:hover .message-reply-btn{
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+}
+
+.message-reply-btn:hover{
+  background:var(--surface-2);
+  color:var(--text);
+}
+
+.message-reply-btn svg{
+  width:14px;
+  height:14px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* ---- quoted snippet shown above a reply ---- */
+
+.message-reply-quote{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-bottom:4px;
+  padding-left:2px;
+  font-size:12.5px;
+  color:var(--muted-dim);
+  cursor:pointer;
+  max-width:100%;
+  overflow:hidden;
+}
+
+.message-reply-quote:hover{
+  color:var(--muted);
+}
+
+.message-reply-quote:hover .reply-quote-text{
+  text-decoration:underline;
+}
+
+.message-reply-quote svg{
+  width:13px;
+  height:13px;
+  flex-shrink:0;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.reply-quote-author{
+  font-weight:600;
+  color:var(--muted);
+  flex-shrink:0;
+}
+
+.reply-quote-text{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* ---- "Replying to…" bar above the composer ---- */
+
+.reply-preview{
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:0 20px -6px;
+  padding:9px 12px;
+  border-radius:12px 12px 0 0;
+  border:1px solid var(--border);
+  border-bottom:none;
+  background:var(--surface);
+  font-size:13px;
+  color:var(--muted);
+}
+
+.reply-preview-inner{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  overflow:hidden;
+}
+
+.reply-preview-inner svg{
+  width:14px;
+  height:14px;
+  flex-shrink:0;
+  fill:none;
+  stroke:var(--muted-dim);
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.reply-preview-text{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.reply-preview-text strong{
+  color:var(--text);
+  font-weight:600;
+}
+
+.reply-preview-cancel{
+  width:22px;
+  height:22px;
+  flex-shrink:0;
+  border-radius:6px;
+  color:var(--muted-dim);
+  font-size:16px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve);
+}
+
+.reply-preview-cancel:hover{
+  background:var(--surface-2);
+  color:var(--text);
+}
+
+/* ---- jump-to-message flash highlight ---- */
+
+.message-row.message-flash .message-text,
+.message-row.message-flash .message-reply-quote,
+.message-row.message-flash .message-author{
+  animation:message-flash-anim 1.2s var(--curve);
+}
+
+@keyframes message-flash-anim{
+  0%{ background-color:rgba(255,255,255,.14); }
+  100%{ background-color:transparent; }
+}
+
+@media (max-width:960px){
+  .reply-preview{
+    margin:0 14px -6px;
+  }
+}
+
+/* =========================================================
+   chat-friends.css
+   Append this to chat.css. Styles for the Friends tab: the
+   sidebar nav button + badge, the topbar sub-tabs, friend/
+   request rows, search, and the friend-action section shown
+   on a profile popup.
+   ========================================================= */
+
+/* ---- sidebar nav button ---- */
+
+.friends-nav-btn{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  height:38px;
+  padding:0 10px;
+  margin-bottom:10px;
+  border-radius:9px;
+  color:var(--muted);
+  font-size:14.5px;
+  font-weight:600;
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve), transform var(--speed) var(--curve-spring);
+}
+
+.friends-nav-btn:hover{
+  background:var(--surface);
+  color:var(--text);
+  transform:translateX(3px);
+}
+
+.friends-nav-btn.active{
+  background:var(--surface-2);
+  color:var(--white);
+}
+
+.friends-nav-btn svg{
+  width:17px;
+  height:17px;
+  flex-shrink:0;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.friends-nav-btn span:not(.friends-badge){
+  flex:1;
+  text-align:left;
+}
+
+.friends-badge{
+  min-width:18px;
+  height:18px;
+  padding:0 5px;
+  border-radius:9px;
+  background:var(--white);
+  color:var(--bg);
+  font-family:var(--font-mono);
+  font-size:10.5px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+/* ---- topbar sub-tabs (All Friends / Requests / Add Friend) ---- */
+
+.friends-tabs{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  margin-left:14px;
+  padding-left:14px;
+  border-left:1px solid var(--border);
+}
+
+.friends-tab{
+  height:30px;
+  padding:0 12px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve);
+}
+
+.friends-tab:hover{
+  color:var(--text);
+}
+
+.friends-tab.active{
+  background:var(--surface-2);
+  color:var(--white);
+}
+
+.friends-tab-add{
+  color:var(--white);
+}
+
+.friends-tab-badge{
+  min-width:16px;
+  height:16px;
+  padding:0 4px;
+  border-radius:8px;
+  background:var(--white);
+  color:var(--bg);
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ---- friends view body ---- */
+
+.friends-view{
+  flex:1;
+  overflow-y:auto;
+  padding:20px;
+}
+
+.friends-loading,
+.friends-empty{
+  margin:60px auto 0;
+  max-width:280px;
+  text-align:center;
+  color:var(--muted-dim);
+  font-size:13.5px;
+}
+
+.friends-section-label{
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  color:var(--muted-dim);
+  margin:0 4px 8px;
+}
+
+.friends-section-label + .friends-list{
+  margin-bottom:20px;
+}
+
+.friends-list{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.friend-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:9px 10px;
+  border-radius:10px;
+  transition:background var(--speed) var(--curve);
+}
+
+.friend-row:hover{
+  background:var(--surface);
+}
+
+.friend-row-avatar{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  object-fit:cover;
+  background:var(--surface-2);
+  flex-shrink:0;
+  cursor:pointer;
+}
+
+.friend-row-info{
+  min-width:0;
+  flex:1;
+  cursor:pointer;
+}
+
+.friend-row-name{
+  font-size:14px;
+  font-weight:600;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.friend-row-username{
+  font-size:12px;
+  color:var(--muted-dim);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.friend-row-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+
+.friend-row-action{
+  height:30px;
+  padding:0 12px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--text);
+  transition:background var(--speed) var(--curve), transform var(--speed) var(--curve-spring), opacity var(--speed) var(--curve);
+}
+
+.friend-row-action:hover{
+  background:var(--surface-2);
+  transform:translateY(-1px);
+}
+
+.friend-row-action:disabled{
+  opacity:.6;
+  transform:none;
+}
+
+.friend-row-accept,
+.friend-row-add{
+  background:var(--white);
+  color:var(--bg);
+  border-color:transparent;
+}
+
+.friend-row-accept:hover,
+.friend-row-add:hover{
+  background:var(--white);
+  opacity:.88;
+}
+
+.friend-row-status{
+  font-size:12.5px;
+  color:var(--muted-dim);
+  padding:0 4px;
+}
+
+/* ---- Add Friend search ---- */
+
+.friends-search-wrap{
+  margin-bottom:16px;
+}
+
+.friends-search-input{
+  width:100%;
+  height:44px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--text);
+  padding:0 14px;
+  font:inherit;
+  font-size:14px;
+  outline:none;
+  transition:border-color var(--speed) var(--curve);
+}
+
+.friends-search-input:focus{
+  border-color:var(--border-strong);
+}
+
+.friends-search-input::placeholder{
+  color:var(--muted-dim);
+}
+
+/* ---- friend-action section on a profile popup ---- */
+
+.profile-friend-section{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:12px;
+}
+
+.profile-friend-status{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--muted);
+}
+
+.friend-action-btn{
+  height:34px;
+  padding:0 14px;
+  border-radius:9px;
+  border:1px solid var(--border-strong);
+  font-size:13px;
+  font-weight:600;
+  color:var(--text);
+  transition:background var(--speed) var(--curve), transform var(--speed) var(--curve-spring), opacity var(--speed) var(--curve);
+}
+
+.friend-action-btn:hover{
+  background:var(--surface-2);
+  transform:translateY(-1px);
+}
+
+.friend-action-btn:disabled{
+  opacity:.6;
+  transform:none;
+}
+
+.friend-action-add,
+.friend-action-accept{
+  background:var(--white);
+  color:var(--bg);
+  border-color:transparent;
+}
+
+.friend-action-add:hover,
+.friend-action-accept:hover{
+  background:var(--white);
+  opacity:.88;
+}
+
+@media (max-width:960px){
+  .friends-tabs{
+    margin-left:8px;
+    padding-left:8px;
+    gap:2px;
+  }
+
+  .friends-tab{
+    padding:0 8px;
+    font-size:12px;
+  }
+
+  .friends-view{
+    padding:14px;
+  }
+}
+/* =========================================================
+   chat-dms.css
+   Append this to chat.css. Styles for: the Channels/Friends
+   sidebar tabs (replacing the old standalone Friends nav
+   button), the DM conversation list that swaps in for the
+   channel list under the Friends tab, and the small avatar
+   that appears in the topbar when a DM is open.
+   ========================================================= */
+
+/* ---- sidebar tabs (Channels / Friends) ---- */
+
+.sidebar-tabs{
+  display:flex;
+  gap:4px;
+  padding:0 4px 12px;
+}
+
+.sidebar-tab{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  height:32px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve);
+}
+
+.sidebar-tab:hover{
+  color:var(--text);
+}
+
+.sidebar-tab.active{
+  background:var(--surface-2);
+  color:var(--white);
+}
+
+.dm-unread-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--white);
+  flex-shrink:0;
+}
+
+/* ---- DM conversation list (sits where .channel-list normally is) ---- */
+
+.dm-list{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  flex:1;
+  overflow-y:auto;
+}
+
+.dm-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  height:44px;
+  padding:0 10px;
+  border-radius:9px;
+  color:var(--muted);
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve), transform var(--speed) var(--curve-spring);
+}
+
+.dm-item:hover{
+  background:var(--surface);
+  color:var(--text);
+  transform:translateX(3px);
+}
+
+.dm-item.active{
+  background:var(--surface-2);
+  color:var(--white);
+}
+
+.dm-item-avatar{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  object-fit:cover;
+  background:var(--surface-2);
+  flex-shrink:0;
+}
+
+.dm-item-name{
+  flex:1;
+  min-width:0;
+  text-align:left;
+  font-size:14px;
+  font-weight:600;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.dm-item-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--white);
+  flex-shrink:0;
+}
+
+.dm-list-empty{
+  margin:24px 10px 0;
+  color:var(--muted-dim);
+  font-size:12.5px;
+  line-height:1.5;
+}
+
+/* ---- topbar avatar (shown instead of the "#" hash when a DM is open) ---- */
+
+.chat-topbar-avatar{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  object-fit:cover;
+  background:var(--surface-2);
+  flex-shrink:0;
+}
+
+/* ---- "Message" action button (friend list row + profile popup) ---- */
+
+.friend-row-message,
+.friend-action-message{
+  background:var(--white);
+  color:var(--bg);
+  border-color:transparent;
+}
+
+.friend-row-message:hover,
+.friend-action-message:hover{
+  background:var(--white);
+  opacity:.88;
+}
+
+@media (max-width:960px){
+  .sidebar-tab{
+    font-size:12px;
+  }
+}

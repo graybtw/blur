@@ -1,0 +1,1836 @@
+/* =========================
+   MAIN WATCH APP
+========================= */
+
+@keyframes watchFade{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(10px);
+
+    }
+
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
+}
+
+
+
+
+/* =========================
+   TOP AREA
+========================= */
+
+
+
+.watch-search{
+
+    height:54px;
+
+    max-width:620px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:0 18px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:16px;
+
+    transition:.2s var(--curve);
+
+}
+
+
+
+.watch-search:hover{
+
+    border-color:var(--border-strong);
+
+}
+
+
+
+.watch-search:focus-within{
+
+    background:var(--surface-2);
+
+    border-color:white;
+
+}
+
+
+
+.search-icon{
+
+    opacity:.5;
+
+}
+
+
+
+.watch-search input{
+
+    flex:1;
+
+    background:none;
+
+    border:none;
+
+    outline:none;
+
+    color:white;
+
+    font-size:15px;
+
+}
+
+
+
+
+
+/* =========================
+   WATCH TABS
+========================= */
+
+.watch-tab{
+
+    padding:10px 20px;
+
+    border-radius:999px;
+
+    border:1px solid var(--border);
+
+    color:var(--muted);
+
+    background:transparent;
+
+    transition:.2s var(--curve);
+
+}
+
+
+
+.watch-tab:hover{
+
+    background:var(--surface);
+
+    color:white;
+
+}
+
+
+
+.watch-tab.active{
+
+    background:white;
+
+    color:black;
+
+}
+
+
+
+
+
+/* =========================
+   HERO
+========================= */
+
+
+.watch-hero{
+
+    height:460px;
+
+    margin-top:28px;
+
+    position:relative;
+
+    overflow:hidden;
+
+    border-radius:28px;
+
+    border:1px solid var(--border);
+
+    background:var(--surface);
+
+}
+
+
+
+.hero-background{
+
+    position:absolute;
+
+    inset:0;
+
+}
+
+
+
+.hero-background img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+}
+
+
+
+.hero-overlay{
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+
+    linear-gradient(
+
+        90deg,
+
+        rgba(0,0,0,.9),
+
+        rgba(0,0,0,.5),
+
+        rgba(0,0,0,.25)
+
+    );
+
+}
+
+
+
+.hero-content{
+
+    position:relative;
+
+    z-index:2;
+
+    padding:52px;
+
+    width:min(900px,75%);
+
+}
+
+
+
+.hero-content span{
+
+    display:inline-flex;
+
+    padding:7px 14px;
+
+    border-radius:999px;
+
+    background:rgba(255,255,255,.12);
+
+    backdrop-filter:blur(15px);
+
+    font-size:12px;
+
+    margin-bottom:18px;
+
+}
+
+
+
+.hero-content h1{
+
+    font-family:var(--font-display);
+
+    font-size:56px;
+
+    letter-spacing:-.04em;
+
+    line-height:1;
+
+}
+
+
+
+.hero-content p{
+
+    margin-top:18px;
+
+    color:#c8c8c8;
+
+    line-height:1.6;
+
+}
+
+
+
+
+
+#watchHeroMeta{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-top:18px;
+
+}
+
+
+
+#watchHeroMeta span{
+
+    margin:0;
+
+    padding:6px 12px;
+
+    background:rgba(255,255,255,.08);
+
+}
+
+
+
+
+
+.hero-actions{
+
+    display:flex;
+
+    gap:12px;
+
+    margin-top:26px;
+
+}
+
+
+
+.hero-actions button{
+
+    height:48px;
+
+    padding:0 22px;
+
+    border-radius:14px;
+
+    font-weight:600;
+
+}
+
+
+
+.hero-watch-button{
+
+    background:white;
+
+    color:black;
+
+}
+
+
+
+.hero-info-button{
+
+    background:rgba(255,255,255,.1);
+
+    border:1px solid rgba(255,255,255,.15);
+
+}
+
+
+
+
+
+/* =========================
+   ROWS
+========================= */
+
+
+.watch-row{
+
+    margin-top:42px;
+
+}
+
+
+
+.row-title h2{
+
+    font-family:var(--font-display);
+
+    font-size:28px;
+
+    letter-spacing:-.03em;
+
+    margin-bottom:16px;
+
+}
+
+
+
+.row-scroll::-webkit-scrollbar{
+
+    display:none;
+
+}
+
+
+
+
+
+/* =========================
+   MOVIE CARDS
+========================= */
+
+
+
+.movie-card:hover{
+
+    transform:
+
+    translateY(-8px)
+
+    scale(1.04);
+
+}
+
+
+
+.movie-card img{
+
+    width:100%;
+
+    height:285px;
+
+    object-fit:cover;
+
+    border-radius:20px;
+
+    border:1px solid var(--border);
+
+    display:block;
+
+}
+
+
+
+.movie-card:hover img{
+
+    border-color:var(--border-strong);
+
+}
+
+
+
+
+
+.movie-card-info{
+
+    padding:12px 4px;
+
+}
+
+
+
+.movie-card-info h3{
+
+    font-size:15px;
+
+    font-weight:600;
+
+    line-height:1.3;
+
+    height:39px;
+
+    display:-webkit-box;
+
+    -webkit-line-clamp:2;
+
+    -webkit-box-orient:vertical;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+
+
+.movie-card-info p{
+
+    margin-top:5px;
+
+    color:var(--muted);
+
+    font-size:13px;
+
+}
+
+
+.movie-card{
+    flex:0 0 180px;
+    cursor:pointer;
+    transition:transform .25s var(--curve-spring);
+}
+
+
+
+
+/* =========================
+   MOBILE
+========================= */
+
+
+@media(max-width:900px){
+
+
+    .watch-app{
+
+        padding:20px;
+
+    }
+
+
+
+    .watch-hero{
+
+        height:400px;
+
+    }
+
+
+
+    .hero-content{
+
+        padding:30px;
+
+    }
+
+
+
+    .hero-content h1{
+
+        font-size:38px;
+
+    }
+
+
+
+    .movie-card{
+
+        width:150px;
+
+    }
+
+
+
+    .movie-card img{
+
+        height:225px;
+
+    }
+
+
+}
+
+/* ==========================================================================
+   WATCH PANEL FIX
+   ========================================================================== */
+
+
+.watch-panel.active{
+
+    width:100%;
+
+    height:100%;
+
+}
+
+
+
+.watch-app{
+
+    width:100%;
+
+    height:100%;
+
+    overflow-y:auto;
+
+    overflow-x:hidden;
+
+    padding:36px;
+
+    animation:watchFade .35s ease;
+
+}
+
+
+
+
+/* keep everything inside */
+
+.watch-rows{
+
+    width:100%;
+
+    overflow:hidden;
+
+}
+
+
+
+
+.watch-row{
+
+    width:100%;
+
+    overflow:hidden;
+
+}
+
+
+
+.movie-card img{
+
+    width:190px;
+
+    height:285px;
+
+}
+
+
+
+
+
+/* scrollbar */
+
+.row-scroll::-webkit-scrollbar{
+
+    height:6px;
+
+}
+
+
+.row-scroll::-webkit-scrollbar-thumb{
+
+    background:rgba(255,255,255,.15);
+
+    border-radius:20px;
+
+}
+
+.watch-hero{
+
+    flex-shrink:0;
+
+}
+
+
+
+.watch-rows{
+
+    margin-top:10px;
+
+}
+
+.panel.active{
+
+    display:flex;
+
+}
+
+/* ==========================================================================
+   DETAILS MODAL
+   ========================================================================== */
+
+
+.watch-modal{
+
+    position:fixed;
+
+    inset:0;
+
+    background:
+
+    rgba(0,0,0,.75);
+
+    backdrop-filter:blur(15px);
+
+    z-index:100;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:40px;
+
+}
+
+
+
+.watch-modal.hidden{
+
+    display:none;
+
+}
+
+
+
+.watch-details{
+
+    width:min(900px,95%);
+
+    max-height:85vh;
+
+    overflow:hidden;
+
+    border-radius:28px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    position:relative;
+
+}
+
+
+
+.watch-modal-close{
+
+    position:absolute;
+
+    right:20px;
+
+    top:20px;
+
+    z-index:5;
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    background:rgba(0,0,0,.5);
+
+}
+
+/* =========================
+   DETAILS CLOSE BUTTON HOVER
+========================= */
+
+.watch-modal-close{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:white;
+
+    border:1px solid rgba(255,255,255,.15);
+
+    cursor:pointer;
+
+    transition:
+        transform .2s ease,
+        background .2s ease,
+        color .2s ease,
+        border .2s ease;
+
+}
+
+
+.watch-modal-close:hover{
+
+    background:white;
+
+    color:black;
+
+    border-color:white;
+
+    transform:scale(1.08);
+
+}
+
+
+
+.details-backdrop{
+
+    height:320px;
+
+    position:relative;
+
+}
+
+
+
+.details-backdrop img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+}
+
+
+
+.details-backdrop div{
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+
+    linear-gradient(
+
+    transparent,
+
+    var(--surface)
+
+    );
+
+}
+
+
+
+.details-content{
+
+    display:flex;
+
+    gap:30px;
+
+    padding:0 40px 40px;
+
+    margin-top:-80px;
+
+    position:relative;
+
+}
+
+
+
+.details-poster{
+
+    width:180px;
+
+    height:270px;
+
+    object-fit:cover;
+
+    border-radius:18px;
+
+}
+
+
+
+.details-info h1{
+
+    font-size:44px;
+
+    font-family:var(--font-display);
+
+}
+
+
+
+#detailsMeta{
+
+    display:flex;
+
+    gap:10px;
+
+    margin:15px 0;
+
+}
+
+
+
+#detailsMeta span{
+
+    background:var(--surface-2);
+
+    padding:7px 12px;
+
+    border-radius:999px;
+
+}
+
+
+
+.details-info p{
+
+    color:var(--muted);
+
+    line-height:1.6;
+
+}
+
+/* ==========================================================================
+   PLAYER
+   ========================================================================== */
+
+
+.player-modal{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:200;
+
+    background:
+
+    rgba(0,0,0,.85);
+
+    backdrop-filter:blur(18px);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+
+
+.player-modal.hidden{
+
+    display:none;
+
+}
+
+
+
+.player-box{
+
+    width:min(1100px,95%);
+
+    background:#050505;
+
+    border-radius:24px;
+
+    overflow:hidden;
+
+    border:1px solid var(--border);
+
+}
+
+
+
+.player-close{
+
+    position:absolute;
+
+    margin:20px;
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.1);
+
+    z-index:3;
+
+}
+
+
+
+.player-header{
+
+    padding:20px 28px;
+
+}
+
+
+
+.player-header h2{
+
+    font-family:var(--font-display);
+
+    font-size:26px;
+
+}
+
+
+
+.player-frame{
+
+    aspect-ratio:16/9;
+
+}
+
+
+
+.player-frame iframe{
+
+    width:100%;
+
+    height:100%;
+
+    border:0;
+
+}
+
+.details-buttons{
+
+    display:flex;
+
+    gap:12px;
+
+    margin-top:20px;
+
+}
+
+
+
+.details-trailer{
+
+    padding:0 22px;
+
+    border-radius:14px;
+
+    background:var(--surface-2);
+
+    border:1px solid var(--border);
+
+}
+
+
+.row-scroll::-webkit-scrollbar{
+
+height:8px;
+
+}
+
+/* ==========================================================================
+   WATCH POLISH FIXES
+   ========================================================================== */
+
+
+/* =========================
+   PLAYER HEADER FIX
+========================= */
+
+
+.player-box{
+
+    position:relative;
+
+}
+
+
+.player-close{
+
+    position:absolute;
+
+    top:18px;
+
+    right:18px;
+
+    margin:0;
+
+    width:42px;
+
+    height:42px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.12);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:.2s ease;
+
+}
+
+
+
+.player-close:hover{
+
+    background:white;
+
+    color:black;
+
+    transform:scale(1.08);
+
+}
+
+
+
+.player-header{
+
+    padding:22px 80px 22px 28px;
+
+    display:flex;
+
+    align-items:center;
+
+    min-height:70px;
+
+}
+
+
+
+
+
+.provider-selector{
+
+    margin-top:26px;
+    position:relative;
+    width:320px;
+
+}
+
+.provider-label{
+
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:8px;
+    font-weight:600;
+
+}
+
+.provider-current{
+
+    width:100%;
+    height:52px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 18px;
+
+    border-radius:16px;
+
+    background:
+        rgba(255,255,255,.06);
+
+    border:
+        1px solid
+        rgba(255,255,255,.12);
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:.25s ease;
+
+}
+
+.provider-current:hover{
+
+    border-color:white;
+    background:
+        rgba(255,255,255,.09);
+
+}
+
+.provider-arrow{
+
+    opacity:.7;
+    transition:.25s;
+
+}
+
+.provider-dropdown{
+
+    position:absolute;
+
+    bottom:calc(100% + 10px);
+    top:auto;
+
+    width:100%;
+
+    background:#111;
+
+    border:
+        1px solid
+        rgba(255,255,255,.12);
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    opacity:0;
+    visibility:hidden;
+
+    transform:
+        translateY(-8px);
+
+    transition:.22s ease;
+
+    z-index:30;
+
+}
+
+.provider-dropdown.open{
+
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+
+}
+
+.provider-item{
+
+    width:100%;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:14px 18px;
+
+    background:none;
+
+    color:white;
+
+    border:none;
+
+    cursor:pointer;
+
+    transition:.18s;
+
+}
+
+.provider-item:hover{
+
+    background:
+        rgba(255,255,255,.08);
+
+}
+
+.provider-item.selected{
+
+    background:white;
+    color:black;
+
+}
+
+.details-watch{
+
+    margin-top:24px;
+
+    height:48px;
+
+    padding:0 28px;
+
+    border-radius:14px;
+
+    background:white;
+
+    color:black;
+
+    font-weight:700;
+
+    border:none;
+
+    cursor:pointer;
+
+    transition:.2s ease;
+
+}
+
+
+
+.details-watch:hover{
+
+    transform:scale(1.04);
+
+}
+
+/* ==========================================================================
+   WATCH FINAL POLISH
+   ========================================================================== */
+
+
+/* =========================
+   SEARCH + TABS INLINE
+========================= */
+
+.watch-top{
+
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+
+}
+
+
+.watch-tabs{
+
+    display:flex;
+    gap:10px;
+    flex-shrink:0;
+
+}
+
+
+.watch-search{
+
+    flex:1;
+    max-width:620px;
+
+}
+
+
+
+/* =========================
+   HERO BUTTON HOVER
+========================= */
+
+
+.hero-actions button{
+
+    cursor:pointer;
+
+    transition:
+    transform .2s ease,
+    background .2s ease,
+    color .2s ease,
+    border .2s ease;
+
+}
+
+
+
+.hero-watch-button:hover{
+
+    transform:translateY(-3px) scale(1.03);
+
+    background:#e8e8e8;
+
+}
+
+
+
+.hero-info-button:hover{
+
+    transform:translateY(-3px) scale(1.03);
+
+    background:rgba(255,255,255,.2);
+
+    border-color:rgba(255,255,255,.35);
+
+}
+
+
+
+
+/* =========================
+   WATCH TAB ANIMATION
+========================= */
+
+
+.watch-tab{
+
+    cursor:pointer;
+
+    transition:
+    transform .2s ease,
+    background .2s ease,
+    color .2s ease;
+
+}
+
+
+
+.watch-tab:hover{
+
+    transform:translateY(-2px);
+
+}
+
+
+
+.watch-tab.active:hover{
+
+    background:white;
+
+    color:black;
+
+    transform:translateY(-2px);
+
+}
+
+
+
+
+/* =========================
+   PROVIDER CARDS CLEANUP
+========================= */
+
+
+#providerList{
+
+    display:flex;
+
+    gap:12px;
+
+    flex-wrap:wrap;
+
+    margin-top:28px;
+
+}
+
+.provider-button{
+
+    min-width:170px;
+
+    height:64px;
+
+    padding:0 18px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:flex-start;
+
+    gap:12px;
+
+    border-radius:16px;
+
+    background:
+
+    linear-gradient(
+        145deg,
+        rgba(255,255,255,.08),
+        rgba(255,255,255,.03)
+    );
+
+    border:1px solid rgba(255,255,255,.12);
+
+    backdrop-filter:blur(10px);
+
+}
+
+
+
+.provider-button img{
+
+    width:36px;
+
+    height:36px;
+
+    border-radius:10px;
+
+    background:white;
+
+    padding:4px;
+
+    margin:0;
+
+}
+
+
+
+.provider-button:hover{
+
+    transform:translateY(-5px);
+
+    background:white;
+
+    color:black;
+
+    border-color:white;
+
+}
+
+
+
+/* =========================
+   PLAYER CLOSE BUTTON FIX
+========================= */
+
+
+.player-box{
+
+    position:relative;
+
+}
+
+
+
+.player-header{
+
+    position:relative;
+
+    z-index:1;
+
+    padding-right:90px;
+
+}
+
+
+
+/* =========================
+   BETTER PLAYER TITLE
+========================= */
+
+
+.player-header h2{
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+    max-width:80%;
+
+}
+
+
+
+
+/* =========================
+   MOBILE FIX
+========================= */
+
+
+@media(max-width:900px){
+
+
+    .watch-top{
+
+        flex-direction:column;
+
+        align-items:stretch;
+
+    }
+
+
+    .watch-tabs{
+
+        width:100%;
+
+    }
+
+
+    .watch-tab{
+
+        flex:1;
+
+        text-align:center;
+
+    }
+
+
+}
+
+/* =========================
+   ROW ARROWS
+========================= */
+
+
+.row-wrapper{
+
+    position:relative;
+
+}
+
+
+
+.row-scroll{
+
+    display:flex;
+
+    gap:18px;
+
+    overflow-x:auto;
+
+    scroll-behavior:smooth;
+
+    padding:10px 0 20px;
+
+}
+
+
+
+.row-arrow{
+
+    position:absolute;
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+    z-index:5;
+
+    width:46px;
+
+    height:70px;
+
+    border-radius:14px;
+
+    background:rgba(0,0,0,.65);
+
+    backdrop-filter:blur(12px);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    color:white;
+
+    font-size:38px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    cursor:pointer;
+
+    opacity:0;
+
+    transition:.25s ease;
+
+}
+
+
+
+.row-wrapper:hover .row-arrow{
+
+    opacity:1;
+
+}
+
+
+
+.row-arrow:hover{
+
+    background:white;
+
+    color:black;
+
+    transform:
+
+    translateY(-50%)
+
+    scale(1.1);
+
+}
+
+
+
+.row-arrow.left{
+
+    left:10px;
+
+}
+
+
+
+.row-arrow.right{
+
+    right:10px;
+
+}
+
+.search-icon{
+
+    width:20px;
+    height:20px;
+    opacity:.6;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+}
+
+
+.search-icon img{
+
+    width:20px;
+    height:20px;
+    object-fit:contain;
+    filter: invert(1);
+    opacity:.7;
+
+}
+
+.poster-wrap{
+
+    position:relative;
+
+}
+
+
+.quality-badge{
+
+    position:absolute;
+
+    top:12px;
+
+    left:12px;
+
+    padding:5px 9px;
+
+    border-radius:8px;
+
+    background:rgba(255,255,255,.9);
+
+    color:black;
+
+    font-size:11px;
+
+    font-weight:800;
+
+    backdrop-filter:blur(10px);
+
+}
+
+.player-fullscreen,
+.player-close{
+
+    position:absolute;
+
+    top:16px;
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:rgba(255,255,255,.12);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:.2s ease;
+
+    z-index:20;
+
+}
+
+
+.player-fullscreen{
+
+    right:70px;
+
+}
+
+
+.player-close{
+
+    right:16px;
+
+}
+
+
+.player-fullscreen:hover,
+.player-close:hover{
+
+    background:white;
+
+    color:black;
+
+    transform:scale(1.08);
+
+}
+
+.hero-dots{
+
+    position:absolute;
+
+    bottom:24px;
+
+    right:30px;
+
+    display:flex;
+
+    gap:10px;
+
+    z-index:10;
+
+    align-items:center;
+
+}
+
+
+.hero-dot{
+
+    width:8px;
+
+    height:8px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.45);
+
+    border:none;
+
+    cursor:pointer;
+
+    transition:.25s ease;
+
+}
+
+
+.hero-dot.active{
+
+    width:28px;
+
+    border-radius:20px;
+
+    background:white;
+
+}
+
+
+.hero-dot:hover{
+
+    transform:scale(1.2);
+
+    background:white;
+
+}

@@ -1,0 +1,274 @@
+/* ============ THEME SYSTEM ============ */
+/* Load this file AFTER style.css. Themes are applied by setting
+   data-theme="<id>" on the <html> element (see settings.js). */
+
+:root{
+  --accent:#ffffff;
+  --accent-glow:rgba(255,255,255,.14);
+}
+
+/* smooth recolor when switching themes */
+body,
+.sidebar,
+.settings-group,
+.action-card,
+.action-primary,
+main::before,
+.legal-toggle{
+  transition:background-color .35s var(--curve),
+             border-color .35s var(--curve);
+}
+
+
+/* ---- presets ---- */
+/* carbon = default, already defined by :root in style.css */
+
+html[data-theme="ember"]{
+  --bg:#0d0805;
+  --sidebar:#120a06;
+  --surface:#170f09;
+  --surface-2:#1f150c;
+  --surface-3:#281c10;
+  --accent:#e8a35c;
+  --accent-glow:rgba(232,163,92,.18);
+}
+
+
+html[data-theme="verdant"]{
+  --bg:#070c08;
+  --sidebar:#0a100b;
+  --surface:#0f1810;
+  --surface-2:#152016;
+  --surface-3:#1c2b1e;
+  --accent:#4fbf6b;
+  --accent-glow:rgba(79,191,107,.16);
+}
+
+
+html[data-theme="mint"]{
+  --bg:#06110e;
+  --sidebar:#091916;
+  --surface:#0d211c;
+  --surface-2:#123027;
+  --surface-3:#194035;
+  --accent:#5ee6b3;
+  --accent-glow:rgba(94,230,179,.18);
+}
+
+
+html[data-theme="vapor"]{
+  --bg:#0b0612;
+  --sidebar:#10091a;
+  --surface:#171024;
+  --surface-2:#211436;
+  --surface-3:#2c1948;
+  --accent:#a855f7;
+  --accent-glow:rgba(168,85,247,.18);
+}
+
+
+html[data-theme="ocean"]{
+  --bg:#050b12;
+  --sidebar:#08121d;
+  --surface:#0d1b2a;
+  --surface-2:#12283c;
+  --surface-3:#193650;
+  --accent:#38bdf8;
+  --accent-glow:rgba(56,189,248,.18);
+}
+
+
+html[data-theme="rose"]{
+  --bg:#12070c;
+  --sidebar:#180a11;
+  --surface:#211018;
+  --surface-2:#301522;
+  --surface-3:#421c2d;
+  --accent:#fb7185;
+  --accent-glow:rgba(251,113,133,.18);
+}
+
+
+html[data-theme="slate"]{
+  --bg:#090909;
+  --sidebar:#111111;
+  --surface:#181818;
+  --surface-2:#242424;
+  --surface-3:#303030;
+  --accent:#a3a3a3;
+  --accent-glow:rgba(163,163,163,.15);
+}
+
+/* ---- wire the accent into existing elements ---- */
+
+.mark{
+  background:var(--accent);
+}
+
+.mark::before{
+  background:var(--accent);
+}
+
+nav a.active::before,
+.bottom a.active::before{
+  background:var(--accent);
+}
+
+.switch.on{
+  background:var(--accent);
+  border-color:var(--accent);
+}
+
+.settings-tabs button.active::after{
+  background:var(--accent);
+}
+
+main::before{
+  background:radial-gradient(700px circle at 12% 26%, var(--accent-glow), transparent 62%);
+}
+
+
+/* ============ THEME GRID (settings > appearance) ============ */
+
+.theme-section-caption{
+  font-size:12.5px;
+  color:var(--muted);
+  padding:0 18px 16px;
+  margin-top:-8px;
+}
+
+.theme-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:0 18px 18px;
+}
+
+.theme-card{
+  position:relative;
+  border-radius:14px;
+  padding:14px;
+  background:var(--surface-2);
+  border:1.5px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  align-items:flex-start;
+  text-align:left;
+  cursor:pointer;
+  transition:border-color var(--speed) var(--curve),
+             transform var(--speed) var(--curve-spring),
+             background var(--speed) var(--curve);
+}
+
+.theme-card:hover{
+  border-color:var(--border-strong);
+  transform:translateY(-1px);
+}
+
+.theme-card.active{
+  border-color:var(--text);
+}
+
+.theme-card.active::after{
+  content:'';
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:var(--text);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-size:9px 9px;
+  background-repeat:no-repeat;
+  background-position:center;
+}
+
+.theme-dots{
+  display:flex;
+  gap:5px;
+}
+
+.theme-dots span{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.theme-card strong{
+  display:block;
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--text);
+}
+
+.theme-card small{
+  display:block;
+  font-size:11.5px;
+  color:var(--muted-dim);
+  margin-top:2px;
+}
+
+.theme-card.create{
+  background:transparent;
+  border-style:dashed;
+  align-items:center;
+  justify-content:center;
+  flex-direction:row;
+  gap:8px;
+  min-height:78px;
+}
+
+.theme-card.create:hover{
+  background:var(--surface);
+  border-color:var(--border-strong);
+}
+
+.theme-card.create svg{
+  width:15px;
+  height:15px;
+  stroke:var(--muted);
+  fill:none;
+  stroke-width:2;
+  stroke-linecap:round;
+}
+
+.theme-card.create span{
+  font-size:13px;
+  color:var(--muted);
+  font-weight:500;
+}
+
+.theme-card .remove-theme{
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:var(--surface-3);
+  border:1px solid var(--border-strong);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1;
+}
+
+.theme-card:hover .remove-theme{
+  display:flex;
+}
+
+.theme-card .remove-theme:hover{
+  color:var(--text);
+  background:var(--surface-3);
+}
+
+@media (max-width:960px){
+  .theme-grid{
+    grid-template-columns:1fr;
+  }
+}

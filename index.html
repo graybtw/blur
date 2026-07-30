@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>blur</title>
+
+<link rel="stylesheet" href="main.css">
+<link rel="stylesheet" href="legal.css">
+<link rel="stylesheet" href="settings.css">
+<link rel="stylesheet" href="watch.css">
+<link rel="stylesheet" href="themes.css">
+<link rel="stylesheet" href="proxy.css">
+<link rel="stylesheet" href="ai.css">
+<link rel="stylesheet" href="games.css">
+<link rel="stylesheet" href="chat/chat.css">
+<link rel="stylesheet" href="music.css">
+<link rel="stylesheet" href="dev/dev.css">
+
+</head>
+
+<body>
+
+<div id="beta-toast" class="beta-toast">
+    <div class="beta-toast-icon">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-2.96L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        </svg>
+    </div>
+
+    <div class="beta-toast-copy">
+        <strong>Early Beta</strong>
+        <span>Thanks for testing Blur — bugs and changes are expected. ❤️</span>
+    </div>
+
+    <button id="beta-toast-close" class="beta-toast-close" aria-label="Dismiss">
+        <svg viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </button>
+</div>
+
+<!-- ===== changelog popup ===== -->
+<div id="changelog-overlay" class="changelog-overlay">
+    <div class="changelog-modal">
+
+        <div class="changelog-header">
+            <h2>What's New</h2>
+            <span id="changelog-version-tag" class="changelog-version-tag">v1.0.0</span>
+            <button id="changelog-close" class="changelog-close" aria-label="Close">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+
+        <div id="changelog-body" class="changelog-body"></div>
+
+        <p id="changelog-devnote-text" class="changelog-devnote"></p>
+
+    </div>
+</div>
+
+<aside class="sidebar">
+
+
+    <div class="side-content">
+
+
+        <div class="brand">
+
+            <div class="mark">
+                <span></span>
+            </div>
+
+            <span class="brand-name">
+                Blur
+            </span>
+
+        </div>
+
+
+
+        <nav>
+
+
+            <a class="active" data-tab="home">
+                <div class="icon-slot">
+                    <img src="assets/icons/home.png" alt="">
+                </div>
+                <span>Home</span>
+            </a>
+
+
+            <a data-tab="watch">
+                <div class="icon-slot">
+                    <img src="assets/icons/watch.png" alt="">
+                </div>
+                <span>Watch</span>
+            </a>
+
+
+            <a data-tab="games">
+                <div class="icon-slot">
+                    <img src="assets/icons/games.png" alt="">
+                </div>
+                <span>Games</span>
+            </a>
+
+            <a data-tab="proxy">
+    <div class="icon-slot">
+        <img src="assets/icons/browser.png" alt="">
+    </div>
+    <span>Browser</span>
+</a>
+
+
+<a data-tab="ai">
+    <div class="icon-slot">
+        <img src="assets/icons/ai.png" alt="">
+    </div>
+    <span>AI</span>
+</a>
+
+
+            <a data-tab="chat">
+                <div class="icon-slot">
+                    <img src="assets/icons/chat.png" alt="">
+                </div>
+                <span>Chat</span>
+            </a>
+
+
+            <a data-tab="music">
+                <div class="icon-slot">
+                    <img src="assets/icons/music.png" alt="">
+                </div>
+                <span>Music</span>
+            </a>
+
+
+        </nav>
+
+
+    </div>
+
+
+
+
+    <div class="bottom">
+
+        <a data-tab="settings">
+            <div class="icon-slot">
+                <img src="assets/icons/settings.png" alt="">
+            </div>
+            <span>
+                Settings
+            </span>
+        </a>
+
+<div class="legal-container">
+
+    <a class="legal-toggle" data-tab="legal">
+        <div class="icon-slot">
+            <img src="assets/icons/legal.png" alt="">
+        </div>
+
+        <span>Legal</span>
+    </a>
+
+
+    <div class="legal-row">
+        <a data-tab="legal">Legal</a>
+        <span class="legal-dot">&middot;</span>
+        <a data-tab="dmca">DMCA</a>
+        <span class="legal-dot">&middot;</span>
+        <a data-tab="privacy">Privacy</a>
+    </div>
+
+</div>
+
+    </div>
+
+
+</aside>
+
+
+
+
+
+<main>
+
+
+<section class="panel home active" data-panel="home">
+
+
+    <div class="text">
+
+        <h1>
+            blur
+        </h1>
+
+<p id="home-tagline" class="home-tagline">
+    tung tung sahur is so tuff
+</p>
+
+
+        <div class="actions">
+
+            <a class="action-primary" data-goto="games">
+                <div class="icon">
+                    <img src="assets/icons/games.png" alt="">
+                </div>
+                <div class="copy">
+                    <strong>Start with Games</strong>
+                    <span>Jump into something quick</span>
+                </div>
+            </a>
+
+            <div class="action-grid">
+
+                <a class="action-card" data-goto="watch">
+                    <img src="assets/icons/watch.png" alt="">
+                    <div>
+                        <strong>Watch</strong>
+                        <span>Movies &amp; shows</span>
+                    </div>
+                </a>
+
+                <a class="action-card" data-goto="ai">
+                    <img src="assets/icons/ai.png" alt="">
+                    <div>
+                        <strong>AI</strong>
+                        <span>Ask anything</span>
+                    </div>
+                </a>
+
+                <a class="action-card" data-goto="chat">
+                    <img src="assets/icons/chat.png" alt="">
+                    <div>
+                        <strong>Chat</strong>
+                        <span>Say what's up</span>
+                    </div>
+                </a>
+
+                <a class="action-card" data-goto="music">
+                    <img src="assets/icons/music.png" alt="">
+                    <div>
+                        <strong>Music</strong>
+                        <span>Press play</span>
+                    </div>
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+<div class="preview-wrap">
+
+    <iframe 
+        src="preview.html"
+        class="preview-frame">
+    </iframe>
+
+</div>
+
+
+</section>
+
+
+<!-- ===== simple content tabs ===== -->
+
+<section class="panel watch-panel" data-panel="watch">
+
+</section>
+
+<section class="panel proxy-panel" data-panel="proxy">
+
+</section>
+
+<section class="panel games-panel" data-panel="games">
+ 
+</section>
+
+<section class="panel music-panel" data-panel="music">
+ 
+  <div class="music-app">
+ 
+    <div class="music-sidebar">
+ 
+      <div class="music-sidebar-brand">Blur Music</div>
+ 
+      <nav class="music-nav">
+ 
+        <button class="music-nav-btn active" data-view="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span>Search</span>
+        </button>
+ 
+        <button class="music-nav-btn" data-view="playlists">
+          <svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+          <span>Playlists</span>
+        </button>
+ 
+        <button class="music-nav-btn" data-view="queue">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          <span>Up Next</span>
+          <span id="music-queue-badge" class="music-nav-badge" hidden>0</span>
+        </button>
+ 
+        <button class="music-nav-btn" data-view="history">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
+          <span>Recently Played</span>
+        </button>
+ 
+      </nav>
+ 
+      <div class="music-sidebar-footer">
+        <div class="music-mode-row">
+          <button id="music-shuffle" class="music-mode-btn" aria-label="Shuffle" title="Shuffle">
+            <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+          </button>
+          <button id="music-repeat" class="music-mode-btn" aria-label="Repeat" title="Repeat" data-mode="off">
+            <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+            <span class="music-repeat-one" hidden>1</span>
+          </button>
+          <button id="music-lyrics-btn-sidebar" class="music-mode-btn js-toggle-np" aria-label="Lyrics" title="Lyrics">
+            <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+          </button>
+        </div>
+      </div>
+ 
+    </div>
+ 
+    <div class="music-main">
+ 
+    <div class="music-content">
+ 
+      <div class="music-views-wrap">
+ 
+      <div class="music-view active" data-view-panel="search">
+ 
+        <div class="music-header">
+          <h1 class="music-title-heading">Search</h1>
+ 
+          <div class="music-search-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input id="music-search" class="music-search-input" placeholder="Search songs, albums, artists..." autocomplete="off">
+            <div id="music-search-spinner" class="music-search-spinner" hidden></div>
+          </div>
+ 
+          <div class="music-filters">
+            <button class="music-filter active" data-filter="songs">Songs</button>
+            <button class="music-filter" data-filter="albums">Albums</button>
+            <button class="music-filter" data-filter="artists">Artists</button>
+          </div>
+        </div>
+ 
+        <div id="music-results" class="music-results">
+          <p class="music-empty">Search for a song to get started.</p>
+        </div>
+ 
+      </div>
+
+      <div class="music-view" data-view-panel="playlists">
+ 
+        <div class="music-header">
+          <h1 class="music-title-heading">Playlists</h1>
+          <div class="music-new-playlist-row">
+            <input id="music-new-playlist-input" class="music-new-playlist-input" type="text" placeholder="Create new playlist..." autocomplete="off">
+            <button id="music-new-playlist-btn" class="music-new-playlist-btn">Create</button>
+          </div>
+        </div>
+
+        <div id="music-playlists-grid-view">
+          <div id="music-playlists-grid" class="playlists-grid">
+            <p class="music-empty">No playlists yet. Create one above to get started.</p>
+          </div>
+        </div>
+
+        <div id="music-playlist-detail-view" hidden>
+          <div class="music-header">
+            <div class="music-playlist-detail-header">
+              <button id="music-playlist-back" class="music-playlist-back" aria-label="Back to playlists">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <div class="music-playlist-detail-heading">
+                <h1 id="music-playlist-detail-title">Playlist</h1>
+                <p id="music-playlist-detail-count">0 tracks</p>
+              </div>
+              <div class="music-playlist-detail-actions">
+                <button id="music-playlist-play-all" class="music-playlist-action-btn primary">
+                  <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                  <span>Play</span>
+                </button>
+                <button id="music-playlist-delete" class="music-playlist-action-btn danger" title="Delete playlist">
+                  <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="music-playlist-detail-list" class="music-results">
+            <p class="music-empty">This playlist is empty.</p>
+          </div>
+        </div>
+
+      </div>
+ 
+      <div class="music-view" data-view-panel="queue">
+ 
+        <div class="music-header">
+          <h1 class="music-title-heading">Up Next</h1>
+        </div>
+ 
+        <div id="music-queue-list" class="music-results">
+          <p class="music-empty">Nothing queued. Play a song and the rest of your results will line up here.</p>
+        </div>
+ 
+        <div class="music-related-section">
+          <h2 class="music-section-label">Related to what's playing</h2>
+          <div id="music-related-list" class="music-results">
+            <p class="music-empty">Play something to see related tracks.</p>
+          </div>
+        </div>
+ 
+      </div>
+ 
+      <div class="music-view" data-view-panel="history">
+ 
+        <div class="music-header">
+          <h1 class="music-title-heading">Recently Played</h1>
+        </div>
+ 
+        <div id="music-history-list" class="music-results">
+          <p class="music-empty">Tracks you play will show up here.</p>
+        </div>
+ 
+      </div>
+ 
+      </div>
+ 
+    </div>
+ 
+    <div class="music-player">
+ 
+    <div class="music-player-track js-toggle-np" title="Open Now Playing">
+      <img id="music-cover" class="music-player-cover" src="assets/icons/music.png">
+      <div class="music-player-info">
+        <h3 id="music-title">Nothing playing</h3>
+        <p id="music-artist">&nbsp;</p>
+      </div>
+    </div>
+ 
+    <div class="music-player-controls">
+ 
+      <button id="music-prev" class="music-transport-btn" aria-label="Previous">
+        <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+      </button>
+ 
+<button id="music-play" class="music-play-btn" aria-label="Play" disabled data-state="idle">
+  <svg class="icon-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+  <svg class="icon-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+  <svg class="icon-loading" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle></svg>
+</button>
+ 
+      <button id="music-next" class="music-transport-btn" aria-label="Next">
+        <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+      </button>
+ 
+      <div class="music-scrub">
+        <span id="music-time-current" class="music-time">0:00</span>
+        <div id="music-progress" class="music-progress">
+          <div id="music-progress-fill" class="music-progress-fill"></div>
+          <div id="music-progress-handle" class="music-progress-handle"></div>
+        </div>
+        <span id="music-time-total" class="music-time">0:00</span>
+      </div>
+ 
+    </div>
+ 
+    <div class="music-player-side">
+ 
+      <div class="music-volume">
+        <svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>
+        <input id="music-volume" type="range" min="0" max="100" value="100">
+      </div>
+ 
+    </div>
+ 
+    <audio id="music-audio"></audio>
+ 
+    </div>
+ 
+    </div>
+ 
+  </div>
+ 
+  <!-- ===== fullscreen "Now Playing" (Spotify-style) ===== -->
+ 
+  <div id="music-nowplaying" class="music-nowplaying">
+ 
+    <div class="np-bg">
+      <img id="np-bg-image" src="" alt="">
+    </div>
+ 
+    <div class="np-content">
+ 
+      <button id="np-close" class="np-close" aria-label="Close Now Playing">
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+ 
+      <div class="np-lyrics-wrap">
+ 
+        <div class="np-cover-wrap">
+          <img id="np-cover" class="np-cover" src="assets/icons/music.png">
+          <div class="np-meta">
+            <h2 id="np-title">Nothing playing</h2>
+            <p id="np-artist">&nbsp;</p>
+          </div>
+        </div>
+ 
+        <div id="np-lyrics-body" class="np-lyrics-body">
+          <p class="music-empty">Play a song to see lyrics.</p>
+        </div>
+ 
+      </div>
+ 
+      <div class="np-controls">
+ 
+        <div class="np-scrub">
+          <span id="np-time-current" class="music-time">0:00</span>
+          <div id="np-progress" class="music-progress">
+            <div id="np-progress-fill" class="music-progress-fill"></div>
+            <div id="np-progress-handle" class="music-progress-handle"></div>
+          </div>
+          <span id="np-time-total" class="music-time">0:00</span>
+        </div>
+ 
+        <div class="np-transport">
+ 
+          <button id="np-shuffle" class="music-mode-btn" aria-label="Shuffle" title="Shuffle">
+            <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+          </button>
+ 
+          <button id="np-prev" class="music-transport-btn" aria-label="Previous">
+            <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+          </button>
+ 
+<button id="np-play" class="music-play-btn" aria-label="Play" data-state="idle">
+  <svg class="icon-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+  <svg class="icon-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+  <svg class="icon-loading" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle></svg>
+</button>
+ 
+          <button id="np-next" class="music-transport-btn" aria-label="Next">
+            <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+          </button>
+ 
+          <button id="np-repeat" class="music-mode-btn" aria-label="Repeat" title="Repeat" data-mode="off">
+            <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+            <span class="music-repeat-one" hidden>1</span>
+          </button>
+ 
+        </div>
+ 
+      </div>
+ 
+    </div>
+ 
+  </div>
+ 
+</section>
+
+<section class="panel ai-panel" data-panel="ai">
+
+</section>
+
+<section class="panel chat-panel" data-panel="chat">
+
+    <div id="chat-root"></div>
+
+</section>
+
+<section class="panel settings-panel" data-panel="settings">
+
+</section>
+
+<section class="panel doc-panel" data-panel="legal"></section>
+
+<section class="panel doc-panel" data-panel="dmca"></section>
+
+<section class="panel doc-panel" data-panel="privacy"></section>
+
+
+</main>
+
+
+
+<script src="legal.js"></script>
+<script src="preview.js"></script>
+<script src="changelog.js"></script>
+
+<script src="settings.js"></script>
+<script src="watch.js"></script>
+<script src="proxy.js"></script>
+<script src="ai.js"></script>
+<script src="games.js"></script>
+<script src="music.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="chat/supabaseClient.js"></script>
+<script src="chat/auth.js"></script>
+<script src="chat/friends.js"></script>
+<script src="chat/profiles.js"></script>
+<script src="chat/channels.js"></script>
+<script src="chat/messages.js"></script>
+<script src="chat/reactions.js"></script>
+<script src="chat/direct-messages.js"></script>
+<script src="chat/chat.js"></script>
+
+<script src="main.js"></script>
+<script src="dev/dev.js"></script>
+<script src="dev/announcements.js"></script>
+<script src="dev/events.js"></script>
+
+</body>
+</html>
