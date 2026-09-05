@@ -124,18 +124,31 @@ const Proxy = {
 
     },
 
-    loadProxy(panel) {
+loadProxy(panel) {
 
-        panel.innerHTML = `
+    panel.innerHTML = `
 
-        <iframe
-            src="http://localhost:4141"
-            class="scramjet-frame">
-        </iframe>
+    <div class="browser-wip">
 
-        `;
+        <div class="browser-wip-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 6v6l4 2"/>
+                <circle cx="12" cy="12" r="9"/>
+            </svg>
+        </div>
 
-    }
+        <h2>Blur Browser</h2>
+
+        <p>
+            This feature is currently being redesigned
+            or has been discontinued.
+        </p>
+
+    </div>
+
+    `;
+
+}
 
 };
 

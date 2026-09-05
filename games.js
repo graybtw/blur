@@ -6,307 +6,580 @@
 
 const CATEGORIES = [
     { key:'all',       label:'All' },
-    { key:'favorites', label:'♥ Favorites' },
-    { key:'action',    label:'Action' },
-    { key:'arcade',    label:'Arcade' },
-    { key:'puzzle',    label:'Puzzle' },
-    { key:'sports',    label:'Sports' },
-    { key:'strategy',  label:'Strategy' },
-    { key:'other',     label:'Other' },
+    { key:'favorites', label:'Favorites' },
+    // YouTube Playables
+    { key:'youtube',   label:'YouTube Playables' },
+    // Dominum Providers
+    { key:'gn-math',   label:'GN-Math' },
+    { key:'truffled',  label:'Truffled' },
+    { key:'petezah',   label:'PeteZah' },
+    { key:'ugs',       label:'UGS' },
+    { key:'seraph',    label:'Seraph' },
 ];
 
-const GAMES = [
-    {id:'10bullets', title:'10 Bullets', category:'action', src:'assets/games/10bullets.html', thumb:'assets/games/thumbnails/10bullets.jpg'},
-    {id:'1v1lol', title:'1v1.LOL', category:'action', src:'assets/games/1v1lol.html', thumb:'assets/games/thumbnails/1v1lol.jpg'},
-    {id:'2048', title:'2048', category:'puzzle', src:'assets/games/2048.html', thumb:'assets/games/thumbnails/2048.jpg'},
-    {id:'2048cupcakes', title:'2048 Cupcakes', category:'puzzle', src:'assets/games/2048-cupcakes.html', thumb:'assets/games/thumbnails/2048cupcakes.jpg'},
-    {id:'adifficultclimbinggame', title:'A Difficult Climbing Game', category:'action', src:'assets/games/adifficultclimbinggame.html', thumb:'assets/games/thumbnails/adifficultclimbinggame.jpg'},
-    {id:'agesofconflict', title:'Ages of Conflict', category:'strategy', src:'assets/games/ages-of-conflict.html', thumb:'assets/games/thumbnails/agesofconflict.jpg'},
-    {id:'badparenting', title:'Bad Parenting', category:'other', src:'assets/games/Bad Parenting 1.html', thumb:'assets/games/thumbnails/badparenting.jpg', hot:true},
-    {id:'bartbash', title:'Bart Bash', category:'action', src:'assets/games/bartbash.html', thumb:'assets/games/thumbnails/bartbash.jpg'},
-    {id:'cheeserolling', title:'Cheese Rolling', category:'arcade', src:'assets/games/cheese-rolling.html', thumb:'assets/games/thumbnails/cheeserolling.jpg'},
-    {id:'cookieclicker', title:'Cookie Clicker', category:'other', src:'assets/games/cookieclicker.html', thumb:'assets/games/thumbnails/cookieclicker.jpg'},
-    {id:'cuphead', title:'Cuphead', category:'action', src:'assets/games/cuphead.html', thumb:'assets/games/thumbnails/cuphead.jpg', hot:true},
-    {id:'drivemad', title:'Drive Mad', category:'action', src:'assets/games/drivemad.html', thumb:'assets/games/thumbnails/drivemad.jpg'},
-    {id:'ducklife', title:'Duck Life', category:'sports', src:'assets/games/ducklife.html', thumb:'assets/games/thumbnails/ducklife.jpg'},
-    {id:'dunkshot', title:'Dunk Shot', category:'sports', src:'assets/games/dunkshot.html', thumb:'assets/games/thumbnails/dunkshot.jpg'},
-    {id:'fnab', title:'FNAB', category:'other', src:'assets/games/fnab.html', thumb:'assets/games/thumbnails/fnab.jpg'},
-    {id:'fnae', title:'FNAE', category:'other', src:'assets/games/fnae.html', thumb:'assets/games/thumbnails/fnae.jpg', hot:true},
-    {id:'fnaf', title:'FNAF', category:'other', src:'assets/games/fnaf.html', thumb:'assets/games/thumbnails/fnaf.jpg'},
-    {id:'fnash', title:'FNASH', category:'other', src:'assets/games/fnash.html', thumb:'assets/games/thumbnails/fnash.jpg'},
-    {id:'fnf', title:'Friday Night Funkin', category:'action', src:'assets/games/fnf.html', thumb:'assets/games/thumbnails/fnf.jpg'},
-    {id:'geodash', title:'Geometry Dash', category:'arcade', src:'assets/games/geometry-dash.html', thumb:'assets/games/thumbnails/geodash.jpg', hot:true},
-    {id:'halflife', title:'Half Life', category:'action', src:'assets/games/halflife.html', thumb:'assets/games/thumbnails/halflife.jpg'},
-    {id:'impossiblequiz', title:'Impossible Quiz', category:'puzzle', src:'assets/games/impossible-quiz.html', thumb:'assets/games/thumbnails/impossiblequiz.jpg'},
-    {id:'infinitecraft', title:'Infinite Craft', category:'puzzle', src:'assets/games/infinite-craft.html', thumb:'assets/games/thumbnails/infinitecraft.jpg'},
-    {id:'ironlung', title:'Iron Lung', category:'other', src:'assets/games/ironlung.html', thumb:'assets/games/thumbnails/ironlung.jpg'},
-    {id:'jetpackjoyride', title:'Jetpack Joyride', category:'arcade', src:'assets/games/jetpack-joyride.html', thumb:'assets/games/thumbnails/jetpackjoyride.jpg'},
-    {id:'motox3m', title:'Moto X3M', category:'racing', src:'assets/games/motoxm-3.html', thumb:'assets/games/thumbnails/motox3m.jpg'},
-    {id:'ovo', title:'OvO', category:'action', src:'assets/games/ovo.html', thumb:'assets/games/thumbnails/ovo.jpg'},
-    {id:'ovo2', title:'OvO 2', category:'action', src:'assets/games/ovo2.html', thumb:'assets/games/thumbnails/ovo2.jpg'},
-    {id:'ovodimensions', title:'OvO Dimensions', category:'action', src:'assets/games/ovo-dimensions.html', thumb:'assets/games/thumbnails/ovodimensions.jpg'},
-    {id:'paperiomania', title:'Paper.io Mania', category:'arcade', src:'assets/games/paper-io-mania.html', thumb:'assets/games/thumbnails/paperiomania.jpg'},
-    {id:'peopleplayground', title:'People Playground', category:'other', src:'assets/games/peopleplayground.html', thumb:'assets/games/thumbnails/peopleplayground.jpg'},
-    {id:'pixelbattlegrounds', title:'Pixel Battlegrounds', category:'action', src:'assets/games/pixel-battlegrounds.html', thumb:'assets/games/thumbnails/pixelbattlegrounds.jpg'},
-    {id:'pvz', title:'Plants vs Zombies', category:'strategy', src:'assets/games/pvz.html', thumb:'assets/games/thumbnails/pvz.jpg'},
-    {id:'ragdollarchers', title:'Ragdoll Archers', category:'action', src:'assets/games/ragdoll-archers.html', thumb:'assets/games/thumbnails/ragdollarchers.jpg'},
-    {id:'slope', title:'Slope', category:'arcade', src:'assets/games/slope.html', thumb:'assets/games/thumbnails/slope.jpg'},
-    {id:'soccerrandom', title:'Soccer Random', category:'sports', src:'assets/games/soccer-random.html', thumb:'assets/games/thumbnails/soccerrandom.jpg'},
-    {id:'terraria', title:'Terraria', category:'other', src:'assets/games/terraria.html', thumb:'assets/games/thumbnails/terraria.jpg'},
-    {id:'tinyfishing', title:'Tiny Fishing', category:'arcade', src:'assets/games/tiny-fishing.html', thumb:'assets/games/thumbnails/tinyfishing.jpg'},
-    {id:'tubejumpers', title:'Tube Jumpers', category:'sports', src:'assets/games/tube-jumpers.html', thumb:'assets/games/thumbnails/tubejumpers.jpg'},
-    {id:'turbostars', title:'Turbo Stars', category:'racing', src:'assets/games/turbo-stars.html', thumb:''},
-    {id:'untitledgoosegame', title:'Untitled Goose Game', category:'other', src:'assets/games/untitlegoosegame.html', thumb:'assets/games/thumbnails/untitledgoosegame.jpg'},
-    {id:'vex8', title:'Vex 8', category:'action', src:'assets/games/vex8.html', thumb:'assets/games/thumbnails/vex8.jpg'},
-    {id:'volleyrandom', title:'Volley Random', category:'sports', src:'assets/games/volley-random.html', thumb:'assets/games/thumbnails/volleyrandom.jpg'},
-    {id:'wordle', title:'Wordle', category:'puzzle', src:'assets/games/wordle.html', thumb:'assets/games/thumbnails/wordle.jpg'},
-    {id:'worldshardestgame', title:"World's Hardest Game", category:'puzzle', src:'assets/games/whg.html', thumb:'assets/games/thumbnails/worldshardestgame.jpg'},
+// Track which categories are series for the divider
+const SERIES_CATEGORIES = [];
 
-    // Lite Games
-    {id:'lite2048', title:'Lite 2048', category:'puzzle', src:'assets/games/lite/2048/index.html', thumb:''},
-    {id:'litesnake', title:'Lite Snake', category:'arcade', src:'assets/games/lite/snake/index.html', thumb:''}
-];
+const GAMES = [];
 
 const RECENT_LIMIT = 10;
-const FAVORITES_KEY = 'blur_favorite_games';
-const RECENT_KEY = 'blur_recent_games';
+const GAMES_FAVORITES_KEY = 'blur_favorite_games';
+const GAMES_RECENT_KEY = 'blur_recent_games';
 
+// ============================================================
+// DOMINUM PROVIDERS - Fetch games from GitHub
+// ============================================================
 
-/* ============================================================
-   STATE + PERSISTENCE
-============================================================ */
+const DOMINUM_PROVIDERS = {
+    'gn-math': {
+        url: 'https://cdn.jsdelivr.net/gh/freebuisness/assets/zones.json',
+        map: (data) => data.filter(g => g.id !== -1 && !g.name.startsWith("[!]")).map((z, index) => ({
+            id: `gn-${z.id}`,
+            title: z.name,
+            category: 'gn-math',
+            src: z.url,
+            thumb: 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main/' + (z.cover || '').replace('{COVER_URL}', '').replace(/^\//, ''),
+            provider: 'gn-math',
+            addedOrder: index
+        }))
+    },
+    'truffled': {
+        url: 'https://cdn.jsdelivr.net/gh/aukak/truffled@main/public/js/json/g.json',
+        map: (data) => (data.games || []).map((g, index) => ({
+            id: `truffled-${g.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+            title: g.name,
+            category: 'truffled',
+            src: g.url,
+            thumb: g.thumbnail,
+            provider: 'truffled',
+            addedOrder: index,
+            rawUrl: g.url,
+            frameType: g.frameType || 'iframe'
+        }))
+    },
+    'petezah': {
+        url: 'https://cdn.jsdelivr.net/gh/PeteZah-G/singlefile-json@main/search.json',
+        map: (data) => (data.games || []).map((g, index) => {
+            let finalUrl = g.url;
+            if (finalUrl && !finalUrl.endsWith('index.html') && !finalUrl.match(/\.\w+$/)) {
+                finalUrl = finalUrl.replace(/\/$/, '') + '/index.html';
+            }
+            return {
+                id: `petezah-${g.label.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+                title: g.label,
+                category: 'petezah',
+                src: finalUrl,
+                thumb: g.imageUrl || '',
+                provider: 'petezah',
+                addedOrder: index,
+                categories: g.categories || []
+            };
+        })
+    },
+    'ugs': {
+        url: null,
+        map: async () => {
+            const repos = ["tharun9772/ugs-1", "tharun9772/ugs-2", "tharun9772/ugs-3"];
+            let games = [];
+            let globalIndex = 0;
+            for (const repo of repos) {
+                try {
+                    const r = await fetch(`https://api.github.com/repos/${repo}/contents/`);
+                    const d = await r.json();
+                    d.forEach(f => {
+                        if (f.type === "file" && f.name.startsWith("cl") && f.name.endsWith(".html")) {
+                            let cleanName = f.name.replace(/^cl/, "").replace(".html", "");
+                            cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+                            games.push({
+                                id: `ugs-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+                                title: cleanName,
+                                category: 'ugs',
+                                src: `https://cdn.jsdelivr.net/gh/${repo}@main/${f.name}`,
+                                thumb: "https://cdn.jsdelivr.net/gh/tharun9772/game-assets@main/5968517.png",
+                                provider: 'ugs',
+                                addedOrder: globalIndex++
+                            });
+                        }
+                    });
+                } catch (e) {
+                    console.warn("UGS fetch failed for:", repo);
+                }
+            }
+            return games;
+        }
+    },
+    'seraph': {
+        url: 'https://cdn.jsdelivr.net/gh/DominumNetwork/dominum@main/src/assets/libraries/seraph/games.json',
+        map: (data) => data.map((g, index) => {
+            const gamePath = g.url.endsWith('index.html') ? g.url : g.url.replace(/\/?$/, '/index.html');
+            return {
+                id: `seraph-${g.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+                title: g.name,
+                category: 'seraph',
+                src: gamePath.startsWith('http') ? gamePath : "https://cdn.jsdelivr.net/gh/a456pur/seraph@main/" + gamePath.replace(/^\//, ''),
+                thumb: g.img || '',
+                provider: 'seraph',
+                addedOrder: index
+            };
+        })
+    }
+};
 
-let activeCategory = 'all';
-let searchQuery = '';
+let providerGamesCache = {};
+let providerGamesLoaded = {};
 
-function loadIds(key){
-    try{
-        const raw = localStorage.getItem(key);
-        const arr = raw ? JSON.parse(raw) : [];
-        return Array.isArray(arr) ? arr : [];
-    }catch(e){
+async function fetchProviderGames(providerKey) {
+    if (providerGamesLoaded[providerKey]) return providerGamesCache[providerKey] || [];
+    
+    const provider = DOMINUM_PROVIDERS[providerKey];
+    if (!provider) return [];
+
+    try {
+        let data;
+        if (providerKey === 'ugs') {
+            data = await provider.map();
+        } else {
+            const response = await fetch(provider.url);
+            const json = await response.json();
+            data = provider.map(json);
+        }
+        providerGamesCache[providerKey] = data;
+        providerGamesLoaded[providerKey] = true;
+        return data;
+    } catch (err) {
+        console.error(`Failed to fetch ${providerKey}:`, err);
+        providerGamesCache[providerKey] = [];
+        providerGamesLoaded[providerKey] = true;
         return [];
     }
 }
 
-function saveIds(key, ids){
-    try{
-        localStorage.setItem(key, JSON.stringify(ids));
-    }catch(e){
-        /* storage unavailable, fail silently */
+// ============================================================
+// YOUTUBE PLAYABLES - Fetch games from GitHub repo
+// ============================================================
+
+const YOUTUBE_REPO_URL = 'https://api.github.com/repos/graybtw/youtube-playables/contents';
+
+let youtubeGamesCache = null;
+let youtubeGamesLoaded = false;
+let youtubeGamesPromise = null;
+
+function formatGameName(folderName) {
+    return folderName
+        .replace(/^[0-9]+-/, '')
+        .replace(/-/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+function getGameIdFromFolder(folderName) {
+    return folderName
+        .replace(/^[0-9]+-/, '')
+        .replace(/-/g, '');
+}
+
+async function fetchYouTubePlayables() {
+    if (youtubeGamesLoaded) return youtubeGamesCache;
+    if (youtubeGamesPromise) return youtubeGamesPromise;
+
+    youtubeGamesPromise = (async () => {
+        try {
+            const response = await fetch(YOUTUBE_REPO_URL);
+            if (!response.ok) throw new Error(`Failed to fetch repo contents: ${response.status}`);
+            const contents = await response.json();
+            const folders = contents.filter(item => item.type === 'dir');
+            const games = folders.map(folder => {
+                const folderName = folder.name;
+                const gameId = getGameIdFromFolder(folderName);
+                const gameTitle = formatGameName(folderName);
+                return {
+                    id: `yt-${gameId}`,
+                    title: gameTitle,
+                    category: 'youtube',
+                    src: `https://raw.githubusercontent.com/graybtw/youtube-playables/main/${folderName}/index.html`,
+                    thumb: `https://raw.githubusercontent.com/graybtw/youtube-playables/main/${folderName}/icon.png`,
+                    youtube: true,
+                    folder: folderName,
+                };
+            });
+            games.sort((a, b) => a.title.localeCompare(b.title));
+            youtubeGamesCache = games;
+            youtubeGamesLoaded = true;
+            return games;
+        } catch (err) {
+            console.error('Failed to fetch YouTube Playables:', err);
+            youtubeGamesCache = [];
+            youtubeGamesLoaded = true;
+            return [];
+        } finally {
+            youtubeGamesPromise = null;
+        }
+    })();
+    return youtubeGamesPromise;
+}
+
+// ============================================================
+// GET ALL GAMES (Combines YouTube + Dominum providers)
+// ============================================================
+
+async function getAllGames() {
+    let allGames = [];
+    
+    const providerKeys = ['gn-math', 'truffled', 'petezah', 'ugs', 'seraph'];
+    for (const key of providerKeys) {
+        const games = await fetchProviderGames(key);
+        allGames = [...allGames, ...games];
+    }
+    
+    const youtubeGames = await fetchYouTubePlayables();
+    allGames = [...allGames, ...youtubeGames];
+    
+    return allGames;
+}
+
+// Get games by category
+async function getGamesByCategory(categoryKey, searchQuery = '') {
+    const allGames = await getAllGames();
+    const q = searchQuery.trim().toLowerCase();
+
+    return allGames.filter(g => {
+        const matchesSearch = !q || g.title.toLowerCase().includes(q);
+        
+        if (categoryKey === 'favorites') {
+            return isGameFavorite(g.id) && matchesSearch;
+        }
+        if (categoryKey === 'all') {
+            return matchesSearch;
+        }
+        return g.category === categoryKey && matchesSearch;
+    });
+}
+
+// ============================================================
+// BLOB LOADER - Load games with blob URLs (like Dominum)
+// ============================================================
+
+async function loadGameAsBlob(game) {
+    try {
+        let url = game.src;
+        
+        // If it's a provider game with relative URL, resolve it
+        if (game.provider === 'gn-math' && !game.src.startsWith('http')) {
+            url = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main/' + game.src.replace('{HTML_URL}', '');
+        }
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        let html = await response.text();
+        
+        // Add base tag for relative paths
+        const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+        if (!html.includes('<base ')) {
+            html = html.replace('</head>', `<base href="${baseUrl}"></head>`);
+        }
+        
+        const blob = new Blob([html], { type: 'text/html' });
+        return URL.createObjectURL(blob);
+    } catch (e) {
+        console.error('Blob load failed:', e);
+        return null;
     }
 }
 
-function getFavorites(){
-    return loadIds(FAVORITES_KEY);
+// ============================================================
+// STATE + PERSISTENCE
+// ============================================================
+
+let activeCategory = 'all';
+let searchQuery = '';
+let gamesFavoritesCache = null;
+
+function loadGamesIds(key) {
+    try {
+        const raw = localStorage.getItem(key);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+        return [];
+    }
 }
 
-function isFavorite(id){
-    return getFavorites().includes(id);
+function saveGamesIds(key, ids) {
+    try {
+        localStorage.setItem(key, JSON.stringify(ids));
+    } catch (e) {
+        console.warn('Failed to save to localStorage:', e);
+    }
 }
 
-function toggleFavorite(id){
-    let favs = getFavorites();
-    if(favs.includes(id)){
-        favs = favs.filter(f => f !== id);
-    }else{
+function getGamesFavorites() {
+    if (gamesFavoritesCache === null) {
+        gamesFavoritesCache = loadGamesIds(GAMES_FAVORITES_KEY);
+    }
+    return gamesFavoritesCache;
+}
+
+function isGameFavorite(id) {
+    return getGamesFavorites().includes(id);
+}
+
+function toggleGameFavorite(id) {
+    let favs = getGamesFavorites();
+    const index = favs.indexOf(id);
+    if (index > -1) {
+        favs.splice(index, 1);
+    } else {
         favs.unshift(id);
     }
-    saveIds(FAVORITES_KEY, favs);
+    saveGamesIds(GAMES_FAVORITES_KEY, favs);
+    gamesFavoritesCache = favs;
     refreshAllSections();
 }
 
-function getRecent(){
-    return loadIds(RECENT_KEY);
+function getGamesRecent() {
+    return loadGamesIds(GAMES_RECENT_KEY);
 }
 
-function addRecent(id){
-    let recent = getRecent().filter(r => r !== id);
+function addGamesRecent(id) {
+    let recent = getGamesRecent().filter(r => r !== id);
     recent.unshift(id);
     recent = recent.slice(0, RECENT_LIMIT);
-    saveIds(RECENT_KEY, recent);
+    saveGamesIds(GAMES_RECENT_KEY, recent);
 }
 
+// ============================================================
+// HELPER: count games per category
+// ============================================================
 
-/* ============================================================
-   RENDER
-============================================================ */
+let categoryCounts = {};
 
-function initGames(){
+async function updateCategoryCounts() {
+    const allGames = await getAllGames();
+    const counts = {};
+    allGames.forEach(g => {
+        counts[g.category] = (counts[g.category] || 0) + 1;
+    });
+    counts.all = allGames.length;
+    counts.favorites = getGamesFavorites().length;
+    categoryCounts = counts;
+}
+
+function getCategoryCount(categoryKey) {
+    if (categoryKey === 'favorites') return getGamesFavorites().length;
+    return categoryCounts[categoryKey] || 0;
+}
+
+// ============================================================
+// INIT GAMES
+// ============================================================
+
+async function initGames() {
     const panel = document.querySelector('.games-panel');
-    if(!panel || panel.dataset.built) return;
+    if (!panel || panel.dataset.built) return;
     panel.dataset.built = 'true';
+
+    gamesFavoritesCache = null;
 
     panel.innerHTML = `
         <div class="games-app">
+            <div class="games-app-inner">
+                <!-- Browse View -->
+                <div id="gamesBrowseView">
+                    <div class="games-toolbar">
+                        <div class="games-search-wrap">
+                            <div class="games-search">
+                                <span class="games-search-icon">
+                                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                                </span>
+                                <input type="text" id="gamesSearchInput" placeholder="Search...">
+                            </div>
 
-            <div class="games-toolbar">
-                <div class="games-search">
-                    <span class="games-search-icon">
-                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-                    </span>
-                    <input type="text" id="gamesSearchInput" placeholder="Search games...">
+                            <div class="games-dropdown" id="gamesDropdown">
+                                <button class="games-dropdown-btn" id="gamesDropdownBtn">
+                                    <span id="gamesDropdownLabel">All</span>
+                                    <span class="games-dropdown-count" id="gamesDropdownCount"></span>
+                                    <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                                <div class="games-dropdown-menu" id="gamesDropdownMenu"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="games-section" id="gamesRecentSection">
+                        <div class="games-section-title">
+                            <h2>Recently Played</h2>
+                            <span>Jump back in</span>
+                        </div>
+                        <div class="games-row-wrap">
+                            <div class="games-row-arrow left" data-target="gamesRecentRow" data-dir="-1">&#8249;</div>
+                            <div class="games-row" id="gamesRecentRow"></div>
+                            <div class="games-row-arrow right" data-target="gamesRecentRow" data-dir="1">&#8250;</div>
+                        </div>
+                    </div>
+
+                    <div class="games-section" id="gamesHotSection">
+                        <div class="games-section-title">
+                            <h2>Recently Added</h2>
+                            <span>New games</span>
+                        </div>
+                        <div class="games-row-wrap">
+                            <div class="games-row-arrow left" data-target="gamesHotRow" data-dir="-1">&#8249;</div>
+                            <div class="games-row" id="gamesHotRow"></div>
+                            <div class="games-row-arrow right" data-target="gamesHotRow" data-dir="1">&#8250;</div>
+                        </div>
+                    </div>
+
+                    <div class="games-section">
+                        <div class="games-section-title">
+                            <h2 id="gamesGridTitle">All Games</h2>
+                            <span id="gamesGridCount"></span>
+                        </div>
+                        <div class="games-grid" id="gamesGrid"></div>
+                    </div>
                 </div>
 
-                <div class="games-categories" id="gamesCategories"></div>
-            </div>
-
-            <div class="games-section" id="gamesRecentSection">
-                <div class="games-section-title">
-                    <h2>Recently Played</h2>
-                    <span>Jump back in</span>
-                </div>
-                <div class="games-row-wrap">
-                    <div class="games-row-arrow left" data-target="gamesRecentRow" data-dir="-1">&#8249;</div>
-                    <div class="games-row" id="gamesRecentRow"></div>
-                    <div class="games-row-arrow right" data-target="gamesRecentRow" data-dir="1">&#8250;</div>
-                </div>
-            </div>
-
-            <div class="games-section" id="gamesFavSection">
-                <div class="games-section-title">
-                    <h2>Your Favorites</h2>
-                    <span>Saved</span>
-                </div>
-                <div class="games-row-wrap">
-                    <div class="games-row-arrow left" data-target="gamesFavRow" data-dir="-1">&#8249;</div>
-                    <div class="games-row" id="gamesFavRow"></div>
-                    <div class="games-row-arrow right" data-target="gamesFavRow" data-dir="1">&#8250;</div>
-                </div>
-            </div>
-
-            <div class="games-section" id="gamesHotSection">
-                <div class="games-section-title">
-                    <h2>Hot This Week</h2>
-                    <span>Trending</span>
-                </div>
-                <div class="games-row-wrap">
-                    <div class="games-row-arrow left" data-target="gamesHotRow" data-dir="-1">&#8249;</div>
-                    <div class="games-row" id="gamesHotRow"></div>
-                    <div class="games-row-arrow right" data-target="gamesHotRow" data-dir="1">&#8250;</div>
-                </div>
-            </div>
-
-            <div class="games-section">
-                <div class="games-section-title">
-                    <h2 id="gamesGridTitle">All Games</h2>
-                    <span id="gamesGridCount"></span>
-                </div>
-                <div class="games-grid" id="gamesGrid"></div>
-            </div>
-
-        </div>
-
-        <div class="game-modal hidden" id="gameModal">
-            <div class="game-box">
-                <div class="game-header">
-                    <img id="gameModalThumb" src="" alt="" onerror="this.style.display='none'">
-                    <h2 id="gameModalTitle"></h2>
-                </div>
-                <button class="game-fullscreen" id="gameFullscreen" title="Fullscreen">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/>
-                    </svg>
-                </button>
-                <button class="game-close" id="gameClose" title="Close">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M6 6l12 12M18 6L6 18"/>
-                    </svg>
-                </button>
-                <div class="game-frame">
-                    <iframe id="gameFrame" src="" allow="fullscreen; autoplay; gamepad" allowfullscreen></iframe>
+                <!-- Player View -->
+                <div id="gamesPlayerView" class="games-player-view hidden">
+                    <div class="games-player-topbar">
+                        <div class="games-player-info">
+                            <img id="gamePlayerThumb" src="" alt="" onerror="this.style.display='none'">
+                            <h2 id="gamePlayerTitle"></h2>
+                        </div>
+                        <div class="games-player-controls">
+                            <button id="gamePlayerReload" title="Reload Game" class="games-player-btn">
+<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+    <path d="M23 4v6h-6"/>
+    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+</svg>
+                            </button>
+                            <button id="gamePlayerPopout" title="Open in new tab" class="games-player-btn">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                    <polyline points="15 3 21 3 21 9"/>
+                                    <line x1="10" y1="14" x2="21" y2="3"/>
+                                </svg>
+                            </button>
+                            <button id="gamePlayerFullscreen" title="Fullscreen" class="games-player-btn">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/>
+                                </svg>
+                            </button>
+                            <button id="gamePlayerClose" title="Close" class="games-player-btn">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M6 6l12 12M18 6L6 18"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="games-player-frame">
+                        <iframe id="gamePlayerFrame" src="" allow="fullscreen; autoplay; gamepad" allowfullscreen></iframe>
+                    </div>
                 </div>
             </div>
         </div>
     `;
 
-    renderCategories();
+    await updateCategoryCounts();
+    renderGamesDropdown();
     refreshAllSections();
     bindGamesEvents();
 }
 
-/* re-renders every section that can contain a heart icon or
-   depends on favorites/recent state */
-function refreshAllSections(){
-    renderRecentRow();
-    renderFavRow();
-    renderHotRow();
-    renderGrid();
+function refreshAllSections() {
+    renderGamesRecentRow();
+    renderGamesHotRow();
+    renderGamesGrid();
+    renderGamesDropdown();
 }
 
-function renderCategories(){
-    const wrap = document.getElementById('gamesCategories');
-    wrap.innerHTML = CATEGORIES.map(cat => `
-        <button class="games-cat ${cat.key === activeCategory ? 'active' : ''}" data-cat="${cat.key}">
-            ${cat.label}
-        </button>
-    `).join('');
+function renderGamesDropdown() {
+    const menu = document.getElementById('gamesDropdownMenu');
+    const label = document.getElementById('gamesDropdownLabel');
+    const count = document.getElementById('gamesDropdownCount');
+    const current = CATEGORIES.find(c => c.key === activeCategory) || CATEGORIES[0];
+
+    label.textContent = current.label;
+    count.textContent = getCategoryCount(activeCategory);
+
+    let html = '';
+    let lastWasSeries = false;
+    
+    CATEGORIES.forEach((cat, index) => {
+        const isSeries = SERIES_CATEGORIES.includes(cat.key);
+        const catCount = getCategoryCount(cat.key);
+        
+        if (isSeries && !lastWasSeries && index > 0) {
+            html += `<div class="games-dropdown-divider"></div>`;
+        }
+        
+        html += `
+            <button class="games-dropdown-item ${cat.key === activeCategory ? 'active' : ''}" data-cat="${cat.key}">
+                <span class="games-dropdown-item-label">${cat.label}</span>
+                <span class="games-dropdown-item-count">${catCount}</span>
+            </button>
+        `;
+        
+        lastWasSeries = isSeries;
+    });
+
+    menu.innerHTML = html;
 }
 
-function renderRecentRow(){
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+}
+
+async function renderGamesRecentRow() {
     const section = document.getElementById('gamesRecentSection');
     const row = document.getElementById('gamesRecentRow');
-    const ids = getRecent();
-    const games = ids.map(id => GAMES.find(g => g.id === id)).filter(Boolean);
+    const ids = getGamesRecent();
+    
+    const allGames = await getAllGames();
+    const games = ids.map(id => allGames.find(g => g.id === id)).filter(Boolean);
 
-    if(games.length === 0){
+    if (games.length === 0) {
         section.style.display = 'none';
         return;
     }
     section.style.display = '';
-    row.innerHTML = games.map(g => gameCardHTML(g)).join('');
+    row.innerHTML = '';
+    games.forEach(g => {
+        row.appendChild(createGameCardElement(g));
+    });
 }
 
-function renderFavRow(){
-    const section = document.getElementById('gamesFavSection');
-    const row = document.getElementById('gamesFavRow');
-    const ids = getFavorites();
-    const games = ids.map(id => GAMES.find(g => g.id === id)).filter(Boolean);
-
-    if(games.length === 0){
-        section.style.display = 'none';
-        return;
-    }
-    section.style.display = '';
-    row.innerHTML = games.map(g => gameCardHTML(g)).join('');
-}
-
-function renderHotRow(){
-    const hotGames = GAMES.filter(g => g.hot);
+async function renderGamesHotRow() {
+    const hotGames = [];
     const section = document.getElementById('gamesHotSection');
     const row = document.getElementById('gamesHotRow');
 
-    if(hotGames.length === 0){
+    if (hotGames.length === 0) {
         section.style.display = 'none';
         return;
     }
 
     section.style.display = '';
-    row.innerHTML = hotGames.map(g => gameCardHTML(g)).join('');
+    row.innerHTML = '';
+    hotGames.forEach(g => {
+        row.appendChild(createGameCardElement(g));
+    });
 }
 
-function renderGrid(){
+async function renderGamesGrid() {
     const grid = document.getElementById('gamesGrid');
     const title = document.getElementById('gamesGridTitle');
     const count = document.getElementById('gamesGridCount');
 
-    const q = searchQuery.trim().toLowerCase();
+    const filtered = await getGamesByCategory(activeCategory, searchQuery);
 
-    const filtered = GAMES.filter(g => {
-        const matchesSearch = !q || g.title.toLowerCase().includes(q);
-        if(activeCategory === 'favorites'){
-            return isFavorite(g.id) && matchesSearch;
-        }
-        const matchesCategory = activeCategory === 'all' || g.category === activeCategory;
-        return matchesCategory && matchesSearch;
-    });
-
-    title.textContent = q
-        ? `Results for "${searchQuery}"`
-        : (CATEGORIES.find(c => c.key === activeCategory)?.label.replace('♥ ', '') || 'All Games');
+    const catLabel = CATEGORIES.find(c => c.key === activeCategory)?.label || 'All Games';
+    title.textContent = searchQuery.trim() ? `Results for "${searchQuery}"` : catLabel;
     count.textContent = `${filtered.length} game${filtered.length === 1 ? '' : 's'}`;
 
-    if(filtered.length === 0){
+    if (filtered.length === 0) {
         grid.innerHTML = `
             <div class="games-empty">
                 <strong>No games found</strong>
@@ -316,122 +589,351 @@ function renderGrid(){
         return;
     }
 
-    grid.innerHTML = filtered.map(g => gameCardHTML(g)).join('');
+    grid.innerHTML = '';
+    filtered.forEach(g => {
+        grid.appendChild(createGameCardElement(g));
+    });
 }
 
-function gameCardHTML(g){
-    const fav = isFavorite(g.id);
-    return `
-        <div class="game-card" data-id="${g.id}">
-            <div class="game-thumb">
-                ${g.thumb
-                    ? `<img src="${g.thumb}" alt="${g.title}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'game-thumb-fallback',textContent:'${g.title.charAt(0)}'}))">`
-                    : `<div class="game-thumb-fallback">${g.title.charAt(0)}</div>`
-                }
-                ${g.hot ? `<span class="game-badge">Hot</span>` : ''}
-                <button class="game-fav-btn ${fav ? 'active' : ''}" data-fav-id="${g.id}" title="${fav ? 'Remove from favorites' : 'Add to favorites'}">
-                    <svg viewBox="0 0 24 24"><path d="M12 21s-7.6-4.7-10-9.6C.4 7.4 2.9 3.8 6.4 3.8c2.4 0 4.4 1.7 5.6 3.5 1.2-1.8 3.2-3.5 5.6-3.5 3.5 0 6 3.6 4.4 7.6-2.4 4.9-10 9.6-10 9.6z"/></svg>
-                </button>
-            </div>
-            <div class="game-card-info">
-                <strong>${g.title}</strong>
-                <span>${g.category}</span>
-            </div>
-        </div>
-    `;
+function createGameCardElement(g) {
+    const fav = isGameFavorite(g.id);
+    const initial = g.title.charAt(0);
+    const isYoutube = g.youtube === true;
+    const isProvider = g.provider && !g.youtube;
+    
+    const card = document.createElement('div');
+    card.className = 'game-card';
+    card.dataset.id = g.id;
+    
+    const thumb = document.createElement('div');
+    thumb.className = 'game-thumb';
+    
+    if (g.thumb && g.thumb.startsWith('http')) {
+        const img = document.createElement('img');
+        img.src = g.thumb;
+        img.alt = g.title;
+        img.onerror = function() {
+            this.replaceWith(Object.assign(document.createElement('div'), {
+                className: 'game-thumb-fallback',
+                textContent: initial
+            }));
+        };
+        thumb.appendChild(img);
+    } else {
+        const fallback = document.createElement('div');
+        fallback.className = 'game-thumb-fallback';
+        fallback.textContent = initial;
+        thumb.appendChild(fallback);
+    }
+    
+    if (g.hot) {
+        const badge = document.createElement('span');
+        badge.className = 'game-badge';
+        badge.textContent = 'New';
+        thumb.appendChild(badge);
+    }
+    
+    const favBtn = document.createElement('button');
+    favBtn.className = `game-fav-btn ${fav ? 'active' : ''}`;
+    favBtn.dataset.favId = g.id;
+    favBtn.title = fav ? 'Remove from favorites' : 'Add to favorites';
+    favBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.6-4.7-10-9.6C.4 7.4 2.9 3.8 6.4 3.8c2.4 0 4.4 1.7 5.6 3.5 1.2-1.8 3.2-3.5 5.6-3.5 3.5 0 6 3.6 4.4 7.6-2.4 4.9-10 9.6-10 9.6z"/></svg>`;
+    thumb.appendChild(favBtn);
+    card.appendChild(thumb);
+    
+    const info = document.createElement('div');
+    info.className = 'game-card-info';
+    const strong = document.createElement('strong');
+    strong.textContent = g.title;
+    info.appendChild(strong);
+    const span = document.createElement('span');
+    span.textContent = isYoutube ? 'YouTube Playable' : (isProvider ? g.provider : g.category);
+    info.appendChild(span);
+    card.appendChild(info);
+    
+    return card;
 }
 
+// ============================================================
+// EVENTS
+// ============================================================
 
-/* ============================================================
-   EVENTS
-============================================================ */
-
-function bindGamesEvents(){
+function bindGamesEvents() {
     const panel = document.querySelector('.games-panel');
 
-    panel.addEventListener('click', (e) => {
-        const favBtn = e.target.closest('.game-fav-btn');
-        if(favBtn){
-            e.stopPropagation();
-            toggleFavorite(favBtn.dataset.favId);
-            return;
-        }
+    const dropdownBtn = document.getElementById('gamesDropdownBtn');
+    const dropdownMenu = document.getElementById('gamesDropdownMenu');
 
-        const catBtn = e.target.closest('.games-cat');
-        if(catBtn){
-            activeCategory = catBtn.dataset.cat;
-            renderCategories();
-            renderGrid();
+    dropdownBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('open');
+        dropdownBtn.setAttribute('aria-expanded', dropdownMenu.classList.contains('open'));
+    });
+
+    document.addEventListener('click', function() {
+        dropdownMenu.classList.remove('open');
+        dropdownBtn.setAttribute('aria-expanded', 'false');
+    });
+
+    dropdownMenu.addEventListener('click', function(e) {
+        const item = e.target.closest('.games-dropdown-item');
+        if (item) {
+            activeCategory = item.dataset.cat;
+            renderGamesDropdown();
+            renderGamesGrid();
+            dropdownMenu.classList.remove('open');
+            dropdownBtn.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    panel.addEventListener('click', function(e) {
+        const favBtn = e.target.closest('.game-fav-btn');
+        if (favBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const id = favBtn.dataset.favId;
+            if (id) {
+                toggleGameFavorite(id);
+            }
             return;
         }
 
         const arrow = e.target.closest('.games-row-arrow');
-        if(arrow){
+        if (arrow) {
             const target = document.getElementById(arrow.dataset.target);
-            if(target) target.scrollBy({ left: 320 * parseInt(arrow.dataset.dir, 10), behavior:'smooth' });
+            if (target) target.scrollBy({ left: 320 * parseInt(arrow.dataset.dir, 10), behavior: 'smooth' });
             return;
         }
 
         const card = e.target.closest('.game-card');
-        if(card){
+        if (card) {
             openGame(card.dataset.id);
             return;
         }
     });
 
     const searchInput = document.getElementById('gamesSearchInput');
-    searchInput.addEventListener('input', (e) => {
+    searchInput.addEventListener('input', function(e) {
         searchQuery = e.target.value;
-        renderGrid();
+        renderGamesGrid();
     });
 
-    document.getElementById('gameClose').addEventListener('click', closeGame);
+    document.getElementById('gamePlayerClose').addEventListener('click', closeGame);
 
-    document.getElementById('gameFullscreen').addEventListener('click', () => {
-        const frame = document.getElementById('gameFrame');
-        if(frame.requestFullscreen) frame.requestFullscreen();
+    document.getElementById('gamePlayerFullscreen').addEventListener('click', function() {
+        const frame = document.getElementById('gamePlayerFrame');
+        if (frame.requestFullscreen) frame.requestFullscreen();
     });
 
-    document.getElementById('gameModal').addEventListener('click', (e) => {
-        if(e.target.id === 'gameModal') closeGame();
+    // Reload button - reloads the game
+    document.getElementById('gamePlayerReload').addEventListener('click', async function() {
+        const game = await findGameById(currentGameId);
+        if (game) {
+            const frame = document.getElementById('gamePlayerFrame');
+            const btn = this;
+            
+            // Show loading state
+            btn.style.opacity = '0.5';
+            btn.style.transform = 'rotate(360deg)';
+            
+            // Reload the game
+            if (game.provider && game.provider !== 'youtube') {
+                const blobUrl = await loadGameAsBlob(game);
+                if (blobUrl) {
+                    frame.src = blobUrl;
+                } else {
+                    frame.src = game.src;
+                }
+            } else if (game.youtube) {
+                await loadYouTubeGameInFrame(game);
+            } else {
+                frame.src = game.src;
+            }
+            
+            // Reset button
+            btn.style.opacity = '1';
+            btn.style.transform = 'rotate(0deg)';
+        }
     });
 
-    document.addEventListener('keydown', (e) => {
-        if(e.key === 'Escape') closeGame();
+    document.getElementById('gamePlayerPopout').addEventListener('click', async function() {
+        const game = await findGameById(currentGameId);
+        if (game) {
+            const btn = this;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" class="games-player-spinner">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 2a10 10 0 0 1 8.5 4.5"/>
+                </svg>
+            `;
+            btn.style.opacity = '0.6';
+            await openGameInNewTab(game);
+            btn.innerHTML = originalHtml;
+            btn.style.opacity = '1';
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const playerView = document.getElementById('gamesPlayerView');
+            if (!playerView.classList.contains('hidden')) {
+                closeGame();
+            }
+        }
     });
 }
 
-function openGame(id){
-    const game = GAMES.find(g => g.id === id);
-    if(!game) return;
+let currentGameId = null;
 
-    addRecent(id);
-    renderRecentRow();
-
-    document.getElementById('gameModalTitle').textContent = game.title;
-    document.getElementById('gameModalThumb').src = game.thumb || '';
-    document.getElementById('gameFrame').src = game.src;
-    document.getElementById('gameModal').classList.remove('hidden');
+async function findGameById(id) {
+    const allGames = await getAllGames();
+    return allGames.find(g => g.id === id) || null;
 }
 
-function closeGame(){
-    document.getElementById('gameModal').classList.add('hidden');
-    document.getElementById('gameFrame').src = '';
-}
+// ============================================================
+// OPEN GAME
+// ============================================================
 
+async function openGame(id) {
+    const game = await findGameById(id);
+    if (!game) return;
 
-/* ============================================================
-   INIT
-   builds the panel the first time the Games tab is opened,
-   and also immediately in case it's already the active tab
-============================================================ */
+    currentGameId = id;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const gamesNav = document.querySelector('[data-tab="games"]');
-    if(gamesNav){
-        gamesNav.addEventListener('click', initGames);
+    addGamesRecent(id);
+    renderGamesRecentRow();
+
+    document.getElementById('gamesBrowseView').classList.add('hidden');
+    document.getElementById('gamesPlayerView').classList.remove('hidden');
+
+    document.getElementById('gamePlayerTitle').textContent = game.title;
+    document.getElementById('gamePlayerThumb').src = game.thumb || '';
+    
+    // For provider games - use blob loading like Dominum
+    if (game.provider && game.provider !== 'youtube') {
+        const blobUrl = await loadGameAsBlob(game);
+        if (blobUrl) {
+            document.getElementById('gamePlayerFrame').src = blobUrl;
+            return;
+        }
+        // Fallback to direct URL
+        document.getElementById('gamePlayerFrame').src = game.src;
+        return;
     }
-    if(document.querySelector('.games-panel.active')){
+    
+    // YouTube games
+    if (game.youtube) {
+        await loadYouTubeGameInFrame(game);
+        return;
+    }
+    
+    // Local games (if any)
+    document.getElementById('gamePlayerFrame').src = game.src;
+}
+
+// ============================================================
+// OPEN GAME IN NEW TAB
+// ============================================================
+
+async function openGameInNewTab(game) {
+    try {
+        let blobUrl = null;
+        
+        // For provider games
+        if (game.provider && game.provider !== 'youtube') {
+            blobUrl = await loadGameAsBlob(game);
+        }
+        
+        // Fallback to regular loading
+        if (!blobUrl) {
+            const html = await fetchGameHTML(game.src);
+            blobUrl = createBlobURL(html);
+        }
+        
+        const newTab = window.open(blobUrl, '_blank');
+        if (newTab) {
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+            }, 5000);
+        }
+        return newTab;
+    } catch (err) {
+        console.error('Failed to open game in new tab:', err);
+        return window.open(game.src, '_blank');
+    }
+}
+
+// ============================================================
+// FETCH GAME HTML - SUPPORT BOTH LOCAL AND REMOTE
+// ============================================================
+
+async function fetchGameHTML(url) {
+    // If it's a local file (starts with / or assets/)
+    if (url.startsWith('/') || url.startsWith('assets/') || url.startsWith('study/')) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch local game: ${response.status}`);
+        }
+        return await response.text();
+    }
+    
+    // Otherwise, treat as full URL
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch game: ${response.status}`);
+    }
+    return await response.text();
+}
+
+function createBlobURL(htmlContent) {
+    const wrappedHtml = htmlContent.replace(
+        '</head>',
+        '<base href="' + window.location.origin + '/">\n</head>'
+    );
+    const blob = new Blob([wrappedHtml], { type: 'text/html' });
+    return URL.createObjectURL(blob);
+}
+
+async function loadYouTubeGameInFrame(game) {
+    try {
+        const html = await fetchGameHTML(game.src);
+        const blobUrl = createBlobURL(html);
+        document.getElementById('gamePlayerFrame').src = blobUrl;
+        if (window._youtubeBlobUrls) {
+            window._youtubeBlobUrls.push(blobUrl);
+        } else {
+            window._youtubeBlobUrls = [blobUrl];
+        }
+        return blobUrl;
+    } catch (err) {
+        console.error('Failed to load YouTube game:', err);
+        document.getElementById('gamePlayerFrame').src = game.src;
+        return null;
+    }
+}
+
+function closeGame() {
+    if (window._youtubeBlobUrls) {
+        window._youtubeBlobUrls.forEach(url => {
+            try { URL.revokeObjectURL(url); } catch (e) {}
+        });
+        window._youtubeBlobUrls = [];
+    }
+    
+    document.getElementById('gamesPlayerView').classList.add('hidden');
+    document.getElementById('gamesBrowseView').classList.remove('hidden');
+    document.getElementById('gamePlayerFrame').src = '';
+    currentGameId = null;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    window.initGames = initGames;
+    if (document.querySelector('.games-panel.active')) {
         initGames();
     }
 });

@@ -1,4 +1,15 @@
-console.log(window.sb);
+// Minimal greeting
+console.log(
+    `%c
+    ██████  ██      ██    ██ ██████
+    ██   ██ ██      ██    ██ ██   ██
+    ██████  ██      ██    ██ ██████
+    ██   ██ ██      ██    ██ ██   ██
+    ██████  ███████  ██████  ██   ██
+    
+    early access · no ads · no tracking`,
+    'color: #c9c39a; font-size: 10px; line-height: 1.2;'
+);
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -58,6 +69,13 @@ function goToTab(name){
   });
 
   target.scrollTop = 0;
+
+
+  // initialize lazy-loaded apps when opened
+  if(name === "games" && window.initGames){
+    window.initGames();
+  }
+
 }
 
 navLinks.forEach(link=>{
@@ -97,7 +115,6 @@ document.querySelectorAll("[data-switch]").forEach(btn=>{
 const taglines = [
   "sooo why arent you doing work",
   "lemme lemme tell u smth -marq",
-  "browser is powered by scramjet btww",
   "i own you",
   "blur on top",
   "doin anything but work atp",

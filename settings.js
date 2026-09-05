@@ -146,37 +146,105 @@ data-page="settings-privacy">
         </div>
 
 
-        <select class="cloak-select" data-cloak-select>
+<select class="cloak-select" data-cloak-select>
 
-            <option value="docs">
-                Google Docs
-            </option>
+    <option value="docs">
+        Google Docs
+    </option>
 
-            <option value="drive">
-                Google Drive
-            </option>
+    <option value="drive">
+        Google Drive
+    </option>
 
-            <option value="search">
-                Google Search
-            </option>
+    <option value="search">
+        Google Search
+    </option>
 
-            <option value="classroom">
-                Classroom
-            </option>
+    <option value="classroom">
+        Google Classroom
+    </option>
 
-            <option value="clever">
-                Clever
-            </option>
+    <option value="sheets">
+        Google Sheets
+    </option>
 
-            <option value="iready">
-                I-ready
-            </option>
+    <option value="slides">
+        Google Slides
+    </option>
 
-            <option value="blank">
-                Blank Tab
-            </option>
+    <option value="forms">
+        Google Forms
+    </option>
 
-        </select>
+    <option value="gmail">
+        Gmail
+    </option>
+
+    <option value="calendar">
+        Google Calendar
+    </option>
+
+    <option value="meet">
+        Google Meet
+    </option>
+
+    <option value="clever">
+        Clever
+    </option>
+
+    <option value="iready">
+        i-Ready
+    </option>
+
+    <option value="khan">
+        Khan Academy
+    </option>
+
+    <option value="canvas">
+        Canvas
+    </option>
+
+    <option value="schoology">
+        Schoology
+    </option>
+
+    <option value="microsoft">
+        Microsoft 365
+    </option>
+
+    <option value="word">
+        Microsoft Word
+    </option>
+
+    <option value="powerpoint">
+        Microsoft PowerPoint
+    </option>
+
+    <option value="onedrive">
+        OneDrive
+    </option>
+
+    <option value="calculator">
+        Calculator
+    </option>
+
+    <option value="translate">
+        Google Translate
+    </option>
+
+    <option value="maps">
+        Google Maps
+    </option>
+
+    <option value="wikipedia">
+        Wikipedia
+    </option>
+
+    <option value="blank">
+        Blank Tab
+    </option>
+
+</select>
 
 
 
@@ -429,7 +497,7 @@ data-page="settings-privacy">
     </h3>
 
     <p class="theme-section-caption">
-        Customize how Blur AI behaves.
+        Currently Down
     </p>
 
 
@@ -628,22 +696,7 @@ data-page="settings-privacy">
             </div>
 
             <div class="credit-mini-role">
-                UI • Apps • Backend
-            </div>
-
-        </div>
-
-             <div class="credit-mini">
-
-            <img src="assets/images/blessedb1r.jpg" class="credit-mini-avatar">
-
-            <div class="credit-mini-info">
-                <strong>BlessedB1r</strong>
-                <span>Co-owner</span>
-            </div>
-
-            <div class="credit-mini-role">
-                Some ideas and hosting help
+                Making everything
             </div>
 
         </div>
@@ -658,7 +711,7 @@ data-page="settings-privacy">
             </div>
 
             <div class="credit-mini-role">
-                @darqmarq on YT & TT
+                Ideas and cool dude
             </div>
 
         </div>
@@ -795,7 +848,7 @@ const PRESET_THEMES = [
         id:"carbon",
         name:"Carbon",
         desc:"Dark & minimal",
-        dots:["#0a0a0a","#3a3a3a","#ffffff"]
+        dots:["#0a0a09","#3a3a37","#c9c39a"]
     },
 
     {
@@ -846,6 +899,8 @@ const PRESET_THEMES = [
         desc:"Clean steel gray",
         dots:["#090909","#252525","#a3a3a3"]
     },
+
+    
 ];
 
 const THEME_KEY = "blur-theme";
@@ -870,19 +925,13 @@ function saveCustomThemes(list){
 function clearCustomVars(){
     [
         "--bg","--sidebar","--surface","--surface-2","--surface-3",
-        "--accent","--accent-glow"
+        "--accent","--accent-dim"
     ].forEach(v => document.documentElement.style.removeProperty(v));
 }
 
 function applyCustomAccent(accent){
-    const html = document.documentElement;
-    html.style.setProperty("--bg", `color-mix(in srgb, ${accent} 4%, #060606)`);
-    html.style.setProperty("--sidebar", `color-mix(in srgb, ${accent} 5%, #0a0a0a)`);
-    html.style.setProperty("--surface", `color-mix(in srgb, ${accent} 7%, #101010)`);
-    html.style.setProperty("--surface-2", `color-mix(in srgb, ${accent} 9%, #161616)`);
-    html.style.setProperty("--surface-3", `color-mix(in srgb, ${accent} 11%, #1d1d1d)`);
-    html.style.setProperty("--accent", accent);
-    html.style.setProperty("--accent-glow", `color-mix(in srgb, ${accent} 22%, transparent)`);
+    // Do nothing - let themes.css handle it via data-theme attribute
+    // This prevents inline styles from overriding the CSS
 }
 
 function applyTheme(id, opts={}){
@@ -1003,45 +1052,125 @@ const CLOAK_TYPE = "blur-cloak-type";
 
 
 const cloakData = {
-
-    docs:{
-        title:"Google Docs",
-        icon:"https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico"
+    docs: {
+        title: "Google Docs",
+        icon: "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico"
     },
 
-
-    drive:{
-        title:"Google Drive",
-        icon:"https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png"
+    drive: {
+        title: "Google Drive",
+        icon: "https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png"
     },
 
-
-    search:{
-        title:"Google Search",
-        icon:"https://www.google.com/favicon.ico"
+    search: {
+        title: "Google Search",
+        icon: "https://www.google.com/favicon.ico"
     },
 
-
-    classroom:{
-        title:"Classroom",
-        icon:"https://ssl.gstatic.com/classroom/favicon.png"
+    classroom: {
+        title: "Google Classroom",
+        icon: "https://ssl.gstatic.com/classroom/favicon.png"
     },
 
-    clever:{
-        title:"Clever",
-        icon:"https://www.clever.com/wp-content/uploads/2023/06/cropped-Favicon-512px-32x32.png"
+    sheets: {
+        title: "Google Sheets",
+        icon: "https://ssl.gstatic.com/docs/spreadsheets/favicon3.ico"
     },
 
-    iready:{
-        title:"I-Ready",
-        icon:"https://login.i-ready.com/favicon.ico"
+    slides: {
+        title: "Google Slides",
+        icon: "https://ssl.gstatic.com/docs/presentations/images/favicon5.ico"
     },
 
-blank:{
-    title:"New Tab",
-    icon:"assets/favicon.ico"
-}
+    forms: {
+        title: "Google Forms",
+        icon: "https://ssl.gstatic.com/docs/forms/favicon.ico"
+    },
 
+    gmail: {
+        title: "Gmail",
+        icon: "https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico"
+    },
+
+    calendar: {
+        title: "Google Calendar",
+        icon: "https://ssl.gstatic.com/calendar/images/dynamiclogo_2020q4/calendar_31_2x.png"
+    },
+
+    meet: {
+        title: "Google Meet",
+        icon: "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_1x_web_512dp.png"
+    },
+
+    clever: {
+        title: "Clever",
+        icon: "https://www.clever.com/wp-content/uploads/2023/06/cropped-Favicon-512px-32x32.png"
+    },
+
+    iready: {
+        title: "i-Ready",
+        icon: "https://login.i-ready.com/favicon.ico"
+    },
+
+    khan: {
+        title: "Khan Academy",
+        icon: "https://www.khanacademy.org/favicon.ico"
+    },
+
+canvas: {
+    title: "Canvas",
+    icon: "https://www.google.com/s2/favicons?domain=canvas.instructure.com&sz=64"
+},
+
+    schoology: {
+        title: "Schoology",
+        icon: "https://asset-cdn.schoology.com/sites/all/themes/schoology_theme/favicon.ico"
+    },
+
+    microsoft: {
+        title: "Microsoft 365",
+        icon: "https://www.microsoft.com/favicon.ico"
+    },
+
+    word: {
+        title: "Microsoft Word",
+        icon: "https://res.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/item-types/32/docx.svg"
+    },
+
+    powerpoint: {
+        title: "PowerPoint",
+        icon: "https://res.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/item-types/32/pptx.svg"
+    },
+
+    onedrive: {
+        title: "OneDrive",
+        icon: "https://onedrive.live.com/favicon.ico"
+    },
+
+    calculator: {
+        title: "Calculator",
+        icon: "assets/favicon.ico"
+    },
+
+    translate: {
+        title: "Google Translate",
+        icon: "https://translate.google.com/favicon.ico"
+    },
+
+    maps: {
+        title: "Google Maps",
+        icon: "https://maps.google.com/favicon.ico"
+    },
+
+    wikipedia: {
+        title: "Wikipedia",
+        icon: "https://en.wikipedia.org/static/favicon/wikipedia.ico"
+    },
+
+    blank: {
+        title: "New Tab",
+        icon: "assets/favicon.ico"
+    }
 };
 
 
@@ -2103,8 +2232,7 @@ resetModal.innerHTML = `
 
 
     <p>
-        This will delete your settings,
-        themes, and saved preferences.
+        This will delete ALL of the local data stored on this device.
     </p>
 
 
@@ -2287,7 +2415,7 @@ if (suggestionBtn) {
 
         if (!message) {
             suggestionStatus.textContent = "Write something first.";
-            suggestionStatus.style.color = "#f87171";
+            suggestionStatus.style.color = "#e8938c";
             return;
         }
 
@@ -2311,7 +2439,7 @@ if (suggestionBtn) {
 
             if (res.ok) {
                 suggestionStatus.textContent = "Sent, thanks!";
-                suggestionStatus.style.color = "#4ade80";
+                suggestionStatus.style.color = "#7bc793";
                 suggestionText.value = "";
                 suggestionContact.value = "";
             } else {
@@ -2320,7 +2448,7 @@ if (suggestionBtn) {
 
         } catch (err) {
             suggestionStatus.textContent = "Failed to send. Try again later.";
-            suggestionStatus.style.color = "#f87171";
+            suggestionStatus.style.color = "#e8938c";
         }
 
         suggestionBtn.disabled = false;

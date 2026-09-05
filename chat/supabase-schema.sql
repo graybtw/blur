@@ -424,3 +424,33 @@ for each row execute function public.bump_dm_conversation_last_message();
 
 alter publication supabase_realtime add table public.dm_conversations;
 alter publication supabase_realtime add table public.dm_messages;
+
+-- =========================================================
+-- 14. Profile roles (cosmetic badge only)
+--    Not settable by users — no insert/update policy touches
+--    this column from the client. Set it yourself via the
+--    Supabase table editor or SQL editor, e.g.:
+--      update public.profiles set role = 'Owner' where username = 'yourname';
+-- =========================================================
+
+alter table public.profiles add column if not exists role text check (char_length(role) <= 24);
+
+-- Prevent users from setting their own role via the client update policy.
+create or replace function public.protect_role_column()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.role is distinct from old.role then
+    new.role := old.role;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_protect_role on public.profiles;
+create trigger profiles_protect_role
+before update on public.profiles
+for each row execute function public.protect_role_column();

@@ -9,10 +9,24 @@ const VEROME = "https://verome.graysonzsimmons.deno.net";
 const FALLBACK_COVER = "assets/icons/music.png";
 const PLAYLISTS_STORAGE_KEY = "blur-music-playlists";
 const HISTORY_STORAGE_KEY = "blur-music-history";
+const FAVORITES_STORAGE_KEY = "blur-music-favorites";
+const HOME_COUNTRY = "US"; // used for charts/trending/top artists lookups
 
 const els = {
   navBtns: document.querySelectorAll(".music-nav-btn"),
   views: document.querySelectorAll(".music-view"),
+
+  // home
+  homeWrap: document.getElementById("music-home-view"),
+  homeHero: document.getElementById("music-home-hero"),
+  homeTrending: document.getElementById("music-home-trending"),
+  homeCharts: document.getElementById("music-home-charts"),
+  homeTopArtists: document.getElementById("music-home-top-artists"),
+  homeMoods: document.getElementById("music-home-moods"),
+  moodDetailWrap: document.getElementById("music-mood-detail-view"),
+  moodDetailTitle: document.getElementById("music-mood-detail-title"),
+  moodDetailList: document.getElementById("music-mood-detail-list"),
+  moodDetailBack: document.getElementById("music-mood-back"),
 
   search: document.getElementById("music-search"),
   spinner: document.getElementById("music-search-spinner"),
@@ -23,6 +37,9 @@ const els = {
   queueBadge: document.getElementById("music-queue-badge"),
   relatedList: document.getElementById("music-related-list"),
   historyList: document.getElementById("music-history-list"),
+
+  // favorites
+  favoritesList: document.getElementById("music-favorites-list"),
 
   // playlists
   playlistsGrid: document.getElementById("music-playlists-grid"),
@@ -45,6 +62,7 @@ const els = {
   cover: document.getElementById("music-cover"),
   title: document.getElementById("music-title"),
   artist: document.getElementById("music-artist"),
+  favoriteBtn: document.getElementById("music-favorite-btn"),
 
   prevBtn: document.getElementById("music-prev"),
   playBtn: document.getElementById("music-play"),
@@ -65,6 +83,7 @@ const els = {
   npTitle: document.getElementById("np-title"),
   npArtist: document.getElementById("np-artist"),
   npLyricsBody: document.getElementById("np-lyrics-body"),
+  npFavoriteBtn: document.getElementById("np-favorite-btn"),
 
   npShuffle: document.getElementById("np-shuffle"),
   npPrev: document.getElementById("np-prev"),
@@ -93,6 +112,14 @@ const state = {
   // playlists
   playlists: [],        // [{ id, name, tracks: [track, ...] }]
   activePlaylistId: null,
+
+  // favorites
+  favorites: [],         // [track, ...]
+
+  // home
+  homeLoaded: false,
+  moods: [],
+  activeMood: null,
 };
 
 let searchDebounce = null;
@@ -112,8 +139,308 @@ els.navBtns.forEach(btn => {
     if (target === "playlists") {
       showPlaylistsGrid();
     }
+    if (target === "home") {
+      showHomeGrid();
+      if (!state.homeLoaded) loadHome();
+    }
+    if (target === "favorites") {
+      renderFavorites();
+    }
   });
 });
+
+/* ---------------- home ---------------- */
+
+function showHomeGrid() {
+  state.activeMood = null;
+  if (els.homeWrap) els.homeWrap.hidden = false;
+  if (els.moodDetailWrap) els.moodDetailWrap.hidden = true;
+}
+
+async function loadHome() {
+
+  state.homeLoaded = true;
+
+  loadHero();
+  loadHomeRow(els.homeTrending, `${VEROME}/api/trending?country=${HOME_COUNTRY}`, "trending");
+  loadHomeRow(els.homeCharts, `${VEROME}/api/charts?country=${HOME_COUNTRY}`, "charts");
+  loadTopArtists();
+  loadMoods();
+
+}
+
+// Featured hero banner at the top of Home: uses the #1 trending track
+// as the "featured" pick, since there's no dedicated featured-content
+// endpoint on Verome.
+async function loadHero() {
+
+  if (!els.homeHero) return;
+
+  els.homeHero.classList.add("loading");
+  els.homeHero.innerHTML = `<p class="music-empty">Loading featured track...</p>`;
+
+  try {
+
+    const res = await fetch(`${VEROME}/api/trending?country=${HOME_COUNTRY}`);
+    if (!res.ok) throw new Error(`Hero lookup failed (${res.status})`);
+
+    const data = await res.json();
+    const items = extractTrackList(data).filter(s => s.videoId).map(toTrackFromSearch);
+
+    if (!items.length) {
+      els.homeHero.innerHTML = `<p class="music-empty">Nothing trending right now.</p>`;
+      els.homeHero.classList.remove("loading");
+      return;
+    }
+
+    const [featured, ...rest] = items;
+    const playlist = [featured, ...rest];
+
+    els.homeHero.classList.remove("loading");
+    els.homeHero.innerHTML = `
+      <div class="music-hero-bg">
+        <img src="${featured.thumbnail}" onerror="this.src='${FALLBACK_COVER}'">
+      </div>
+      <div class="music-hero-content">
+        <span class="music-hero-eyebrow">Trending Now</span>
+        <h2 class="music-hero-title">${escapeHtml(featured.title)}</h2>
+        <p class="music-hero-artist">${escapeHtml(featured.artist)}</p>
+        <div class="music-hero-actions">
+          <button class="music-hero-play-btn">
+            <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+            <span>Play</span>
+          </button>
+          <button class="music-hero-secondary-btn" data-action="queue">Add to Queue</button>
+        </div>
+      </div>
+    `;
+
+    els.homeHero.querySelector(".music-hero-play-btn").addEventListener("click", () => {
+      playFromList(playlist, 0);
+    });
+    els.homeHero.querySelector('[data-action="queue"]').addEventListener("click", () => {
+      addToQueue(featured);
+    });
+
+  } catch (err) {
+    console.error("Hero error:", err);
+    els.homeHero.classList.remove("loading");
+    els.homeHero.innerHTML = `<p class="music-error">Couldn't load featured track.</p>`;
+  }
+
+}
+
+function homeRowSkeleton(container) {
+  container.innerHTML = `
+    <div class="song-card-skeleton song-card-skeleton-grid"></div>
+    <div class="song-card-skeleton song-card-skeleton-grid"></div>
+    <div class="song-card-skeleton song-card-skeleton-grid"></div>
+    <div class="song-card-skeleton song-card-skeleton-grid"></div>
+    <div class="song-card-skeleton song-card-skeleton-grid"></div>
+  `;
+}
+
+// Trending/charts responses aren't guaranteed to share one exact shape
+// across Verome deployments, so this normalizes a handful of likely
+// array locations before falling back to "nothing usable".
+function extractTrackList(data) {
+  if (Array.isArray(data)) return data;
+  return data.results || data.tracks || data.songs || data.data || data.items || [];
+}
+
+async function loadHomeRow(container, url, label) {
+
+  if (!container) return;
+  homeRowSkeleton(container);
+
+  try {
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`${label} failed (${res.status})`);
+
+    const data = await res.json();
+    const items = extractTrackList(data).filter(s => s.videoId).map(toTrackFromSearch);
+
+    container.innerHTML = "";
+
+    if (!items.length) {
+      container.innerHTML = `<p class="music-empty">Nothing to show right now.</p>`;
+      return;
+    }
+
+    items.forEach((track, i) => {
+      const card = buildSongCard(track, {
+        onPlay: () => playFromList(items, i),
+        onQueue: () => addToQueue(track),
+        onAddToPlaylist: (anchorEl) => openAddToPlaylistMenu(track, anchorEl),
+        onFavorite: () => toggleFavorite(track),
+        layout: "grid",
+      });
+      container.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(`${label} error:`, err);
+    container.innerHTML = `<p class="music-error">Couldn't load ${label}.</p>`;
+  }
+
+}
+
+async function loadTopArtists() {
+
+  if (!els.homeTopArtists) return;
+
+  els.homeTopArtists.innerHTML = `
+    <div class="song-card-skeleton song-card-skeleton-grid round"></div>
+    <div class="song-card-skeleton song-card-skeleton-grid round"></div>
+    <div class="song-card-skeleton song-card-skeleton-grid round"></div>
+    <div class="song-card-skeleton song-card-skeleton-grid round"></div>
+    <div class="song-card-skeleton song-card-skeleton-grid round"></div>
+  `;
+
+  try {
+
+    const res = await fetch(`${VEROME}/api/top/artists?country=${HOME_COUNTRY}`);
+    if (!res.ok) throw new Error(`Top artists failed (${res.status})`);
+
+    const data = await res.json();
+    const artists = extractTrackList(data);
+
+    els.homeTopArtists.innerHTML = "";
+
+    if (!artists.length) {
+      els.homeTopArtists.innerHTML = `<p class="music-empty">No top artists found.</p>`;
+      return;
+    }
+
+    artists.forEach(artist => {
+      const card = document.createElement("div");
+      card.className = "song-card song-card-grid browse-only artist-card";
+      const image = artist.thumbnails?.[0]?.url || artist.image || FALLBACK_COVER;
+      const name = artist.name || artist.title || "Unknown Artist";
+      card.innerHTML = `
+        <div class="song-card-cover round">
+          <img src="${image}" onerror="this.src='${FALLBACK_COVER}'">
+        </div>
+        <div class="song-card-body">
+          <strong>${escapeHtml(name)}</strong>
+          <span>Artist</span>
+        </div>
+      `;
+      card.addEventListener("click", () => {
+        els.search.value = name;
+        activateSearchView();
+        runSearch(name);
+      });
+      els.homeTopArtists.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Top artists error:", err);
+    els.homeTopArtists.innerHTML = `<p class="music-error">Couldn't load top artists.</p>`;
+  }
+
+}
+
+async function loadMoods() {
+
+  if (!els.homeMoods) return;
+
+  els.homeMoods.innerHTML = `<p class="music-empty">Loading moods...</p>`;
+
+  try {
+
+    const res = await fetch(`${VEROME}/api/moods`);
+    if (!res.ok) throw new Error(`Moods failed (${res.status})`);
+
+    const data = await res.json();
+    const moods = extractTrackList(data);
+    state.moods = moods;
+
+    els.homeMoods.innerHTML = "";
+
+    if (!moods.length) {
+      els.homeMoods.innerHTML = `<p class="music-empty">No moods found.</p>`;
+      return;
+    }
+
+    moods.forEach(mood => {
+      const name = mood.title || mood.name || mood.params || "Mood";
+      const tile = document.createElement("button");
+      tile.className = "mood-tile";
+      tile.textContent = name;
+      tile.addEventListener("click", () => openMoodDetail(mood, name));
+      els.homeMoods.appendChild(tile);
+    });
+
+  } catch (err) {
+    console.error("Moods error:", err);
+    els.homeMoods.innerHTML = `<p class="music-error">Couldn't load moods.</p>`;
+  }
+
+}
+
+async function openMoodDetail(mood, name) {
+
+  state.activeMood = mood;
+  if (els.homeWrap) els.homeWrap.hidden = true;
+  if (els.moodDetailWrap) els.moodDetailWrap.hidden = false;
+  if (els.moodDetailTitle) els.moodDetailTitle.textContent = name;
+  if (!els.moodDetailList) return;
+
+  els.moodDetailList.innerHTML = `
+    <div class="music-results-loading">
+      <div class="song-card-skeleton"></div>
+      <div class="song-card-skeleton"></div>
+      <div class="song-card-skeleton"></div>
+    </div>
+  `;
+
+  try {
+
+    // moods entries typically carry a params/browseId to drill into;
+    // fall back to searching the mood name if nothing usable is present.
+    const key = mood.params || mood.browseId || mood.id;
+    const url = key
+      ? `${VEROME}/api/moods?params=${encodeURIComponent(key)}`
+      : `${VEROME}/api/search?q=${encodeURIComponent(name)}&filter=songs`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Mood lookup failed (${res.status})`);
+
+    const data = await res.json();
+    const items = extractTrackList(data).filter(s => s.videoId).map(toTrackFromSearch);
+
+    els.moodDetailList.innerHTML = "";
+
+    if (!items.length) {
+      els.moodDetailList.innerHTML = `<p class="music-empty">Nothing found for this mood.</p>`;
+      return;
+    }
+
+    items.forEach((track, i) => {
+      const card = buildSongCard(track, {
+        onPlay: () => playFromList(items, i),
+        onQueue: () => addToQueue(track),
+        onAddToPlaylist: (anchorEl) => openAddToPlaylistMenu(track, anchorEl),
+        onFavorite: () => toggleFavorite(track),
+      });
+      els.moodDetailList.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Mood detail error:", err);
+    els.moodDetailList.innerHTML = `<p class="music-error">Couldn't load this mood.</p>`;
+  }
+
+}
+
+els.moodDetailBack?.addEventListener("click", showHomeGrid);
+
+function activateSearchView() {
+  els.navBtns.forEach(b => b.classList.toggle("active", b.dataset.view === "search"));
+  els.views.forEach(v => v.classList.toggle("active", v.dataset.viewPanel === "search"));
+}
 
 /* ---------------- search ---------------- */
 
@@ -221,18 +548,43 @@ function renderSearchResults(items) {
       onPlay: () => playFromList(tracks, i),
       onQueue: () => addToQueue(track),
       onAddToPlaylist: (anchorEl) => openAddToPlaylistMenu(track, anchorEl),
+      onFavorite: () => toggleFavorite(track),
     });
     els.results.appendChild(card);
   });
 
 }
 
+// Search results use `title` directly, but trending/charts/top-tracks
+// payloads have been seen using `name` instead (and nesting artist info
+// differently), so this checks the common variants rather than assuming
+// one shape. If a field still comes back empty, the raw object is logged
+// once so the real shape can be read straight from devtools.
 function toTrackFromSearch(song) {
+  const title = song.title || song.name || song.songTitle || "";
+  const artist =
+    song.artists?.[0]?.name ||
+    song.artist?.name ||
+    song.artist ||
+    (typeof song.author === "string" ? song.author : song.author?.name) ||
+    "";
+  const thumbnail =
+    song.thumbnails?.[0]?.url ||
+    song.thumbnail?.url ||
+    song.thumbnail ||
+    song.image ||
+    song.cover ||
+    FALLBACK_COVER;
+
+  if (!title) {
+    console.warn("toTrackFromSearch: no title field found on item, raw shape:", song);
+  }
+
   return {
     videoId: song.videoId,
-    title: song.title || "Untitled",
-    artist: song.artists?.[0]?.name || "Unknown Artist",
-    thumbnail: song.thumbnails?.[0]?.url || FALLBACK_COVER,
+    title: title || "Untitled",
+    artist: artist || "Unknown Artist",
+    thumbnail,
     duration: song.duration || "",
   };
 }
@@ -240,9 +592,9 @@ function toTrackFromSearch(song) {
 function toTrackFromRelated(item) {
   return {
     videoId: item.videoId,
-    title: item.title || "Untitled",
-    artist: item.artist || "Unknown Artist",
-    thumbnail: item.thumbnail || FALLBACK_COVER,
+    title: item.title || item.name || "Untitled",
+    artist: item.artist || item.artists?.[0]?.name || "Unknown Artist",
+    thumbnail: item.thumbnail || item.thumbnails?.[0]?.url || FALLBACK_COVER,
     duration: item.duration || "",
   };
 }
@@ -255,16 +607,24 @@ function escapeHtml(str) {
 
 /* ---------------- shared song-card builder ---------------- */
 
-function buildSongCard(track, { onPlay, onQueue, onRemove, onAddToPlaylist } = {}) {
+// layout: "row" (default, horizontal list item) or "grid" (big Spotify-style
+// square card with cover-on-top and a hover play overlay).
+function buildSongCard(track, { onPlay, onQueue, onRemove, onAddToPlaylist, onFavorite, layout = "row" } = {}) {
 
   const card = document.createElement("div");
-  card.className = "song-card";
+  card.className = layout === "grid" ? "song-card song-card-grid" : "song-card";
   if (state.current && state.current.videoId === track.videoId) card.classList.add("playing");
+
+  const playOverlay = (onPlay && layout === "grid") ? `
+      <button class="song-card-play-overlay" aria-label="Play" title="Play">
+        <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+      </button>` : "";
 
   card.innerHTML = `
     <div class="song-card-cover">
       <img src="${track.thumbnail}" onerror="this.src='${FALLBACK_COVER}'">
       <div class="song-card-playing-icon"><span></span><span></span><span></span></div>
+      ${playOverlay}
     </div>
     <div class="song-card-body">
       <strong>${escapeHtml(track.title)}</strong>
@@ -275,6 +635,16 @@ function buildSongCard(track, { onPlay, onQueue, onRemove, onAddToPlaylist } = {
   `;
 
   const actions = card.querySelector(".song-card-actions");
+
+  if (onFavorite) {
+    const isFav = isFavorite(track);
+    const btn = document.createElement("button");
+    btn.className = "song-card-action song-card-favorite" + (isFav ? " active" : "");
+    btn.title = isFav ? "Remove from favorites" : "Add to favorites";
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="${isFav ? "currentColor" : "none"}"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg>`;
+    btn.addEventListener("click", (e) => { e.stopPropagation(); onFavorite(); });
+    actions.appendChild(btn);
+  }
 
   if (onAddToPlaylist) {
     const btn = document.createElement("button");
@@ -307,6 +677,95 @@ function buildSongCard(track, { onPlay, onQueue, onRemove, onAddToPlaylist } = {
 
   return card;
 }
+
+/* ---------------- favorites ---------------- */
+
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem(FAVORITES_STORAGE_KEY);
+    state.favorites = raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    console.error("Couldn't load favorites:", err);
+    state.favorites = [];
+  }
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(state.favorites));
+  } catch (err) {
+    console.error("Couldn't save favorites:", err);
+  }
+}
+
+function isFavorite(track) {
+  return state.favorites.some(t => t.videoId === track.videoId);
+}
+
+function toggleFavorite(track) {
+  if (isFavorite(track)) {
+    state.favorites = state.favorites.filter(t => t.videoId !== track.videoId);
+  } else {
+    state.favorites.unshift(track);
+  }
+  saveFavorites();
+  refreshAllVisibleCards();
+  updateNowPlayingFavoriteUI();
+}
+
+function refreshAllVisibleCards() {
+  // Cheapest correct way to keep every list's heart icon in sync without
+  // threading extra state through each render function: just re-run
+  // whichever renders are currently backed by in-memory data.
+  renderFavorites();
+  renderQueue();
+  renderHistory();
+  if (state.activePlaylistId) {
+    const playlist = state.playlists.find(p => p.id === state.activePlaylistId);
+    if (playlist) renderPlaylistDetail(playlist);
+  }
+}
+
+function renderFavorites() {
+
+  if (!els.favoritesList) return;
+  els.favoritesList.innerHTML = "";
+
+  if (!state.favorites.length) {
+    els.favoritesList.innerHTML = `<p class="music-empty">No favorites yet. Tap the heart on any song to save it here.</p>`;
+    return;
+  }
+
+  state.favorites.forEach((track, i) => {
+    const card = buildSongCard(track, {
+      onPlay: () => playFromList(state.favorites, i),
+      onQueue: () => addToQueue(track),
+      onAddToPlaylist: (anchorEl) => openAddToPlaylistMenu(track, anchorEl),
+      onFavorite: () => toggleFavorite(track),
+      layout: "grid",
+    });
+    els.favoritesList.appendChild(card);
+  });
+
+}
+
+function updateNowPlayingFavoriteUI() {
+  const fav = state.current ? isFavorite(state.current) : false;
+  [els.favoriteBtn, els.npFavoriteBtn].forEach(btn => {
+    if (!btn) return;
+    btn.classList.toggle("active", fav);
+    btn.title = fav ? "Remove from favorites" : "Add to favorites";
+    const svg = btn.querySelector("svg");
+    if (svg) svg.setAttribute("fill", fav ? "currentColor" : "none");
+  });
+}
+
+[els.favoriteBtn, els.npFavoriteBtn].forEach(btn => {
+  btn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (state.current) toggleFavorite(state.current);
+  });
+});
 
 /* ---------------- queue / history state + rendering ---------------- */
 
@@ -368,6 +827,7 @@ function renderQueue() {
         renderQueue();
       },
       onAddToPlaylist: (anchorEl) => openAddToPlaylistMenu(track, anchorEl),
+      onFavorite: () => toggleFavorite(track),
     });
     els.queueList.appendChild(card);
   });
@@ -392,6 +852,7 @@ function renderHistory() {
         loadAndPlay(picked);
       },
       onAddToPlaylist: (anchorEl) => openAddToPlaylistMenu(track, anchorEl),
+      onFavorite: () => toggleFavorite(track),
     });
     els.historyList.appendChild(card);
   });
@@ -459,6 +920,7 @@ async function loadRelated(track) {
         onPlay: () => playFromList(related, i),
         onQueue: () => addToQueue(rTrack),
         onAddToPlaylist: (anchorEl) => openAddToPlaylistMenu(rTrack, anchorEl),
+        onFavorite: () => toggleFavorite(rTrack),
       });
       els.relatedList.appendChild(card);
     });
@@ -621,6 +1083,7 @@ function renderPlaylistDetail(playlist) {
       onPlay: () => playFromList(playlist.tracks, playlist.tracks.indexOf(track)),
       onRemove: () => removeTrackFromPlaylist(playlist.id, track.videoId),
       onAddToPlaylist: (anchorEl) => openAddToPlaylistMenu(track, anchorEl),
+      onFavorite: () => toggleFavorite(track),
     });
     els.playlistDetailList.appendChild(card);
   });
@@ -719,7 +1182,10 @@ window.addEventListener("scroll", closePlaylistMenu, true);
 
 loadPlaylists();
 loadHistory();
+loadFavorites();
 renderHistory();
+renderFavorites();
+loadHome();
 
 /* ---------------- shuffle / repeat ----------------
    Both the sidebar mode buttons and the fullscreen Now Playing
@@ -800,7 +1266,9 @@ async function loadAndPlay(track) {
   if (els.npTitle) els.npTitle.textContent = track.title;
   if (els.npArtist) els.npArtist.textContent = track.artist;
   if (els.npCover) els.npCover.src = track.thumbnail;
-  if (els.npBgImage) els.npBgImage.src = track.thumbnail;
+if (window.updateNowPlayingBackground) window.updateNowPlayingBackground(track.thumbnail);
+
+  updateNowPlayingFavoriteUI();
 
   setPlayState("loading");
   setPlayDisabled(true);
@@ -831,9 +1299,7 @@ const stream =
 
 console.log("Chosen stream:", stream);
 
-const streamUrl = typeof stream.url === "string"
-  ? stream.url
-  : stream.url?.url;
+const streamUrl = stream.directUrl || stream.url;
 
 if (!streamUrl) {
   throw new Error("Stream URL missing");
@@ -865,6 +1331,7 @@ await els.audio.play();
   document.querySelectorAll(".song-card").forEach(c => c.classList.remove("playing"));
   renderQueue();
   renderHistory();
+  renderFavorites();
   if (state.activePlaylistId) {
     const playlist = state.playlists.find(p => p.id === state.activePlaylistId);
     if (playlist) renderPlaylistDetail(playlist);
@@ -1086,13 +1553,20 @@ function renderLyrics(parsed) {
 
   if (!els.npLyricsBody) return;
   els.npLyricsBody.innerHTML = "";
+  lyricsScrollState.activeIndex = -1;
 
   if (parsed.lines && parsed.lines.length) {
-    parsed.lines.forEach(line => {
+    parsed.lines.forEach((line, i) => {
       const p = document.createElement("p");
       p.className = "np-lyric-line";
       p.dataset.time = line.time;
-      p.textContent = line.text;
+      p.dataset.index = i;
+      p.textContent = line.text || "\u00A0"; // keep instrumental gaps clickable/visible
+      p.addEventListener("click", () => {
+        if (!isFinite(els.audio.duration)) return;
+        els.audio.currentTime = line.time;
+        if (els.audio.paused) els.audio.play().catch(() => {});
+      });
       els.npLyricsBody.appendChild(p);
     });
     return;
@@ -1110,6 +1584,15 @@ function renderLyrics(parsed) {
 
 }
 
+// Tracks the currently active line index and drives a smooth,
+// self-timed scroll (via requestAnimationFrame) instead of relying on
+// scrollIntoView, which can feel like it "snaps" or fights native
+// smooth-scroll timing when timeupdate fires ~4x/sec.
+const lyricsScrollState = {
+  activeIndex: -1,
+  rafId: null,
+};
+
 function updateActiveLyricLine(currentTime) {
 
   if (!els.npLyricsBody) return;
@@ -1117,16 +1600,70 @@ function updateActiveLyricLine(currentTime) {
   const lines = els.npLyricsBody.querySelectorAll(".np-lyric-line");
   if (!lines.length) return;
 
-  let activeLine = null;
-  lines.forEach(line => {
+  let activeIndex = -1;
+  lines.forEach((line, i) => {
     const t = parseFloat(line.dataset.time);
-    if (t <= currentTime) activeLine = line;
+    if (t <= currentTime) activeIndex = i;
   });
 
-  lines.forEach(line => line.classList.toggle("active", line === activeLine));
+  if (activeIndex === lyricsScrollState.activeIndex) return;
+  lyricsScrollState.activeIndex = activeIndex;
 
-  if (activeLine && state.npOpen) {
-    activeLine.scrollIntoView({ block: "center", behavior: "smooth" });
+  lines.forEach((line, i) => {
+    const dist = Math.abs(i - activeIndex);
+    line.classList.toggle("active", i === activeIndex);
+    if (i === activeIndex) {
+      line.removeAttribute("data-dist");
+    } else if (dist <= 2) {
+      line.dataset.dist = String(dist);
+    } else {
+      line.removeAttribute("data-dist");
+    }
+  });
+
+  if (activeIndex >= 0 && state.npOpen) {
+    smoothScrollToLine(lines[activeIndex]);
   }
+
+}
+
+// Custom eased scroll (rather than element.scrollIntoView) so the
+// motion always matches our own curve/duration and never gets cut
+// short by a second scrollIntoView call landing mid-animation.
+function smoothScrollToLine(lineEl) {
+
+  const container = els.npLyricsBody;
+  const containerRect = container.getBoundingClientRect();
+  const lineRect = lineEl.getBoundingClientRect();
+
+  const currentScroll = container.scrollTop;
+  const target =
+    currentScroll +
+    (lineRect.top - containerRect.top) -
+    (containerRect.height / 2 - lineRect.height / 2);
+
+  if (lyricsScrollState.rafId) cancelAnimationFrame(lyricsScrollState.rafId);
+
+  const start = currentScroll;
+  const delta = target - start;
+  const duration = 500;
+  const startTime = performance.now();
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function step(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(1, elapsed / duration);
+    container.scrollTop = start + delta * easeOutCubic(t);
+    if (t < 1) {
+      lyricsScrollState.rafId = requestAnimationFrame(step);
+    } else {
+      lyricsScrollState.rafId = null;
+    }
+  }
+
+  lyricsScrollState.rafId = requestAnimationFrame(step);
 
 }

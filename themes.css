@@ -99,6 +99,20 @@ html[data-theme="slate"]{
   --accent-glow:rgba(163,163,163,.15);
 }
 
+/* ---- EARLY ACCESS THEME (redeem only) ---- */
+
+/* ---- EARLY ACCESS THEME (redeem only) ---- */
+
+html[data-theme="earlyaccess"] {
+  --bg: #0d0808;
+  --sidebar: #140c0c;
+  --surface: #1c1010;
+  --surface-2: #281616;
+  --surface-3: #361c1c;
+  --accent: #ff6b6b;
+  --accent-glow: rgba(255, 107, 107, 0.2);
+}
+
 /* ---- wire the accent into existing elements ---- */
 
 .mark{

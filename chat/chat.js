@@ -30,6 +30,11 @@ const Chat = {
             </button>
           </div>
 
+          <button type="button" class="online-indicator" id="online-indicator">
+            <span class="online-dot"></span>
+            <span id="online-count">0</span> online
+          </button>
+
           <div class="chat-sidebar-header" id="channel-list-header">Text Channels</div>
           <div class="channel-list" id="channel-list"></div>
 
@@ -55,9 +60,9 @@ const Chat = {
 
           <div class="reply-preview" id="reply-preview" hidden></div>
 
-          <form class="chat-composer" id="chat-composer">
+          <form class="chat-composer ui-field" id="chat-composer">
             <input type="text" id="chat-input" maxlength="2000" autocomplete="off" placeholder="Message #global">
-            <button type="submit" aria-label="Send">
+            <button class="ui-icon-button" type="submit" aria-label="Send">
               <svg viewBox="0 0 24 24"><path d="M4 12l16-8-8 16-2-6-6-2z"/></svg>
             </button>
           </form>
@@ -74,6 +79,8 @@ const Chat = {
     this.els = {
       app: root.querySelector("#chat-app"),
       sidebarTabs: root.querySelector("#sidebar-tabs"),
+      onlineIndicator: root.querySelector("#online-indicator"),
+      onlineCount: root.querySelector("#online-count"),
       channelListHeader: root.querySelector("#channel-list-header"),
       channelList: root.querySelector("#channel-list"),
       dmListHeader: root.querySelector("#dm-list-header"),
@@ -106,6 +113,8 @@ const Chat = {
       if (!btn) return;
       this.showSidebarTab(btn.dataset.sidebarTab);
     });
+
+    this.els.onlineIndicator.addEventListener("click", () => this.toggleOnlinePopover());
 
     this.els.friendsTabs.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-friends-tab]");
@@ -162,10 +171,12 @@ const Chat = {
       this.user = null;
       this.els.app.hidden = true;
       this.closeReactionPicker();
+      this.closeOnlinePopover();
       Messages.unsubscribe();
       Reactions.unsubscribe();
       Friends.teardown();
       DirectMessages.teardown();
+      Presence.teardown();
       Auth.renderAuthScreen(this.els.authRoot);
       return;
     }
@@ -190,10 +201,13 @@ const Chat = {
     }
 
     if (!profile) {
-      Profiles.renderUsernameSetup(this.els.overlay, user, async (createdProfile) => {
-        this.els.overlay.innerHTML = "";
-        await this.startChat(user, createdProfile);
-      });
+Profiles.renderUsernameSetup(this.els.overlay, user, async (createdProfile) => {
+  this.els.overlay.innerHTML = "";
+  await this.startChat(user, createdProfile);
+
+  // Reload so auth/profile state is fully synced
+  window.location.reload();
+});
       return;
     }
 
@@ -226,6 +240,10 @@ const Chat = {
       }
     });
     this.updateDMBadge();
+
+    Presence.init(user.id, profile);
+    Presence.onChange(() => this.updateOnlineIndicator());
+    this.updateOnlineIndicator();
 
     await Channels.fetchAll();
     Channels.render(this.els.channelList, (channel) => this.openChannel(channel));
@@ -298,6 +316,7 @@ const Chat = {
   async openChannel(channel){
     this.showMessagesView();
     this.closeReactionPicker();
+    this.closeOnlinePopover();
     this.clearReplyTarget();
     DirectMessages.unsubscribeConversation();
 
@@ -329,6 +348,7 @@ const Chat = {
   async openDM(otherUserId){
     this.showMessagesView();
     this.closeReactionPicker();
+    this.closeOnlinePopover();
     this.clearReplyTarget();
     Messages.unsubscribe();
     Reactions.unsubscribe();
@@ -369,6 +389,7 @@ const Chat = {
   /** Swaps the main column into the Friends tab (All / Requests / Add Friend). */
   showFriendsView(tab = "all"){
     this.closeReactionPicker();
+    this.closeOnlinePopover();
     this.clearReplyTarget();
     Messages.unsubscribe();
     Reactions.unsubscribe();
@@ -415,6 +436,82 @@ const Chat = {
 
   updateDMBadge(){
     this.els.dmUnreadDot.hidden = !DirectMessages.hasUnread();
+  },
+
+  /** Keeps the sidebar "N online" pill in sync with Presence, and refreshes the popover list if it's open. */
+  updateOnlineIndicator(){
+    if (!this.els.onlineCount) return;
+    this.els.onlineCount.textContent = Presence.count();
+    if (this._onlinePopover) this.renderOnlinePopoverList();
+  },
+
+  toggleOnlinePopover(){
+    if (this._onlinePopover) {
+      this.closeOnlinePopover();
+    } else {
+      this.openOnlinePopover();
+    }
+  },
+
+  /** Small popover under the online indicator listing everyone currently online. */
+  openOnlinePopover(){
+    this.closeReactionPicker();
+
+    const anchor = this.els.onlineIndicator;
+    const rect = anchor.getBoundingClientRect();
+    const pop = document.createElement("div");
+    pop.className = "online-popover";
+    pop.style.top = `${rect.bottom + 6}px`;
+    pop.style.left = `${rect.left}px`;
+
+    document.body.appendChild(pop);
+    this._onlinePopover = pop;
+    this.renderOnlinePopoverList();
+
+    pop.addEventListener("click", (e) => {
+      const row = e.target.closest("[data-online-user]");
+      if (!row) return;
+      const userId = row.dataset.onlineUser;
+      this.closeOnlinePopover();
+      Profiles.renderProfilePopup(this.els.overlay, userId, { isSelf: userId === this.user?.id });
+    });
+
+    // Deferred so the click that opened the popover doesn't
+    // immediately bubble up and close it again.
+    setTimeout(() => {
+      this._outsideOnlineListener = (ev) => {
+        if (!pop.contains(ev.target) && !anchor.contains(ev.target)) this.closeOnlinePopover();
+      };
+      document.addEventListener("click", this._outsideOnlineListener);
+    }, 0);
+  },
+
+  renderOnlinePopoverList(){
+    if (!this._onlinePopover) return;
+    const users = Presence.list();
+
+    if (!users.length) {
+      this._onlinePopover.innerHTML = `<div class="online-popover-empty">No one else is online</div>`;
+      return;
+    }
+
+    this._onlinePopover.innerHTML = users.map(u => `
+      <div class="online-popover-row" data-online-user="${u.id}">
+        <img class="online-popover-avatar" src="${u.avatar_url || Profiles.defaultAvatar(u.username || "?")}" alt="">
+        <span class="online-popover-name">${escapeHtml(u.display_name || u.username || "Unknown")}</span>
+      </div>
+    `).join("");
+  },
+
+  closeOnlinePopover(){
+    if (this._onlinePopover) {
+      this._onlinePopover.remove();
+      this._onlinePopover = null;
+    }
+    if (this._outsideOnlineListener) {
+      document.removeEventListener("click", this._outsideOnlineListener);
+      this._outsideOnlineListener = null;
+    }
   },
 
   async handleSend(e){
@@ -491,6 +588,7 @@ const Chat = {
   /** Small floating emoji picker, positioned under the "+" button that opened it. */
   openReactionPicker(anchorEl, messageId){
     this.closeReactionPicker();
+    this.closeOnlinePopover();
 
     const rect = anchorEl.getBoundingClientRect();
     const pop = document.createElement("div");

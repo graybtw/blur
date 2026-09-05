@@ -1,26 +1,34 @@
 (() => {
 
-  const CURRENT_VERSION = '1.0.0';
+  const CURRENT_VERSION = '1.0.3';
 
-  // newest first — flat list, no tags
   const CHANGELOG = [
-    'Initial release',
-    'Made core features',
-    'Polished UI',
-    'Fixed various bugs'
+    'added 2 new ports (games)',
+    'added a whole new section in games (yt playables) 50+ games',
+    'changed the game player popup to whole screen',
+    'added popout button in the game player',
   ];
 
-  const DEV_NOTE = "yay site is released 🥹👌 also music is still kinda buggy, it will be fixed soon!";
+  const DEV_NOTE = "guys pleaseee i will fix movies sooon";
 
   function buildBody(){
     const body = document.getElementById('changelog-body');
-    const ul = document.createElement('ul');
-    CHANGELOG.forEach(text => {
-      const li = document.createElement('li');
-      li.textContent = text;
-      ul.appendChild(li);
+    const list = document.createElement('div');
+    list.className = 'changelog-list';
+    CHANGELOG.forEach((text, i) => {
+      const row = document.createElement('div');
+      row.className = 'changelog-row';
+      const num = document.createElement('span');
+      num.className = 'changelog-row-num';
+      num.textContent = String(CHANGELOG.length - i).padStart(2, '0');
+      const label = document.createElement('span');
+      label.className = 'changelog-row-text';
+      label.textContent = text;
+      row.appendChild(num);
+      row.appendChild(label);
+      list.appendChild(row);
     });
-    body.appendChild(ul);
+    body.appendChild(list);
   }
 
   function openChangelog(){ document.getElementById('changelog-overlay').classList.add('open'); }

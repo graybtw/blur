@@ -133,10 +133,11 @@ const Profiles = {
           <button type="button" class="modal-close" aria-label="Close">&times;</button>
           <div class="profile-card-body">
             <img class="profile-avatar" src="${profile.avatar_url}" alt="">
-            <div class="profile-namerow">
-              <h2>${escapeHtml(profile.display_name || profile.username)}</h2>
-              ${profile.pronouns ? `<span class="profile-pronouns">${escapeHtml(profile.pronouns)}</span>` : ``}
-            </div>
+<div class="profile-namerow">
+  <h2>${escapeHtml(profile.display_name || profile.username)}</h2>
+  ${profile.role ? `<span class="profile-role-badge">${escapeHtml(profile.role)}</span>` : ``}
+  ${profile.pronouns ? `<span class="profile-pronouns">${escapeHtml(profile.pronouns)}</span>` : ``}
+</div>
             <p class="profile-username">@${escapeHtml(profile.username)}</p>
             ${profile.status_message ? `<div class="profile-status-pill">${escapeHtml(profile.status_message)}</div>` : ``}
             ${!isSelf ? this._friendSectionHtml(userId) : ``}

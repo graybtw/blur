@@ -1,215 +1,363 @@
 /* ==============================
-   LEGAL DOCUMENT STYLE
-============================== */
-
-
-.doc-panel{
-
-    width:min(720px,86%);
-
-    flex-direction:column;
-
-    align-items:center;
-
-    text-align:center;
-
-    gap:30px;
-
-}
-
-
-
-.doc-header{
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    gap:12px;
-
-}
-
-
-
-.doc-icon{
-
-    width:58px;
-
-    height:58px;
-
-    border-radius:16px;
-
-    background:var(--surface);
-
-    border:1px solid var(--border);
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-}
-
-
-
-.doc-icon img{
-
-    width:24px;
-
-    height:24px;
-
-    filter:brightness(0) invert(1);
-
-    opacity:.8;
-
-}
-
-
-
-.doc-header h2{
-
-    font-family:var(--font-display);
-
-    font-size:42px;
-
-    letter-spacing:-.03em;
-
-}
-
-
-
-.doc-header p{
-
-    color:var(--muted);
-
-    font-size:15px;
-
-}
-
-
-
-.doc-content{
-
-    width:100%;
-
-    text-align:left;
-
-}
-
-.doc-content{
-
-    width:100%;
-
-    padding-bottom:20px;
-
-}
-
-
-
-.doc-content section{
-
-    padding:24px 0;
-
-    border-bottom:1px solid var(--border);
-
-}
-
-
-
-.doc-content section:first-child{
-
-    padding-top:0;
-
-}
-
-
-
-.doc-content section:last-child{
-
-    border-bottom:none;
-
-}
-
-
-
-.doc-content h3{
-
-    font-family:var(--font-display);
-
-    font-size:20px;
-
-    margin-bottom:12px;
-
-}
-
-
-
-.doc-content p{
-
-    max-width:none;
-
-    color:var(--muted);
-
-    font-size:15px;
-
-    line-height:1.8;
-
-    margin-bottom:14px;
-
-}
-
-.doc-updated{
-
-    color:var(--muted-dim);
-
-    font-size:12px;
-
-    margin-top:2px;
-
-    letter-spacing:.01em;
-
-}
-
-/* ==============================
-   LEGAL PAGE SCROLL AREA
+   LEGAL DOCUMENT LAYOUT
+   Real document structure: left-aligned body copy, numbered
+   sections, a document header with version metadata, and an
+   optional in-page section jump list — not a marketing panel.
 ============================== */
 
 .doc-panel{
-
-    width:min(720px,86%);
-
-    max-height:80vh;
-
+    width:min(920px,90%);
+    max-height:calc(100vh - 64px);
+    margin:32px 0;
     overflow-y:auto;
+    padding-right:14px;
 
-    padding-right:12px;
-
+    flex-direction:column;
+    align-items:stretch;
+    text-align:left;
+    gap:0;
 }
-
-
-/* scrollbar */
 
 .doc-panel::-webkit-scrollbar{
-
     width:6px;
-
 }
-
 
 .doc-panel::-webkit-scrollbar-track{
-
     background:transparent;
+}
 
+.doc-panel::-webkit-scrollbar-thumb{
+    background:var(--border-strong);
+    border-radius:20px;
 }
 
 
-.doc-panel::-webkit-scrollbar-thumb{
+/* ---------- document header ---------- */
 
-    background:rgba(255,255,255,.15);
+.doc-header{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+    padding-bottom:24px;
+    margin-bottom:28px;
+    border-bottom:1px solid var(--border);
+}
 
-    border-radius:20px;
+.doc-kicker{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted-dim);
+}
 
+.doc-kicker-dot{
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:var(--accent);
+}
+
+.doc-header h2{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:34px;
+    letter-spacing:-.02em;
+    color:var(--white);
+}
+
+.doc-header p{
+    color:var(--muted);
+    font-size:14.5px;
+    line-height:1.6;
+    max-width:560px;
+}
+
+.doc-meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    margin-top:4px;
+}
+
+.doc-meta-pill{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 10px;
+    border-radius:6px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    color:var(--muted);
+}
+
+.doc-meta-pill strong{
+    color:var(--text);
+    font-weight:500;
+}
+
+
+/* ---------- table of contents ---------- */
+
+.doc-toc{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding:16px 18px;
+    margin-bottom:32px;
+    border-radius:11px;
+    border:1px solid var(--border);
+    background:var(--surface);
+}
+
+.doc-toc-label{
+    font-family:var(--font-mono);
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--muted-dim);
+    margin-bottom:8px;
+}
+
+.doc-toc-list{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:2px 20px;
+}
+
+.doc-toc a{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    padding:5px 4px;
+    border-radius:6px;
+    font-size:13px;
+    color:var(--muted);
+    transition:color var(--speed) var(--curve), background var(--speed) var(--curve);
+}
+
+.doc-toc a:hover{
+    color:var(--text);
+    background:var(--surface-2);
+}
+
+.doc-toc a span{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--muted-dim);
+    flex-shrink:0;
+    width:20px;
+}
+
+
+/* ---------- body content ---------- */
+
+.doc-content{
+    width:100%;
+    padding-bottom:8px;
+}
+
+.doc-content section{
+    padding:22px 0;
+    border-bottom:1px solid var(--border);
+    scroll-margin-top:20px;
+}
+
+.doc-content section:first-child{
+    padding-top:0;
+}
+
+.doc-content section:last-child{
+    border-bottom:none;
+    padding-bottom:0;
+}
+
+.doc-section-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:12px;
+}
+
+.doc-section-num{
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--accent);
+    flex-shrink:0;
+}
+
+.doc-content h3{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:18px;
+    letter-spacing:-.01em;
+    color:var(--white);
+}
+
+.doc-content h4{
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:14px;
+    color:var(--text);
+    margin:16px 0 6px;
+}
+
+.doc-content p{
+    max-width:none;
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.75;
+    margin-bottom:12px;
+}
+
+.doc-content p:last-child{
+    margin-bottom:0;
+}
+
+.doc-content ul,
+.doc-content ol{
+    margin:6px 0 14px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.doc-content li{
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.65;
+}
+
+.doc-content li::marker{
+    color:var(--muted-dim);
+}
+
+.doc-content strong{
+    color:var(--text);
+    font-weight:600;
+}
+
+.doc-content a{
+    color:var(--accent);
+    text-decoration:underline;
+    text-decoration-color:var(--border-strong);
+    text-underline-offset:2px;
+    transition:text-decoration-color var(--speed) var(--curve);
+}
+
+.doc-content a:hover{
+    text-decoration-color:var(--accent);
+}
+
+.doc-note{
+    display:flex;
+    gap:10px;
+    padding:14px 16px;
+    margin:14px 0;
+    border-radius:9px;
+    background:var(--surface);
+    border:1px solid var(--border-strong);
+}
+
+.doc-note svg{
+    width:15px;
+    height:15px;
+    flex-shrink:0;
+    margin-top:1px;
+    fill:none;
+    stroke:var(--accent);
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.doc-note p{
+    margin:0;
+    font-size:13px;
+    color:var(--muted);
+    line-height:1.6;
+}
+
+.doc-table{
+    width:100%;
+    border-collapse:collapse;
+    margin:10px 0 16px;
+    font-size:13px;
+}
+
+.doc-table th,
+.doc-table td{
+    text-align:left;
+    padding:9px 12px;
+    border:1px solid var(--border);
+    color:var(--muted);
+    line-height:1.5;
+}
+
+.doc-table th{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--muted-dim);
+    background:var(--surface);
+    font-weight:500;
+}
+
+.doc-table td strong{
+    color:var(--text);
+}
+
+
+/* ---------- footer ---------- */
+
+.doc-footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:28px;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--muted-dim);
+}
+
+.doc-footer a{
+    color:var(--muted);
+    transition:color var(--speed) var(--curve);
+}
+
+.doc-footer a:hover{
+    color:var(--text);
+}
+
+
+/* ---------- responsive ---------- */
+
+@media (max-width:960px){
+
+    .doc-panel{
+        width:100%;
+        max-height:none;
+        margin:20px 0;
+        padding-right:0;
+    }
+
+    .doc-header h2{
+        font-size:27px;
+    }
+
+    .doc-toc-list{
+        grid-template-columns:1fr;
+    }
 }
