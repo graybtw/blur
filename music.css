@@ -70,9 +70,9 @@ main:has(.music-panel.active){
   display:flex;
   align-items:center;
   gap:12px;
-  height:38px;
+  height:var(--control-h);
   padding:0 10px;
-  border-radius:8px;
+  border-radius:var(--radius-md);
   color:var(--muted);
   font-size:13.5px;
   font-weight:500;
@@ -95,8 +95,8 @@ main:has(.music-panel.active){
 }
 
 .music-nav-btn svg{
-  width:15px;
-  height:15px;
+  width:16px;
+  height:16px;
   flex-shrink:0;
   fill:none;
   stroke:currentColor;
@@ -146,18 +146,20 @@ main:has(.music-panel.active){
   position:relative;
   width:36px;
   height:36px;
-  border-radius:8px;
+  border-radius:var(--radius-md);
   display:flex;
   align-items:center;
   justify-content:center;
   color:var(--muted);
+  background:var(--surface);
+  border:1px solid var(--border);
   cursor:pointer;
   transition:background var(--speed) var(--curve), color var(--speed) var(--curve), border-color var(--speed) var(--curve);
-  border:1px solid transparent;
 }
 
 .music-mode-btn:hover{
-  background:var(--surface);
+  background:var(--surface-2);
+  border-color:var(--border-strong);
   color:var(--text);
 }
 
@@ -307,9 +309,9 @@ main:has(.music-panel.active){
 }
 
 .music-filter{
-  height:30px;
+  height:var(--control-h-sm);
   padding:0 14px;
-  border-radius:7px;
+  border-radius:var(--radius-md);
   border:1px solid var(--border);
   background:var(--surface);
   font-size:12.5px;
@@ -321,13 +323,14 @@ main:has(.music-panel.active){
 
 .music-filter:hover{
   color:var(--text);
+  background:var(--surface-2);
   border-color:var(--border-strong);
 }
 
 .music-filter.active{
   background:var(--surface-2);
   color:var(--text);
-  border-color:var(--border-strong);
+  border-color:var(--accent);
 }
 
 .music-section-label{
@@ -374,7 +377,7 @@ main:has(.music-panel.active){
 
 .song-card-skeleton{
   height:64px;
-  border-radius:10px;
+  border-radius:var(--radius-lg);
   background:var(--surface);
   overflow:hidden;
   position:relative;
@@ -398,8 +401,8 @@ main:has(.music-panel.active){
   align-items:center;
   gap:13px;
   padding:9px 11px;
-  border-radius:9px;
-  border:1px solid transparent;
+  border-radius:var(--radius-lg);
+  border:1px solid var(--border);
   background:var(--surface);
   cursor:pointer;
   transition:background var(--speed) var(--curve), border-color var(--speed) var(--curve);
@@ -407,12 +410,12 @@ main:has(.music-panel.active){
 
 .song-card:hover{
   background:var(--surface-2);
-  border-color:var(--border);
+  border-color:var(--border-strong);
 }
 
 .song-card.playing{
   background:var(--surface-2);
-  border-color:var(--border-strong);
+  border-color:var(--accent);
 }
 
 /* browse-only (albums/artists) now reads as inert, not clickable */
@@ -432,12 +435,12 @@ main:has(.music-panel.active){
   color:var(--muted-dim);
   background:var(--surface-2);
   border:1px solid var(--border);
-  border-radius:5px;
+  border-radius:var(--radius-sm);
   padding:4px 8px;
 }
 
 .song-card.browse-only:hover{
-  border-color:transparent;
+  border-color:var(--border);
   background:var(--surface);
 }
 
@@ -451,7 +454,7 @@ main:has(.music-panel.active){
 .song-card-cover img{
   width:46px;
   height:46px;
-  border-radius:8px;
+  border-radius:var(--radius-md);
   object-fit:cover;
   background:var(--surface-2);
   display:block;
@@ -464,7 +467,7 @@ main:has(.music-panel.active){
 .song-card-playing-icon{
   position:absolute;
   inset:0;
-  border-radius:8px;
+  border-radius:var(--radius-md);
   background:rgba(10,10,9,.6);
   display:none;
   align-items:center;
@@ -532,15 +535,17 @@ main:has(.music-panel.active){
 }
 
 .song-card-action{
-  width:28px;
-  height:28px;
-  border-radius:7px;
+  width:30px;
+  height:30px;
+  border-radius:var(--radius-md);
   display:flex;
   align-items:center;
   justify-content:center;
   color:var(--muted);
+  background:var(--surface);
+  border:1px solid var(--border);
   opacity:0;
-  transition:opacity var(--speed) var(--curve), background var(--speed) var(--curve), color var(--speed) var(--curve);
+  transition:opacity var(--speed) var(--curve), background var(--speed) var(--curve), color var(--speed) var(--curve), border-color var(--speed) var(--curve);
 }
 
 .song-card:hover .song-card-action,
@@ -549,7 +554,8 @@ main:has(.music-panel.active){
 }
 
 .song-card-action:hover{
-  background:var(--surface-3);
+  background:var(--surface-2);
+  border-color:var(--border-strong);
   color:var(--text);
 }
 
@@ -821,10 +827,11 @@ main:has(.music-panel.active){
   width:212px;
   max-height:270px;
   overflow-y:auto;
-  border-radius:10px;
+  border-radius:var(--radius-lg);
   border:1px solid var(--border-strong);
   background:var(--sidebar);
   padding:6px;
+  box-shadow:var(--shadow-overlay);
 }
 
 .playlist-menu-list{
@@ -840,7 +847,7 @@ main:has(.music-panel.active){
   gap:8px;
   height:34px;
   padding:0 10px;
-  border-radius:7px;
+  border-radius:var(--radius-sm);
   color:var(--text);
   font-size:12.5px;
   text-align:left;
@@ -888,7 +895,7 @@ main:has(.music-panel.active){
   flex:1;
   min-width:0;
   height:30px;
-  border-radius:6px;
+  border-radius:var(--radius-sm);
   border:1px solid var(--border);
   background:var(--surface);
   color:var(--text);
@@ -906,18 +913,18 @@ main:has(.music-panel.active){
   flex-shrink:0;
   height:30px;
   padding:0 12px;
-  border-radius:6px;
-  background:var(--surface-2);
-  border:1px solid var(--border-strong);
-  color:var(--text);
+  border-radius:var(--radius-sm);
+  background:var(--accent);
+  border:1px solid var(--accent);
+  color:var(--bg);
   font-size:11.5px;
   font-weight:600;
   cursor:pointer;
-  transition:background var(--speed) var(--curve);
+  transition:opacity var(--speed) var(--curve);
 }
 
 .playlist-menu-add:hover{
-  background:var(--surface-3);
+  opacity:.85;
 }
 
 
@@ -988,18 +995,21 @@ main:has(.music-panel.active){
 .music-transport-btn{
   width:30px;
   height:30px;
-  border-radius:8px;
+  border-radius:var(--radius-md);
   flex-shrink:0;
   display:flex;
   align-items:center;
   justify-content:center;
   color:var(--muted);
+  background:var(--surface);
+  border:1px solid var(--border);
   cursor:pointer;
-  transition:background var(--speed) var(--curve), color var(--speed) var(--curve);
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve), border-color var(--speed) var(--curve);
 }
 
 .music-transport-btn:hover{
   background:var(--surface-2);
+  border-color:var(--border-strong);
   color:var(--text);
 }
 
@@ -1014,21 +1024,21 @@ main:has(.music-panel.active){
 .music-play-btn{
   width:38px;
   height:38px;
-  border-radius:9px;
+  border-radius:var(--radius-md);
   flex-shrink:0;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:var(--surface-2);
-  border:1px solid var(--border-strong);
+  background:var(--accent);
+  border:none;
   cursor:pointer;
-  transition:background var(--speed) var(--curve), border-color var(--speed) var(--curve), opacity var(--speed) var(--curve);
+  transition:transform var(--speed) var(--curve), opacity var(--speed) var(--curve);
   position:relative;
 }
 
 .music-play-btn:hover{
-  background:var(--surface-3);
-  border-color:var(--accent);
+  opacity:.88;
+  transform:scale(1.03);
 }
 
 .music-play-btn:disabled{
@@ -1039,8 +1049,8 @@ main:has(.music-panel.active){
 .music-play-btn svg{
   width:14px;
   height:14px;
-  fill:var(--text);
-  stroke:var(--text);
+  fill:var(--bg);
+  stroke:var(--bg);
   position:absolute;
   top:50%;
   left:50%;
@@ -1653,7 +1663,7 @@ main:has(.music-panel.active){
 
 .mood-tile{
   border:1px solid var(--border);
-  border-radius:10px;
+  border-radius:var(--radius-lg);
   padding:22px 16px;
   font-family:var(--font-display);
   font-weight:600;
@@ -1946,7 +1956,7 @@ main:has(.music-panel.active){
   bottom:8px;
   width:38px;
   height:38px;
-  border-radius:50%;
+  border-radius:var(--radius-md);
   border:none;
   background:var(--accent);
   display:flex;
