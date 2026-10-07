@@ -1,0 +1,2678 @@
+const DEFAULT_TITLE = "blur";
+const DEFAULT_ICON = "assets/favicon.ico";
+
+const settingsPanel = document.querySelector(
+    '[data-panel="settings"]'
+);
+
+
+settingsPanel.innerHTML = `
+
+<div class="settings-window">
+
+
+    <div class="settings-top">
+
+        <span class="settings-eyebrow">
+            Settings
+        </span>
+
+        <h1 id="settings-page-title">
+            Appearance
+        </h1>
+
+        <p class="settings-subtitle" id="settings-page-subtitle">
+            Tune the look and feel of Blur. Changes apply instantly and are saved on this device.
+        </p>
+
+
+        <div class="settings-tabs">
+
+            <button class="active" data-tab="appearance">
+                Appearance
+            </button>
+
+<button data-tab="settings-privacy">
+    Privacy
+</button>
+
+            <button data-tab="config">
+                Data
+            </button>
+
+            <button data-tab="about">
+                About
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+
+    <div class="settings-scroll">
+
+
+
+        <div class="settings-page active"
+        data-page="appearance">
+
+
+            <div class="settings-group">
+
+                <h3>
+                    Theme [BETA]
+                </h3>
+
+                <p class="theme-section-caption">
+                    Pick a look for the whole app.
+                </p>
+
+                <div class="theme-grid" data-theme-grid>
+                </div>
+
+                <div class="theme-grid" data-custom-theme-grid
+                style="padding-top:0;">
+                </div>
+
+            </div>
+
+
+
+<div class="settings-group">
+
+    <h3>
+        Interface
+    </h3>
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Hide Scrollbars</span>
+            <small>Hide scrollbars for a cleaner appearance.</small>
+        </div>
+
+        <button class="switch" data-scrollbars></button>
+
+    </div>
+
+    <div class="setting-row">
+        <div class="row-info">
+            <span>Focus View</span>
+            <small>Quietens navigation chrome so the current panel takes focus.</small>
+        </div>
+        <button class="switch" data-focus-view aria-label="Toggle focus view"></button>
+    </div>
+
+            </div>
+
+
+<div class="settings-group">
+
+    <h3>
+        Performance
+    </h3>
+
+    <p class="theme-section-caption">
+        Trade visual effects for speed on weaker devices.
+    </p>
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Performance Mode</span>
+            <small>Reduces effects to improve speed.</small>
+        </div>
+
+        <button class="switch" data-performance-mode></button>
+
+    </div>
+
+
+</div>
+
+<div class="settings-group">
+    <h3>Content</h3>
+    <div class="setting-row">
+        <div class="row-info">
+            <span>Profanity Filter</span>
+            <small>Choose how strongly curse words are censored. This only changes what you see.</small>
+        </div>
+        <select class="cloak-select" data-profanity-filter aria-label="Profanity filter">
+            <option value="off">Off</option>
+            <option value="light">Light - slurs</option>
+            <option value="heavy">Heavy - all common profanity</option>
+        </select>
+    </div>
+</div>
+
+<div class="settings-group">
+    <h3>AFK Awareness</h3>
+    <div class="setting-row">
+        <div class="row-info">
+            <span>Pause when away</span>
+            <small>Dims the site and pauses playing media after you’ve been idle.</small>
+        </div>
+        <select class="cloak-select" data-afk-delay aria-label="AFK awareness delay">
+            <option value="off">Off</option>
+            <option value="5">After 5 minutes</option>
+            <option value="10">After 10 minutes</option>
+            <option value="15">After 15 minutes</option>
+            <option value="30">After 30 minutes</option>
+        </select>
+    </div>
+</div>
+
+
+
+            </div>
+
+
+
+
+
+
+
+
+
+
+<div class="settings-page"
+data-page="settings-privacy">
+
+            <div class="settings-group">
+
+    <h3>
+        Tab Cloaking
+    </h3>
+
+    <p class="theme-section-caption">
+        Change how Blur appears in your browser tab.
+    </p>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Enable Cloaking</span>
+            <small>Changes the tab name and icon.</small>
+        </div>
+
+        <button class="switch" data-cloak-toggle></button>
+
+    </div>
+
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Preset</span>
+            <small>Select a disguise.</small>
+        </div>
+
+
+<select class="cloak-select" data-cloak-select>
+
+    <option value="docs">
+        Google Docs
+    </option>
+
+    <option value="drive">
+        Google Drive
+    </option>
+
+    <option value="search">
+        Google Search
+    </option>
+
+    <option value="classroom">
+        Google Classroom
+    </option>
+
+    <option value="sheets">
+        Google Sheets
+    </option>
+
+    <option value="slides">
+        Google Slides
+    </option>
+
+    <option value="forms">
+        Google Forms
+    </option>
+
+    <option value="gmail">
+        Gmail
+    </option>
+
+    <option value="calendar">
+        Google Calendar
+    </option>
+
+    <option value="meet">
+        Google Meet
+    </option>
+
+    <option value="clever">
+        Clever
+    </option>
+
+    <option value="iready">
+        i-Ready
+    </option>
+
+    <option value="khan">
+        Khan Academy
+    </option>
+
+    <option value="canvas">
+        Canvas
+    </option>
+
+    <option value="schoology">
+        Schoology
+    </option>
+
+    <option value="microsoft">
+        Microsoft 365
+    </option>
+
+    <option value="word">
+        Microsoft Word
+    </option>
+
+    <option value="powerpoint">
+        Microsoft PowerPoint
+    </option>
+
+    <option value="onedrive">
+        OneDrive
+    </option>
+
+    <option value="calculator">
+        Calculator
+    </option>
+
+    <option value="translate">
+        Google Translate
+    </option>
+
+    <option value="maps">
+        Google Maps
+    </option>
+
+    <option value="wikipedia">
+        Wikipedia
+    </option>
+
+    <option value="blank">
+        Blank Tab
+    </option>
+
+</select>
+
+
+
+    </div>
+
+
+</div>
+
+<div class="settings-group">
+
+    <h3>
+        Screen Privacy
+    </h3>
+
+    <p class="theme-section-caption">
+        Hide Blur when you leave the tab.
+    </p>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Enable Screen Privacy</span>
+            <small>Shows an overlay when Blur loses focus.</small>
+        </div>
+
+        <button class="switch" data-screen-privacy></button>
+
+    </div>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Overlay Style</span>
+            <small>Choose what appears when hidden.</small>
+        </div>
+
+
+        <select class="cloak-select" data-privacy-style>
+
+            <option value="blank">
+                White Screen [best]
+            </option>
+
+            <option value="black">
+                Black Screen
+            </option>
+
+            <option value="blur">
+                Blurred Screen
+            </option>
+
+        </select>
+
+    </div>
+
+
+</div>
+
+<div class="settings-group">
+
+    <h3>
+        Text Obfuscation
+    </h3>
+
+    <p class="theme-section-caption">
+        Makes text harder to read at a glance.
+    </p>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Enable Text Obfuscation</span>
+            <small>Replaces letters with similar characters.</small>
+        </div>
+
+        <button class="switch" data-text-obfuscation></button>
+
+    </div>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Intensity</span>
+            <small>Controls how much text changes.</small>
+        </div>
+
+
+        <select class="cloak-select" data-obfuscation-level>
+
+            <option value="low">
+                Low
+            </option>
+
+            <option value="medium">
+                Medium
+            </option>
+
+            <option value="high">
+                High
+            </option>
+
+        </select>
+
+    </div>
+
+
+</div>
+
+<div class="settings-group">
+
+    <h3>
+        Cloak Site
+    </h3>
+
+    <p class="theme-section-caption">
+        Change the url for the site.
+    </p>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Open as Blob URL</span>
+            <small>Launches Blur inside a blob page.</small>
+        </div>
+
+        <button class="small-button" data-blob-mode>
+    Open
+</button>
+
+    </div>
+
+</div>
+
+<div class="settings-group">
+
+    <h3>
+        Panic Key
+    </h3>
+
+    <p class="theme-section-caption">
+        Quickly leave Blur with one key.
+    </p>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Enable Panic Key</span>
+            <small>Press your chosen key to redirect.</small>
+        </div>
+
+        <button class="switch" data-panic-toggle></button>
+
+    </div>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Redirect Website</span>
+            <small>Where Blur will send you.</small>
+        </div>
+
+        <input
+            class="panic-input"
+            data-panic-url
+            placeholder="https://google.com"
+            type="url"
+        >
+
+    </div>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Panic Key</span>
+            <small>Choose a single keyboard key.</small>
+        </div>
+
+        <button
+            class="panic-key-button"
+            data-panic-key>
+            P
+        </button>
+
+    </div>
+
+
+</div>
+
+<div class="settings-group">
+
+    <h3>
+        Close Confirmation
+    </h3>
+
+    <p class="theme-section-caption">
+        Ask before leaving Blur.
+    </p>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Enable Close Confirmation</span>
+            <small>Shows a warning when closing the page.</small>
+        </div>
+
+        <button class="switch" data-close-confirm></button>
+
+    </div>
+
+    <div class="setting-row">
+
+    <div class="row-info">
+        <span>Confirm External Links</span>
+        <small>Ask before leaving Blur through a link.</small>
+    </div>
+
+    <button class="switch" data-external-confirm></button>
+
+</div>
+
+
+</div>
+
+        </div>
+
+
+
+
+
+
+
+
+
+        <div class="settings-page"
+        data-page="config">
+
+<div class="settings-group">
+
+    <h3>
+        Storage
+    </h3>
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Export Settings</span>
+            <small>Download your Blur settings as a backup.</small>
+        </div>
+
+        <button class="small-button" data-export-settings>
+            Export
+        </button>
+
+    </div>
+
+
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span>Import Settings</span>
+            <small>Restore settings from a backup file.</small>
+        </div>
+
+        <button class="small-button" data-import-settings>
+            Import
+        </button>
+
+    </div>
+
+
+</div>
+
+<div class="settings-group danger-zone">
+
+    <h3>
+        Danger Zone
+    </h3>
+
+    <div class="setting-row">
+
+        <div class="row-info">
+            <span class="danger-text">Reset Local Data</span>
+            <small>Deletes ALL saved data on this device. This can't be undone.</small>
+        </div>
+
+<button class="small-button danger" data-reset-data>
+    Reset
+</button>
+
+    </div>
+
+
+</div>
+
+
+        </div>
+
+        <div class="settings-page" data-page="about">
+
+    <div class="settings-group">
+
+        <h3>Application</h3>
+
+        <div class="setting-row">
+            <div class="row-info">
+                <span>Developer</span>
+            </div>
+            <span class="badge">Blur Studios</span>
+        </div>
+
+        <div class="setting-row">
+            <div class="row-info">
+                <span>Release</span>
+            </div>
+            <span class="badge">August 2026</span>
+        </div>
+
+        <div class="setting-row">
+            <div class="row-info">
+                <span>Build</span>
+            </div>
+            <span class="badge">Beta #1</span>
+        </div>
+
+    </div>
+
+
+    <div class="settings-group credits-group">
+
+        <h3>Credits</h3>
+
+        <div class="credit-mini">
+
+            <img src="assets/images/sprite.jpg" class="credit-mini-avatar">
+
+            <div class="credit-mini-info">
+                <strong>Blur Studios</strong>
+                <span>Creator & Lead Developer</span>
+            </div>
+
+            <div class="credit-mini-role">
+                Making everything
+            </div>
+
+        </div>
+
+        <div class="credit-mini">
+
+            <img src="assets/images/darqmarq.jpg" class="credit-mini-avatar">
+
+            <div class="credit-mini-info">
+                <strong>DarqMarq</strong>
+                <span>Content Creator</span>
+            </div>
+
+            <div class="credit-mini-role">
+                Ideas and cool dude
+            </div>
+
+        </div>
+
+        <div class="credit-mini">
+
+            <img src="assets/images/jayden.jpg" class="credit-mini-avatar">
+
+            <div class="credit-mini-info">
+                <strong>Jayden</strong>
+                <span>Helper</span>
+            </div>
+
+            <div class="credit-mini-role">
+                Suggestions and ideas
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="settings-group" id="settingsArchiveRow" hidden>
+
+        <h3>
+            Blur Backstage
+        </h3>
+
+        <div class="setting-row">
+            <div class="row-info">
+                <span>An exclusive unlock</span>
+                <small>Release history, retired concepts, experiments, and a few easter eggs from Blur's past.</small>
+            </div>
+            <button class="small-button" data-open-archive>
+                Open
+            </button>
+        </div>
+
+    </div>
+
+<div class="about-footer">
+    © 2026 Blur Studios
+    <span class="dev-link" id="dev-link">- Dev</span>
+</div>
+
+</div>
+
+`;
+
+
+
+
+
+// Flatten dense setting groups into a few intentional panels while keeping
+// every existing control and data attribute intact.
+function buildSettingsCollections(){
+    const makeCollection = (page, groups, label) => {
+        if (!page || !groups.length) return;
+        const collection = document.createElement("section");
+        collection.className = "settings-collection";
+        const heading = document.createElement("h3");
+        heading.textContent = label;
+        collection.appendChild(heading);
+        groups.forEach((group, index) => {
+            if (index > 0) {
+                const divider = document.createElement("div");
+                divider.className = "settings-subdivider";
+                divider.setAttribute("aria-hidden", "true");
+                collection.appendChild(divider);
+            }
+            group.querySelector("h3")?.remove();
+            group.querySelector(".theme-section-caption")?.remove();
+            while (group.firstChild) collection.appendChild(group.firstChild);
+            group.remove();
+        });
+        page.appendChild(collection);
+    };
+
+    const appearance = settingsPanel.querySelector('[data-page="appearance"]');
+    if (appearance) {
+        const groups = [...appearance.querySelectorAll(":scope > .settings-group")];
+        makeCollection(appearance, groups.slice(1, 3), "Interface");
+        makeCollection(appearance, groups.slice(3), "Behavior");
+    }
+
+    const privacy = settingsPanel.querySelector('[data-page="settings-privacy"]');
+    if (privacy) {
+        const groups = [...privacy.querySelectorAll(":scope > .settings-group")];
+        makeCollection(privacy, groups.slice(0, 2), "Privacy");
+        makeCollection(privacy, groups.slice(2), "Anti-monitoring");
+    }
+}
+
+buildSettingsCollections();
+
+function bindAppearanceToggle(selector, key, className){
+    const button = document.querySelector(selector);
+    let enabled = false;
+    try { enabled = localStorage.getItem(key) === "true"; } catch (e) {}
+    const apply = on => {
+        document.documentElement.classList.toggle(className, on);
+        button?.classList.toggle("on", on);
+        button?.setAttribute("aria-pressed", String(on));
+    };
+    apply(enabled);
+    button?.addEventListener("click", () => {
+        enabled = !enabled;
+        try { localStorage.setItem(key, String(enabled)); } catch (e) {}
+        apply(enabled);
+    });
+}
+
+bindAppearanceToggle("[data-focus-view]", "blur-focus-view", "focus-view");
+
+// Chat profanity filtering is a local display preference. Messages remain
+// stored exactly as sent; Chat reads this value when rendering them.
+const PROFANITY_FILTER_KEY = "blur-profanity-filter";
+const profanityFilter = document.querySelector("[data-profanity-filter]");
+const validProfanityModes = new Set(["off", "light", "heavy"]);
+let profanityMode = "off";
+try {
+    const saved = localStorage.getItem(PROFANITY_FILTER_KEY);
+    if (validProfanityModes.has(saved)) profanityMode = saved;
+} catch (e) {}
+if (profanityFilter) {
+    profanityFilter.value = profanityMode;
+    profanityFilter.addEventListener("change", () => {
+        profanityMode = validProfanityModes.has(profanityFilter.value) ? profanityFilter.value : "off";
+        try { localStorage.setItem(PROFANITY_FILTER_KEY, profanityMode); } catch (e) {}
+        document.dispatchEvent(new CustomEvent("blur-profanity-change", { detail: profanityMode }));
+    });
+}
+
+const AFK_DELAY_KEY = "blur-afk-delay";
+const afkDelaySelect = document.querySelector("[data-afk-delay]");
+let afkDelay = "10";
+try {
+    const savedAfk = localStorage.getItem(AFK_DELAY_KEY);
+    if (["off", "5", "10", "15", "30"].includes(savedAfk)) afkDelay = savedAfk;
+} catch (e) {}
+if (afkDelaySelect) {
+    afkDelaySelect.value = afkDelay;
+    afkDelaySelect.addEventListener("change", () => {
+        afkDelay = ["off", "5", "10", "15", "30"].includes(afkDelaySelect.value) ? afkDelaySelect.value : "off";
+        try { localStorage.setItem(AFK_DELAY_KEY, afkDelay); } catch (e) {}
+        document.dispatchEvent(new CustomEvent("blur-afk-setting-change", { detail: afkDelay }));
+    });
+}
+
+// tab switching
+
+// Blur Backstage — only visible once its exclusive code has been redeemed
+if (window.blurArchive?.isUnlocked()) {
+    const archiveRow = document.getElementById('settingsArchiveRow');
+    if (archiveRow) archiveRow.hidden = false;
+    archiveRow?.querySelector('[data-open-archive]')?.addEventListener('click', function() {
+        window.blurArchive.open();
+    });
+}
+
+const settingsTabButtons = [...document.querySelectorAll(".settings-tabs button")];
+const settingsPages = [...document.querySelectorAll(".settings-page")];
+const settingsPageMeta = {
+    appearance: {
+        title: "Appearance",
+        subtitle: "Tune the look and feel of Blur. Changes apply instantly and are saved on this device."
+    },
+    "settings-privacy": {
+        title: "Privacy",
+        subtitle: "Keep Blur quiet, private, and under your control."
+    },
+    config: {
+        title: "Data",
+        subtitle: "Back up or reset the settings stored on this device."
+    },
+    about: {
+        title: "About",
+        subtitle: "A little context about Blur and the people behind it."
+    }
+};
+
+function activateSettingsTab(target = "appearance") {
+    const next = settingsTabButtons.some(button => button.dataset.tab === target)
+        ? target
+        : "appearance";
+    settingsTabButtons.forEach(button => {
+        const active = button.dataset.tab === next;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-selected", String(active));
+    });
+    settingsPages.forEach(page => page.classList.toggle("active", page.dataset.page === next));
+    const meta = settingsPageMeta[next];
+    if (meta) {
+        document.getElementById("settings-page-title")?.replaceChildren(document.createTextNode(meta.title));
+        document.getElementById("settings-page-subtitle")?.replaceChildren(document.createTextNode(meta.subtitle));
+    }
+}
+
+settingsTabButtons.forEach(button => {
+    button.addEventListener("click", () => activateSettingsTab(button.dataset.tab));
+});
+
+// Always start on a visible Settings tab.
+activateSettingsTab("appearance");
+
+// If the global panel navigator re-renders/toggles Settings after this file
+// initializes, restore a selection only when none is active. This preserves a
+// user's selected tab while preventing the blank-active-state bug.
+const settingsOpenObserver = new MutationObserver(() => {
+    if (settingsPanel.classList.contains("active") &&
+        !settingsTabButtons.some(button => button.classList.contains("active"))) {
+        activateSettingsTab("appearance");
+    }
+});
+settingsOpenObserver.observe(settingsPanel, { attributes: true, attributeFilter: ["class"] });
+
+const HIDE_SCROLLBARS_KEY = "blur-hide-scrollbars";
+
+function updateScrollbarSetting(enabled){
+
+    document.documentElement.classList.toggle(
+        "hide-scrollbars",
+        enabled
+    );
+
+    localStorage.setItem(
+        HIDE_SCROLLBARS_KEY,
+        enabled
+    );
+
+}
+
+const savedScrollbarState =
+    localStorage.getItem(HIDE_SCROLLBARS_KEY) === "true";
+
+updateScrollbarSetting(savedScrollbarState);
+
+const scrollbarToggle = document.querySelector("[data-scrollbars]");
+
+if(scrollbarToggle){
+
+    scrollbarToggle.classList.toggle("on", savedScrollbarState);
+
+}
+
+// Scrollbar toggle has its own single source of truth. Other switches are
+// bound by their feature-specific handlers above/below this section.
+if (scrollbarToggle) {
+    scrollbarToggle.addEventListener("click", () => {
+        updateScrollbarSetting(!document.documentElement.classList.contains("hide-scrollbars"));
+        scrollbarToggle.classList.toggle("on", document.documentElement.classList.contains("hide-scrollbars"));
+        scrollbarToggle.setAttribute("aria-pressed", String(document.documentElement.classList.contains("hide-scrollbars")));
+    });
+}
+
+// ============ THEMES ============
+
+const PRESET_THEMES = [
+    {
+        id:"carbon",
+        name:"Carbon",
+        desc:"Dark & minimal",
+        dots:["#0a0a09","#3a3a37","#c9c39a"]
+    },
+
+    {
+        id:"ember",
+        name:"Ember",
+        desc:"Warm amber glow",
+        dots:["#170f09","#4a3016","#e8a35c"]
+    },
+
+    {
+        id:"verdant",
+        name:"Verdant",
+        desc:"Dark forest green",
+        dots:["#070c08","#1c3320","#4fbf6b"]
+    },
+
+{
+    id:"mint",
+    name:"Mint",
+    desc:"Fresh glass green",
+    dots:["#06110e","#194035","#5ee6b3"]
+},
+
+    {
+        id:"vapor",
+        name:"Vapor",
+        desc:"Purple neon haze",
+        dots:["#0d0814","#2b1645","#a855f7"]
+    },
+
+    {
+        id:"ocean",
+        name:"Ocean",
+        desc:"Deep blue glass",
+        dots:["#050b12","#102b45","#38bdf8"]
+    },
+
+    {
+        id:"dusk",
+        name:"Dusk",
+        desc:"Deep blue twilight",
+        dots:["#080a12","#18213a","#8ea5ff"]
+    },
+
+    {
+        id:"slate",
+        name:"Slate",
+        desc:"Clean steel gray",
+        dots:["#090909","#252525","#a3a3a3"]
+    },
+
+    
+];
+
+const THEME_KEY = "blur-theme";
+const CUSTOM_THEMES_KEY = "blur-custom-themes";
+
+function getActiveThemeId(){
+    const stored = localStorage.getItem(THEME_KEY);
+    // Rose was too close to Early Access. Keep existing users on the new
+    // Dusk palette instead of leaving them on a removed preset.
+    if(stored === "rose"){
+        localStorage.setItem(THEME_KEY, "dusk");
+        return "dusk";
+    }
+    return stored || "carbon";
+}
+
+function getCustomThemes(){
+    try{
+        return JSON.parse(localStorage.getItem(CUSTOM_THEMES_KEY)) || [];
+    }catch(e){
+        return [];
+    }
+}
+
+function saveCustomThemes(list){
+    localStorage.setItem(CUSTOM_THEMES_KEY, JSON.stringify(list));
+}
+
+function clearCustomVars(){
+    [
+        "--bg","--sidebar","--surface","--surface-2","--surface-3",
+        "--accent","--accent-dim"
+    ].forEach(v => document.documentElement.style.removeProperty(v));
+}
+
+function applyCustomAccent(accent){
+    // Do nothing - let themes.css handle it via data-theme attribute
+    // This prevents inline styles from overriding the CSS
+}
+
+function applyTheme(id, opts={}){
+
+    localStorage.setItem(THEME_KEY, id);
+
+    if(id.startsWith("custom-") && opts.accent){
+        document.documentElement.setAttribute("data-theme", id);
+        applyCustomAccent(opts.accent);
+    }else{
+        clearCustomVars();
+        document.documentElement.setAttribute("data-theme", id);
+    }
+
+    renderThemeGrids();
+
+}
+
+function makeThemeCard(theme, isCustom){
+
+    const card = document.createElement("button");
+    card.className = "theme-card";
+    card.dataset.themeId = theme.id;
+
+    if(theme.id === getActiveThemeId()){
+        card.classList.add("active");
+    }
+
+    const dots = document.createElement("div");
+    dots.className = "theme-dots";
+    theme.dots.forEach(color=>{
+        const dot = document.createElement("span");
+        dot.style.background = color;
+        dots.appendChild(dot);
+    });
+
+    const name = document.createElement("strong");
+    name.textContent = theme.name;
+
+    const desc = document.createElement("small");
+    desc.textContent = theme.desc;
+
+    card.appendChild(dots);
+    card.appendChild(name);
+    card.appendChild(desc);
+
+    if(isCustom){
+        const remove = document.createElement("span");
+        remove.className = "remove-theme";
+        remove.textContent = "\u00d7";
+        remove.onclick = (e)=>{
+            e.stopPropagation();
+            const list = getCustomThemes().filter(t=>t.id!==theme.id);
+            saveCustomThemes(list);
+            if(getActiveThemeId() === theme.id){
+                applyTheme("carbon");
+            }else{
+                renderThemeGrids();
+            }
+        };
+        card.appendChild(remove);
+    }
+
+    card.onclick = ()=>{
+        applyTheme(theme.id, { accent: theme.accent });
+    };
+
+    return card;
+
+}
+
+function renderThemeGrids(){
+
+    const presetGrid = document.querySelector("[data-theme-grid]");
+    const customGrid = document.querySelector("[data-custom-theme-grid]");
+
+    if(!presetGrid || !customGrid) return;
+
+    presetGrid.innerHTML = "";
+    customGrid.innerHTML = "";
+
+    PRESET_THEMES.forEach(theme=>{
+        presetGrid.appendChild(makeThemeCard(theme, false));
+    });
+
+    getCustomThemes().forEach(theme=>{
+        customGrid.appendChild(makeThemeCard(theme, true));
+    });
+
+    // customGrid.appendChild(makeCreateCard());
+
+}
+
+function initTheme(){
+
+    const activeId = getActiveThemeId();
+    const custom = getCustomThemes().find(t=>t.id===activeId);
+
+    document.documentElement.setAttribute("data-theme", activeId);
+
+    if(custom){
+        applyCustomAccent(custom.accent);
+    }
+
+    renderThemeGrids();
+
+}
+
+initTheme();
+
+// =============================
+// TAB CLOAKING
+// =============================
+
+
+const CLOAK_ENABLED = "blur-cloak-enabled";
+const CLOAK_TYPE = "blur-cloak-type";
+
+
+const cloakData = {
+    docs: {
+        title: "Google Docs",
+        icon: "https://cdn.jsdelivr.net/gh/glincker/thesvg@484a2a5c2750cedd1c6da66c2b9a3b099f491a4f/public/icons/google-docs-2026/default.svg"
+    },
+
+    drive: {
+        title: "Google Drive",
+        icon: "https://cdn.jsdelivr.net/gh/glincker/thesvg@484a2a5c2750cedd1c6da66c2b9a3b099f491a4f/public/icons/google-drive-2026/default.svg"
+    },
+
+    search: {
+        title: "Google Search",
+        icon: "https://www.gstatic.com/images/branding/googleg_gradient/1x/googleg_gradient_standard_20dp.png"
+    },
+
+    classroom: {
+        title: "Google Classroom",
+        icon: "https://ssl.gstatic.com/classroom/favicon.png"
+    },
+
+    sheets: {
+        title: "Google Sheets",
+        icon: "https://cdn.jsdelivr.net/gh/glincker/thesvg@484a2a5c2750cedd1c6da66c2b9a3b099f491a4f/public/icons/google-sheets-2026/default.svg"
+    },
+
+    slides: {
+        title: "Google Slides",
+        icon: "https://cdn.jsdelivr.net/gh/glincker/thesvg@484a2a5c2750cedd1c6da66c2b9a3b099f491a4f/public/icons/google-slides-2026/default.svg"
+    },
+
+    forms: {
+        title: "Google Forms",
+        icon: "https://cdn.jsdelivr.net/gh/glincker/thesvg@484a2a5c2750cedd1c6da66c2b9a3b099f491a4f/public/icons/google-forms-2026/default.svg"
+    },
+
+    gmail: {
+        title: "Gmail",
+        icon: "https://cdn.jsdelivr.net/gh/glincker/thesvg@484a2a5c2750cedd1c6da66c2b9a3b099f491a4f/public/icons/gmail-2026/default.svg"
+    },
+
+    calendar: {
+        title: "Google Calendar",
+        icon: "https://cdn.jsdelivr.net/gh/glincker/thesvg@484a2a5c2750cedd1c6da66c2b9a3b099f491a4f/public/icons/google-calendar-2026/default.svg"
+    },
+
+    meet: {
+        title: "Google Meet",
+        icon: "https://cdn.jsdelivr.net/gh/glincker/thesvg@484a2a5c2750cedd1c6da66c2b9a3b099f491a4f/public/icons/google-meet-2026/default.svg"
+    },
+
+    clever: {
+        title: "Clever",
+        icon: "https://www.clever.com/wp-content/uploads/2023/06/cropped-Favicon-512px-32x32.png"
+    },
+
+    iready: {
+        title: "i-Ready",
+        icon: "https://login.i-ready.com/favicon.ico"
+    },
+
+    khan: {
+        title: "Khan Academy",
+        icon: "https://www.khanacademy.org/favicon.ico"
+    },
+
+canvas: {
+    title: "Canvas",
+    icon: "https://www.google.com/s2/favicons?domain=canvas.instructure.com&sz=64"
+},
+
+    schoology: {
+        title: "Schoology",
+        icon: "https://asset-cdn.schoology.com/sites/all/themes/schoology_theme/favicon.ico"
+    },
+
+    microsoft: {
+        title: "Microsoft 365",
+        icon: "https://www.microsoft.com/favicon.ico"
+    },
+
+    word: {
+        title: "Microsoft Word",
+        icon: "https://res.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/item-types/32/docx.svg"
+    },
+
+    powerpoint: {
+        title: "PowerPoint",
+        icon: "https://res.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/item-types/32/pptx.svg"
+    },
+
+    onedrive: {
+        title: "OneDrive",
+        icon: "https://onedrive.live.com/favicon.ico"
+    },
+
+    calculator: {
+        title: "Calculator",
+        icon: "assets/favicon.ico"
+    },
+
+    translate: {
+        title: "Google Translate",
+        icon: "https://www.gstatic.com/translate/favicon.ico"
+    },
+
+    maps: {
+        title: "Google Maps",
+        icon: "https://www.google.com/images/branding/product/ico/web_maps_icon_32dp.ico"
+    },
+
+    wikipedia: {
+        title: "Wikipedia",
+        icon: "https://en.wikipedia.org/static/favicon/wikipedia.ico"
+    },
+
+    blank: {
+        title: "New Tab",
+        icon: "assets/favicon.ico"
+    }
+};
+
+
+
+function applyCloak(){
+
+    const enabled =
+    localStorage.getItem(CLOAK_ENABLED)==="true";
+
+
+    const type =
+    localStorage.getItem(CLOAK_TYPE) || "docs";
+
+
+if(!enabled){
+
+    document.title = DEFAULT_TITLE;
+
+
+    let favicon =
+    document.querySelector(
+        "link[rel='icon']"
+    );
+
+
+    if(favicon){
+
+        favicon.href = DEFAULT_ICON;
+
+    }
+
+
+    return;
+
+}
+
+
+    const cloak =
+    cloakData[type];
+
+
+    if(!cloak) return;
+
+
+
+    document.title =
+    cloak.title;
+
+
+
+    if(cloak.icon){
+
+        let favicon =
+        document.querySelector(
+            "link[rel='icon']"
+        );
+
+
+        if(!favicon){
+
+            favicon =
+            document.createElement("link");
+
+            favicon.rel="icon";
+
+            document.head.appendChild(favicon);
+
+        }
+
+
+        favicon.href =
+        cloak.icon;
+
+    }
+
+}
+
+
+
+
+
+const cloakToggle =
+document.querySelector(
+"[data-cloak-toggle]"
+);
+
+
+
+const cloakSelect =
+document.querySelector(
+"[data-cloak-select]"
+);
+
+
+
+if(cloakToggle){
+
+
+    const saved =
+    localStorage.getItem(
+        CLOAK_ENABLED
+    )==="true";
+
+
+    cloakToggle.classList.toggle(
+        "on",
+        saved
+    );
+
+
+
+    cloakToggle.onclick=()=>{
+
+
+        const state =
+        !cloakToggle.classList.contains("on");
+
+
+        cloakToggle.classList.toggle(
+            "on",
+            state
+        );
+
+
+        localStorage.setItem(
+            CLOAK_ENABLED,
+            state
+        );
+
+
+        applyCloak();
+
+    };
+
+}
+
+
+
+if(cloakSelect){
+
+
+    cloakSelect.value =
+    localStorage.getItem(
+        CLOAK_TYPE
+    ) || "docs";
+
+
+cloakSelect.onchange=()=>{
+
+    localStorage.setItem(
+        CLOAK_TYPE,
+        cloakSelect.value
+    );
+
+
+    if(
+        localStorage.getItem(CLOAK_ENABLED)==="true"
+    ){
+
+        applyCloak();
+
+    }
+
+};
+
+
+}
+
+applyCloak();
+
+// =============================
+// PANIC KEY
+// =============================
+
+
+const PANIC_ENABLED = "blur-panic-enabled";
+const PANIC_URL = "blur-panic-url";
+const PANIC_KEY = "blur-panic-key";
+
+
+const panicToggle =
+document.querySelector("[data-panic-toggle]");
+
+const panicURL =
+document.querySelector("[data-panic-url]");
+
+const panicKey =
+document.querySelector("[data-panic-key]");
+
+
+
+// load settings
+
+if(panicToggle){
+
+
+    const enabled =
+    localStorage.getItem(PANIC_ENABLED)==="true";
+
+
+    panicToggle.classList.toggle(
+        "on",
+        enabled
+    );
+
+
+    panicURL.value =
+    localStorage.getItem(PANIC_URL) || "";
+
+
+    panicKey.textContent =
+    localStorage.getItem(PANIC_KEY) || "P";
+
+
+
+    panicToggle.onclick=()=>{
+
+        const state =
+        !panicToggle.classList.contains("on");
+
+
+        panicToggle.classList.toggle(
+            "on",
+            state
+        );
+
+
+        localStorage.setItem(
+            PANIC_ENABLED,
+            state
+        );
+
+    };
+
+
+}
+
+
+
+// save URL
+
+if(panicURL){
+
+    panicURL.onchange=()=>{
+
+        localStorage.setItem(
+            PANIC_URL,
+            panicURL.value.trim()
+        );
+
+    };
+
+}
+
+
+
+// choose key
+
+if(panicKey){
+
+    panicKey.onclick=()=>{
+
+        panicKey.textContent =
+        "waiting...";
+
+
+        const handler=(e)=>{
+
+            e.preventDefault();
+
+
+            let key =
+            e.key.toUpperCase();
+
+
+            // ignore modifiers
+            if(
+                key==="SHIFT" ||
+                key==="CONTROL" ||
+                key==="ALT" ||
+                key==="META"
+            )
+                return;
+
+
+
+            panicKey.textContent =
+            key;
+
+
+            localStorage.setItem(
+                PANIC_KEY,
+                key
+            );
+
+
+            window.removeEventListener(
+                "keydown",
+                handler
+            );
+
+
+        };
+
+
+        window.addEventListener(
+            "keydown",
+            handler
+        );
+
+    };
+
+}
+
+
+
+// global panic listener
+
+document.addEventListener(
+"keydown",
+(e)=>{
+
+
+    if(
+        localStorage.getItem(PANIC_ENABLED)!=="true"
+    )
+        return;
+
+
+
+    const saved =
+    localStorage.getItem(PANIC_KEY)
+    || "P";
+
+
+
+    if(
+        e.key.toUpperCase() === saved
+    ){
+
+
+        let url =
+        localStorage.getItem(PANIC_URL);
+
+
+
+        if(!url)
+            return;
+
+
+
+        if(
+            !url.startsWith("http://") &&
+            !url.startsWith("https://")
+        ){
+
+            url =
+            "https://" + url;
+
+        }
+
+
+
+        window.location.replace(url);
+
+
+    }
+
+
+});
+
+// =============================
+// SCREEN PRIVACY
+// =============================
+
+
+const SCREEN_PRIVACY =
+"blur-screen-privacy";
+
+
+const SCREEN_STYLE =
+"blur-screen-style";
+
+
+const privacyToggle =
+document.querySelector("[data-screen-privacy]");
+
+
+const privacySelect =
+document.querySelector("[data-privacy-style]");
+
+
+
+const privacyOverlay =
+document.createElement("div");
+
+
+privacyOverlay.id =
+"screen-privacy-overlay";
+
+privacyOverlay.innerHTML = "";
+
+
+document.body.appendChild(
+    privacyOverlay
+);
+
+
+
+function showPrivacyScreen(){
+
+    if(
+        localStorage.getItem(SCREEN_PRIVACY)!=="true"
+    )
+        return;
+
+
+    const style =
+    localStorage.getItem(SCREEN_STYLE)
+    || "black";
+
+
+    privacyOverlay.className =
+    style;
+
+
+    privacyOverlay.classList.add(
+        "active"
+    );
+
+}
+
+
+
+function hidePrivacyScreen(){
+
+    privacyOverlay.classList.remove(
+        "active"
+    );
+
+}
+
+
+
+// toggle
+
+if(privacyToggle){
+
+    const saved =
+    localStorage.getItem(
+        SCREEN_PRIVACY
+    )==="true";
+
+
+    privacyToggle.classList.toggle(
+        "on",
+        saved
+    );
+
+
+    privacyToggle.onclick=()=>{
+
+
+        const state =
+        !privacyToggle.classList.contains("on");
+
+
+        privacyToggle.classList.toggle(
+            "on",
+            state
+        );
+
+
+        localStorage.setItem(
+            SCREEN_PRIVACY,
+            state
+        );
+
+
+    };
+
+}
+
+
+
+// selector
+
+if(privacySelect){
+
+    privacySelect.value =
+    localStorage.getItem(
+        SCREEN_STYLE
+    ) || "black";
+
+
+    privacySelect.onchange=()=>{
+
+        localStorage.setItem(
+            SCREEN_STYLE,
+            privacySelect.value
+        );
+
+    };
+
+}
+
+
+
+
+document.addEventListener(
+"visibilitychange",
+()=>{
+
+    if(document.hidden){
+
+        showPrivacyScreen();
+
+    }else{
+
+        hidePrivacyScreen();
+
+    }
+
+});
+
+
+// Browsers also dispatch window.blur when focus moves into a cross-origin
+// iframe. Movie players and game embeds rely on that behavior, so treating
+// every blur as leaving Blur incorrectly covered the page while media was
+// still in use. Defer the check long enough for activeElement to become the
+// iframe, and only show the privacy screen for a true page/window blur.
+function isEmbeddedContentFocused(){
+    const active = document.activeElement;
+    return active?.tagName === "IFRAME" || !!active?.closest?.("iframe, embed, object");
+}
+
+window.addEventListener("blur",()=>{
+    window.setTimeout(()=>{
+        if (!isEmbeddedContentFocused()) showPrivacyScreen();
+    }, 40);
+});
+
+
+window.addEventListener(
+"focus",
+hidePrivacyScreen
+);
+
+// =============================
+// TEXT OBFUSCATION
+// =============================
+
+
+const OBFUSCATION_ENABLED =
+"blur-text-obfuscation";
+
+
+const OBFUSCATION_LEVEL =
+"blur-text-obfuscation-level";
+
+
+
+const obfuscationToggle =
+document.querySelector("[data-text-obfuscation]");
+
+
+const obfuscationSelect =
+document.querySelector("[data-obfuscation-level]");
+
+
+
+const obfuscationMaps = {
+
+    low:{
+        a:"α",
+        e:"е",
+        o:"о",
+        i:"і"
+    },
+
+
+    medium:{
+        a:"α",
+        e:"е",
+        o:"о",
+        i:"і",
+        s:"ѕ",
+        t:"т",
+        n:"п",
+        c:"с"
+    },
+
+
+    high:{
+        a:"α",
+        b:"Ь",
+        c:"с",
+        d:"ԁ",
+        e:"е",
+        g:"ɡ",
+        h:"һ",
+        i:"і",
+        k:"κ",
+        l:"ⅼ",
+        m:"ｍ",
+        n:"п",
+        o:"о",
+        p:"р",
+        s:"ѕ",
+        t:"т",
+        x:"х"
+    }
+
+};
+
+
+
+function obfuscateText(text){
+
+
+    const level =
+    localStorage.getItem(
+        OBFUSCATION_LEVEL
+    ) || "low";
+
+
+    const map =
+    obfuscationMaps[level];
+
+
+    return text.split("")
+    .map(char=>{
+
+
+        const lower =
+        char.toLowerCase();
+
+
+        if(
+            map[lower] &&
+            Math.random() > 0.45
+        ){
+
+            return map[lower];
+
+        }
+
+
+        return char;
+
+
+    })
+    .join("");
+
+}
+
+
+
+
+let originalTexts = [];
+
+
+
+function applyObfuscation(){
+
+
+    const enabled =
+    localStorage.getItem(
+        OBFUSCATION_ENABLED
+    )==="true";
+
+
+    document.querySelectorAll(
+        "body *"
+    )
+    .forEach(el=>{
+
+
+        if(
+            el.children.length===0 &&
+            el.textContent.trim()
+        ){
+
+
+            if(!el.dataset.originalText){
+
+                el.dataset.originalText =
+                el.textContent;
+
+            }
+
+
+            el.textContent =
+            enabled
+            ? obfuscateText(el.dataset.originalText)
+            : el.dataset.originalText;
+
+
+        }
+
+
+    });
+
+
+}
+
+
+
+if(obfuscationToggle){
+
+
+    const enabled =
+    localStorage.getItem(
+        OBFUSCATION_ENABLED
+    )==="true";
+
+
+    obfuscationToggle.classList.toggle(
+        "on",
+        enabled
+    );
+
+
+    obfuscationToggle.onclick=()=>{
+
+
+        const state =
+        !obfuscationToggle.classList.contains("on");
+
+
+        obfuscationToggle.classList.toggle(
+            "on",
+            state
+        );
+
+
+        localStorage.setItem(
+            OBFUSCATION_ENABLED,
+            state
+        );
+
+
+        applyObfuscation();
+
+    };
+
+
+}
+
+
+
+if(obfuscationSelect){
+
+
+    obfuscationSelect.value =
+    localStorage.getItem(
+        OBFUSCATION_LEVEL
+    ) || "low";
+
+
+    obfuscationSelect.onchange=()=>{
+
+
+        localStorage.setItem(
+            OBFUSCATION_LEVEL,
+            obfuscationSelect.value
+        );
+
+
+        applyObfuscation();
+
+
+    };
+
+}
+
+
+
+applyObfuscation();
+
+// AI personality/custom instructions were intentionally removed. Clear any
+// value saved by older builds so it cannot remain as a hidden preference.
+try { localStorage.removeItem("blur-ai-personality"); } catch (e) {}
+
+// =============================
+// CONFIG STORAGE
+// =============================
+
+
+const PERFORMANCE_KEY =
+"blur-performance-mode";
+
+
+
+const performanceToggle =
+document.querySelector("[data-performance-mode]");
+
+
+
+if(performanceToggle){
+
+    const enabled =
+    localStorage.getItem(
+        PERFORMANCE_KEY
+    )==="true";
+
+
+    performanceToggle.classList.toggle(
+        "on",
+        enabled
+    );
+    performanceToggle.setAttribute("aria-pressed", String(enabled));
+
+
+    document.documentElement.classList.toggle(
+        "performance-mode",
+        enabled
+    );
+
+
+
+    performanceToggle.onclick=()=>{
+
+
+        const state =
+        !performanceToggle.classList.contains("on");
+
+
+        performanceToggle.classList.toggle(
+            "on",
+            state
+        );
+        performanceToggle.setAttribute("aria-pressed", String(state));
+
+
+        localStorage.setItem(
+            PERFORMANCE_KEY,
+            state
+        );
+
+
+        document.documentElement.classList.toggle(
+            "performance-mode",
+            state
+        );
+
+        window.dispatchEvent(new CustomEvent("blur-performance-mode-change", {
+            detail: { enabled: state }
+        }));
+
+
+    };
+
+}
+
+
+
+// =============================
+// EXPORT SETTINGS
+// =============================
+
+
+const exportButton =
+document.querySelector("[data-export-settings]");
+
+
+
+if(exportButton){
+
+    exportButton.onclick=()=>{
+
+
+        const data = {};
+
+
+        Object.keys(localStorage)
+        .forEach(key=>{
+
+            data[key] =
+            localStorage.getItem(key);
+
+        });
+
+
+
+        const blob =
+        new Blob(
+            [
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            ],
+            {
+                type:"application/json"
+            }
+        );
+
+
+        const url =
+        URL.createObjectURL(blob);
+
+
+
+        const a =
+        document.createElement("a");
+
+
+        a.href=url;
+
+        a.download =
+        "blur-settings.json";
+
+
+        a.click();
+
+
+
+        URL.revokeObjectURL(url);
+
+
+    };
+
+}
+
+
+
+// =============================
+// IMPORT SETTINGS
+// =============================
+
+
+const importButton =
+document.querySelector("[data-import-settings]");
+
+
+
+if(importButton){
+
+
+    const input =
+    document.createElement("input");
+
+
+    input.type="file";
+    input.accept=".json";
+
+
+    input.onchange=e=>{
+
+
+        const file =
+        e.target.files[0];
+
+
+        if(!file)
+            return;
+
+
+
+        const reader =
+        new FileReader();
+
+
+
+        reader.onload=()=>{
+
+
+            try{
+
+
+                const data =
+                JSON.parse(
+                    reader.result
+                );
+
+
+                Object.entries(data)
+                .forEach(([key,value])=>{
+
+                    localStorage.setItem(
+                        key,
+                        value
+                    );
+
+                });
+
+
+
+                location.reload();
+
+
+            }catch{
+
+
+                alert(
+                    "Invalid Blur settings file."
+                );
+
+            }
+
+
+        };
+
+
+        reader.readAsText(file);
+
+
+    };
+
+
+    importButton.onclick=()=>{
+
+        input.click();
+
+    };
+
+
+}
+
+// =============================
+// RESET LOCAL DATA MODAL
+// =============================
+
+
+const resetButton =
+document.querySelector("[data-reset-data]");
+
+
+
+const resetModal =
+document.createElement("div");
+
+
+resetModal.className =
+"reset-modal";
+
+
+resetModal.innerHTML = `
+
+<div class="reset-card">
+
+    <h2>
+        Reset Blur?
+    </h2>
+
+
+    <p>
+        This will delete ALL of the local data stored on this device.
+    </p>
+
+
+    <div class="reset-actions">
+
+        <button class="small-button" data-cancel-reset>
+            Cancel
+        </button>
+
+
+        <button class="small-button danger" data-confirm-reset>
+            Reset
+        </button>
+
+    </div>
+
+</div>
+
+`;
+
+
+document.body.appendChild(resetModal);
+
+
+
+const cancelReset =
+resetModal.querySelector(
+"[data-cancel-reset]"
+);
+
+
+const confirmReset =
+resetModal.querySelector(
+"[data-confirm-reset]"
+);
+
+
+
+if(resetButton){
+
+    resetButton.onclick=()=>{
+
+        resetModal.classList.add(
+            "active"
+        );
+
+    };
+
+}
+
+
+
+cancelReset.onclick=()=>{
+
+    resetModal.classList.remove(
+        "active"
+    );
+
+};
+
+
+
+confirmReset.onclick=()=>{
+
+
+    localStorage.clear();
+
+
+    location.reload();
+
+
+};
+
+// =============================
+// BLOB MODE
+// =============================
+
+const blobButton =
+document.querySelector("[data-blob-mode]");
+
+
+if(blobButton){
+
+    blobButton.onclick=()=>{
+
+        openBlobMode();
+
+    };
+
+}
+
+
+
+function openBlobMode(){
+
+    const currentURL =
+    window.location.href;
+
+
+    const blobHTML = `
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>blur</title>
+
+<style>
+
+html, body {
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+}
+
+
+iframe {
+
+    width:100%;
+    height:100%;
+    border:none;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<iframe src="${currentURL}"></iframe>
+
+</body>
+
+</html>
+
+`;
+
+
+    const blob =
+    new Blob(
+        [blobHTML],
+        {
+            type:"text/html"
+        }
+    );
+
+
+    const blobURL =
+    URL.createObjectURL(blob);
+
+
+    window.location.href =
+    blobURL;
+
+}
+
+// =============================
+// EXTERNAL LINK CONFIRMATION
+// =============================
+
+
+const EXTERNAL_CONFIRM =
+"blur-external-confirm";
+
+
+const externalToggle =
+document.querySelector("[data-external-confirm]");
+
+
+
+if(externalToggle){
+
+
+    const enabled =
+    localStorage.getItem(EXTERNAL_CONFIRM)==="true";
+
+
+    externalToggle.classList.toggle(
+        "on",
+        enabled
+    );
+
+
+
+    externalToggle.onclick=()=>{
+
+
+        const state =
+        !externalToggle.classList.contains("on");
+
+
+        externalToggle.classList.toggle(
+            "on",
+            state
+        );
+
+
+        localStorage.setItem(
+            EXTERNAL_CONFIRM,
+            state
+        );
+
+
+    };
+
+
+}
+
+
+
+// intercept links
+
+document.addEventListener(
+"click",
+(e)=>{
+
+
+    const link =
+    e.target.closest("a");
+
+
+    if(!link)
+        return;
+
+
+
+    const url =
+    link.href;
+
+
+
+    if(!url)
+        return;
+
+
+
+    const current =
+    window.location.hostname;
+
+
+
+    const target =
+    new URL(url).hostname;
+
+
+
+    const leavingBlur =
+    target !== current;
+
+
+
+    if(
+        leavingBlur &&
+        localStorage.getItem(EXTERNAL_CONFIRM)==="true"
+    ){
+
+
+        const confirmed =
+        confirm(
+            "Are you sure you want to leave Blur?"
+        );
+
+
+        if(!confirmed){
+
+            e.preventDefault();
+
+        }
+
+
+    }
+
+
+});
+
+// =============================
+// CLOSE CONFIRMATION
+// =============================
+
+
+const CLOSE_CONFIRM =
+"blur-close-confirm";
+
+
+const closeToggle =
+document.querySelector("[data-close-confirm]");
+
+
+
+if(closeToggle){
+
+
+    const enabled =
+    localStorage.getItem(CLOSE_CONFIRM)==="true";
+
+
+    closeToggle.classList.toggle(
+        "on",
+        enabled
+    );
+
+
+
+    closeToggle.onclick=()=>{
+
+
+        const state =
+        !closeToggle.classList.contains("on");
+
+
+        closeToggle.classList.toggle(
+            "on",
+            state
+        );
+
+
+        localStorage.setItem(
+            CLOSE_CONFIRM,
+            state
+        );
+
+
+    };
+
+
+}
+
+
+
+// browser close warning
+
+window.addEventListener(
+"beforeunload",
+(e)=>{
+
+
+    if(
+        localStorage.getItem(CLOSE_CONFIRM)!=="true"
+    )
+        return;
+
+
+
+    e.preventDefault();
+
+
+    e.returnValue = "";
+
+
+});

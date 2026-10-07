@@ -3,8 +3,8 @@
    data-theme="<id>" on the <html> element (see settings.js). */
 
 :root{
-  --accent:#ffffff;
-  --accent-glow:rgba(255,255,255,.14);
+  --accent:#f2f2f0;
+  --accent-glow:rgba(242,242,240,.14);
 }
 
 /* smooth recolor when switching themes */
@@ -35,13 +35,56 @@ html[data-theme="ember"]{
 
 
 html[data-theme="verdant"]{
-  --bg:#070c08;
-  --sidebar:#0a100b;
-  --surface:#0f1810;
-  --surface-2:#152016;
-  --surface-3:#1c2b1e;
-  --accent:#4fbf6b;
-  --accent-glow:rgba(79,191,107,.16);
+  /* Verdant keeps the UI green, but lets a quiet forest image carry the
+     atmosphere behind it. The alpha surfaces are intentional: they retain
+     contrast while allowing the image to read through on spacious pages. */
+  --bg:rgba(5,14,9,.78);
+  --sidebar:rgba(7,18,11,.96);
+  --surface:rgba(12,28,16,.9);
+  --surface-2:rgba(18,42,24,.93);
+  --surface-3:rgba(28,59,34,.95);
+  --border:rgba(190,232,177,.13);
+  --border-strong:rgba(190,232,177,.25);
+  --text:#e9f5e4;
+  --muted:#9db79b;
+  --muted-dim:#647a64;
+  --white:#f2faee;
+  --accent:#83d66f;
+  --accent-dim:rgba(131,214,111,.16);
+  --accent-glow:rgba(131,214,111,.19);
+  --text-on-art:#f4ffef;
+  --text-on-art-muted:rgba(244,255,239,.8);
+  --border-on-art:rgba(244,255,239,.3);
+  --shadow:0 18px 55px rgba(0,0,0,.42);
+  --overlay-scrim:rgba(2,9,5,.62);
+  --shadow-overlay:0 18px 55px rgba(0,0,0,.46);
+}
+
+/* Verdant keeps the interface color-led and lightweight. */
+html[data-theme="verdant"] body{
+  background-color:#050e09;
+}
+
+html[data-theme="verdant"] main{
+  isolation:isolate;
+  background:transparent;
+}
+
+html[data-theme="verdant"] main > *{
+  position:relative;
+  z-index:1;
+}
+
+html[data-theme="verdant"] .sidebar{
+  box-shadow:10px 0 32px rgba(0,0,0,.2);
+}
+
+html[data-theme="verdant"] :is(.settings-group,.action-card,.watch-row,.game-card,.music-card,.preview-panel,.player-modal){
+  box-shadow:0 10px 30px rgba(0,0,0,.16);
+}
+
+html[data-theme="verdant"] :is(.settings-group,.action-card,.watch-row,.game-card,.music-card,.preview-panel,.player-modal):hover{
+  border-color:rgba(131,214,111,.34);
 }
 
 
@@ -78,25 +121,41 @@ html[data-theme="ocean"]{
 }
 
 
-html[data-theme="rose"]{
-  --bg:#12070c;
-  --sidebar:#180a11;
-  --surface:#211018;
-  --surface-2:#301522;
-  --surface-3:#421c2d;
-  --accent:#fb7185;
-  --accent-glow:rgba(251,113,133,.18);
+html[data-theme="dusk"]{
+  --bg:#080a12;
+  --sidebar:#0c0f1a;
+  --surface:#111625;
+  --surface-2:#18213a;
+  --surface-3:#222f50;
+  --accent:#8ea5ff;
+  --accent-glow:rgba(142,165,255,.16);
 }
 
 
-html[data-theme="slate"]{
-  --bg:#090909;
-  --sidebar:#111111;
-  --surface:#181818;
-  --surface-2:#242424;
-  --surface-3:#303030;
-  --accent:#a3a3a3;
-  --accent-glow:rgba(163,163,163,.15);
+html[data-theme="cherryblossom"]{
+  --bg:#f7d6e2;
+  --sidebar:#efc2d2;
+  --surface:#fbe3eb;
+  --surface-2:#efb9cc;
+  --surface-3:#e39eb8;
+  --border:rgba(88,43,62,.14);
+  --border-strong:rgba(88,43,62,.25);
+  --text:#432936;
+  --muted:#8b6474;
+  --muted-dim:#b28d9c;
+  --accent:#cf5f87;
+  --accent-dim:rgba(207,95,135,.16);
+  --accent-glow:rgba(207,95,135,.16);
+  --white:#432936;
+  --text-on-art:#fff7fa;
+  --text-on-art-muted:rgba(255,247,250,.84);
+  --border-on-art:rgba(255,247,250,.34);
+  --danger:#bd4e68;
+  --danger-dim:rgba(189,78,104,.12);
+  --danger-border:rgba(189,78,104,.32);
+  --shadow:0 12px 40px rgba(102,42,70,.16);
+  --overlay-scrim:rgba(67,29,47,.28);
+  --shadow-overlay:0 12px 40px rgba(102,42,70,.2);
 }
 
 /* ---- EARLY ACCESS THEME (redeem only) ---- */
@@ -129,8 +188,8 @@ nav a.active::before,
 }
 
 .switch.on{
-  background:var(--accent);
-  border-color:var(--accent);
+  background:color-mix(in srgb, var(--accent) 20%, var(--surface-3));
+  border-color:color-mix(in srgb, var(--accent) 52%, var(--border-strong));
 }
 
 .settings-tabs button.active::after{
@@ -147,15 +206,15 @@ main::before{
 .theme-section-caption{
   font-size:12.5px;
   color:var(--muted);
-  padding:0 18px 16px;
-  margin-top:-8px;
+  padding:0 0 12px;
+  margin-top:-4px;
 }
 
 .theme-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
-  padding:0 18px 18px;
+  padding:2px 2px 8px;
 }
 
 .theme-card{
@@ -285,4 +344,190 @@ main::before{
   .theme-grid{
     grid-template-columns:1fr;
   }
+}
+
+html[data-theme="atlas"] {
+  --bg:#0b0b0b;
+  --sidebar:#111111;
+  --surface:#181818;
+  --surface-2:#2a1111;
+  --surface-3:#3a1717;
+  --text:#f4f4f2;
+  --muted:#b8b8b5;
+  --accent:#d33b3b;
+  --accent-dim:rgba(211,59,59,.16);
+  --border:#3a2020;
+  --border-strong:#6b3030;
+}
+
+html[data-theme="darqmarq"] {
+  --bg:#000000;
+  --sidebar:#020202;
+  --surface:#070605;
+  --surface-2:#0d0907;
+  --surface-3:#17100c;
+  --text:#ffe9d1;
+  --white:#fff1df;
+  --muted:#ae9580;
+  --muted-dim:#6d5849;
+  --accent:#ff9b62;
+  --accent-dim:rgba(255,155,98,.14);
+  --border:rgba(255,210,170,.09);
+  --border-strong:rgba(255,210,170,.2);
+}
+
+/* ---- LAKERS THEME (redeem only) ---- */
+html[data-theme="lalakers"] {
+  --bg:#07050b;
+  --sidebar:#0d0714;
+  --surface:#130b1d;
+  --surface-2:#1c1029;
+  --surface-3:#28163c;
+  --text:#f7f0dc;
+  --white:#fff8e8;
+  --muted:#c0b6c8;
+  --muted-dim:#7f708c;
+  --accent:#FDB927;
+  --accent-dim:rgba(253,185,39,.16);
+  --border:rgba(253,185,39,.12);
+  --border-strong:rgba(253,185,39,.28);
+  --accent-glow:rgba(253,185,39,.18);
+}
+
+/* ---- PIXEL BLUR THEME (redeem only) ---- */
+html[data-theme="pixelblur"] {
+  --bg:#100e0d;
+  --sidebar:#171411;
+  --surface:#211d19;
+  --surface-2:#2b251f;
+  --surface-3:#3a3027;
+  --text:#f7eedb;
+  --white:#fff8e8;
+  --muted:#b8a996;
+  --muted-dim:#786b5c;
+  --accent:#d6f85b;
+  --accent-dim:rgba(214,248,91,.15);
+  --accent-glow:rgba(214,248,91,.1);
+  --border:rgba(247,238,219,.11);
+  --border-strong:rgba(247,238,219,.25);
+  --pixel-hot:#ff795c;
+  --pixel-shadow:rgba(0,0,0,.38);
+  --radius-sm:3px;
+  --radius-md:4px;
+  --radius-lg:6px;
+  --radius-dialog:8px;
+}
+
+html[data-theme="pixelblur"] .brand-logo,
+html[data-theme="pixelblur"] .icon-slot svg,
+html[data-theme="pixelblur"] button svg {
+  image-rendering:pixelated;
+}
+
+html[data-theme="pixelblur"] body {
+  background-color:var(--bg);
+  background-image:
+    linear-gradient(rgba(214,248,91,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(214,248,91,.014) 1px, transparent 1px);
+  background-size:16px 16px;
+}
+
+/* A barely-there pixel screen texture. It sits above the UI visually but
+   never captures input, so the theme keeps the same interaction behavior. */
+html[data-theme="pixelblur"] body::after {
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  pointer-events:none;
+  content:"";
+  opacity:.032;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,248,232,.7) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(214,248,91,.35) 0 1px, transparent 1px 4px);
+  background-size:4px 4px;
+  mix-blend-mode:screen;
+}
+
+html[data-theme="pixelblur"] .brand-dot,
+html[data-theme="pixelblur"] .mark,
+html[data-theme="pixelblur"] .mark::before {
+  background:var(--pixel-hot)!important;
+}
+
+html[data-theme="pixelblur"] .brand-name,
+html[data-theme="pixelblur"] .brand-tag,
+html[data-theme="pixelblur"] .sidebar nav a,
+html[data-theme="pixelblur"] .sidebar .bottom a,
+html[data-theme="pixelblur"] .legal-row a,
+html[data-theme="pixelblur"] .tools-section-kicker {
+  font-family:var(--font-mono);
+}
+
+html[data-theme="pixelblur"] .brand-name {
+  letter-spacing:.02em;
+  text-transform:uppercase;
+}
+
+html[data-theme="pixelblur"] :is(.action-card,.announcement-item,.settings-group,.preview-panel,.game-card,.music-card,.watch-row,.player-modal) {
+  border-radius:3px!important;
+  box-shadow:3px 3px 0 var(--pixel-shadow);
+}
+
+html[data-theme="pixelblur"] :is(.action-card,.announcement-item,.settings-group,.preview-panel,.game-card,.music-card,.watch-row):hover {
+  border-color:var(--accent)!important;
+  box-shadow:3px 3px 0 var(--pixel-shadow), inset 0 0 0 1px rgba(214,248,91,.12);
+}
+
+html[data-theme="pixelblur"] :is(button,.ui-button,.ui-icon-button,.ui-field,input,select,textarea) {
+  border-radius:3px!important;
+}
+
+html[data-theme="pixelblur"] :is(.ui-button,.ui-icon-button):hover,
+html[data-theme="pixelblur"] :is(.action-primary,.music-nav-btn,.watch-provider-btn):hover {
+  transform:translate(-1px,-1px);
+  box-shadow:2px 2px 0 var(--pixel-shadow);
+}
+
+html[data-theme="pixelblur"] :is(.ui-button--primary,.action-primary) {
+  background:var(--accent)!important;
+  border-color:var(--accent)!important;
+  color:#171411!important;
+}
+
+html[data-theme="pixelblur"] .sidebar nav a.active,
+html[data-theme="pixelblur"] .sidebar nav a:hover {
+  box-shadow:inset 3px 0 0 var(--accent)!important;
+}
+
+html[data-theme="pixelblur"] .sidebar nav a.active .icon-slot svg,
+html[data-theme="pixelblur"] .sidebar nav a:hover .icon-slot svg {
+  stroke:var(--accent)!important;
+  stroke-width:2;
+}
+
+html[data-theme="pixelblur"] :is(.section-label,.music-section-label,.row-title h2,.settings-group h3) {
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+
+html[data-theme="pixelblur"] ::selection {
+  background:var(--accent);
+  color:#171411;
+}
+
+html[data-theme="pixelblur"] .sidebar nav a,
+html[data-theme="pixelblur"] .sidebar .bottom > a,
+html[data-theme="pixelblur"] .sidebar .acct-bar > a,
+html[data-theme="pixelblur"] .sidebar .legal-toggle,
+html[data-theme="pixelblur"] .ui-button,
+html[data-theme="pixelblur"] .ui-icon-button,
+html[data-theme="pixelblur"] .ui-field {
+  border-radius:3px!important;
+}
+
+html:is([data-theme="atlas"], [data-theme="darqmarq"], [data-theme="lalakers"]) {
+  --muted-dim:#8c8981;
+  --shadow:0 12px 40px rgba(0,0,0,.42);
+  --overlay-scrim:rgba(0,0,0,.62);
+  --shadow-overlay:0 12px 40px rgba(0,0,0,.46);
 }

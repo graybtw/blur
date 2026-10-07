@@ -1,0 +1,1799 @@
+/* =====================================================================
+   Blur product cohesion
+   A shared visual contract for every workspace. This layer is deliberately
+   additive: tab-specific layouts and interactions stay in their own files,
+   while the shell, rails, controls, surfaces, and feedback all speak one
+   visual language.
+===================================================================== */
+
+:root{
+  --product-sidebar-width:224px;
+  --product-content-max:1280px;
+  --product-gutter:clamp(18px,2.6vw,34px);
+  --product-control:38px;
+  --product-control-sm:32px;
+  --product-panel-radius:14px;
+  --product-card-radius:10px;
+  --product-control-radius:8px;
+  --product-row-radius:9px;
+  --product-divider:var(--border-subtle);
+}
+
+/* The page shell ------------------------------------------------------- */
+
+main:has(.watch-panel.active),
+main:has(.games-panel.active),
+main:has(.music-panel.active),
+main:has(.ai-panel.active),
+main:has(.chat-panel.active),
+main:has(.proxy-panel.active),
+main:has(.settings-panel.active){
+  background:var(--bg);
+}
+
+.panel.active{animation:product-panel-enter .18s var(--ease-standard) both;}
+
+@keyframes product-panel-enter{
+  from{opacity:.72;transform:translateY(3px);}
+  to{opacity:1;transform:none;}
+}
+
+/* Rails ---------------------------------------------------------------- */
+
+.chat-sidebar,
+.ai-sidebar,
+.music-sidebar{
+  width:var(--product-sidebar-width) !important;
+  min-width:var(--product-sidebar-width) !important;
+  flex-basis:var(--product-sidebar-width) !important;
+  padding:16px 10px 12px !important;
+  background:var(--sidebar);
+  border-right:1px solid var(--product-divider);
+}
+
+.chat-sidebar,
+.ai-sidebar,
+.music-sidebar,
+.sidebar{
+  scrollbar-color:var(--border-strong) transparent;
+}
+
+.chat-sidebar-header,
+.ai-sidebar-section-label,
+.music-sidebar-brand{
+  min-height:30px;
+  padding:10px 9px 7px;
+  color:var(--text-tertiary);
+  font:500 9px/1 var(--font-mono);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.music-sidebar-brand{
+  padding-top:4px;
+  padding-bottom:18px;
+}
+
+.chat-sidebar-header{margin:10px 0 2px;padding-top:5px;}
+
+.chat-sidebar,
+.ai-sidebar,
+.music-sidebar{
+  --rail-item-height:35px;
+}
+
+.chat-sidebar .sidebar-tabs,
+.ai-sidebar-nav,
+.music-nav{
+  gap:3px;
+}
+
+.chat-sidebar .sidebar-tab,
+.ai-sidebar-nav-item,
+.music-nav-btn,
+.chat-sidebar .channel-item,
+.chat-sidebar .dm-item,
+.ai-sidebar-item{
+  min-height:var(--rail-item-height);
+  height:var(--rail-item-height);
+  border:1px solid transparent;
+  border-radius:var(--radius-sm);
+  background:transparent;
+  color:var(--text-secondary);
+  transition:background var(--speed) var(--ease-standard),
+              border-color var(--speed) var(--ease-standard),
+              color var(--speed) var(--ease-standard);
+}
+
+.chat-sidebar .sidebar-tab:hover,
+.ai-sidebar-nav-item:hover,
+.music-nav-btn:hover,
+.chat-sidebar .channel-item:hover,
+.chat-sidebar .dm-item:hover,
+.ai-sidebar-item:hover{
+  background:var(--surface-hover);
+  border-color:var(--border-subtle);
+  color:var(--text-primary);
+}
+
+.chat-sidebar .sidebar-tab.active,
+.ai-sidebar-nav-item.active,
+.music-nav-btn.active,
+.chat-sidebar .channel-item.active,
+.chat-sidebar .dm-item.active,
+.ai-sidebar-item.active{
+  background:var(--surface-selected);
+  border-color:var(--border-subtle);
+  box-shadow:none;
+  color:var(--text-primary);
+}
+
+.chat-sidebar .sidebar-tab.active::before,
+.chat-sidebar .sidebar-tab.active::after,
+.ai-sidebar-nav-item.active::before,
+.ai-sidebar-nav-item.active::after,
+.music-nav-btn.active::before,
+.music-nav-btn.active::after{content:none;}
+
+.chat-sidebar .sidebar-tab.active .sidebar-tab-icon,
+.ai-sidebar-nav-item.active svg,
+.music-nav-btn.active svg{color:var(--accent);stroke:currentColor;}
+
+.chat-sidebar .sidebar-tabs{
+  display:flex;
+  margin:0 0 11px;
+  padding:3px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md);
+  background:var(--surface);
+}
+
+.chat-sidebar .sidebar-tab{
+  flex:1 1 0;
+  justify-content:center;
+  gap:6px;
+  padding:0 5px;
+  font:500 10px/1 var(--font-body);
+}
+
+.chat-sidebar .channel-item,
+.chat-sidebar .dm-item,
+.ai-sidebar-item,
+.ai-sidebar-nav-item,
+.music-nav-btn{padding-inline:9px;}
+
+.ai-sidebar-nav{
+  padding-bottom:12px;
+  border-bottom:1px solid var(--product-divider);
+}
+
+.ai-sidebar-list{padding:0 1px;}
+.ai-sidebar-bottom{padding-top:12px;border-top-color:var(--product-divider);}
+.ai-usage-card{border-radius:var(--product-card-radius);background:var(--surface);border-color:var(--border-subtle);}
+
+.music-sidebar-brand::after{left:9px;right:9px;bottom:8px;background:var(--product-divider);}
+.music-nav-btn{gap:10px;font-size:12.5px;}
+.music-nav-btn svg{width:15px;height:15px;}
+.music-sidebar-footer{padding-top:12px;border-top-color:var(--product-divider);}
+
+/* Shared content rails -------------------------------------------------- */
+
+.watch-app,
+.games-app{
+  padding:var(--product-gutter) !important;
+}
+
+.watch-browse-view,
+.games-app-inner{
+  width:min(var(--product-content-max),100%);
+  margin-inline:auto;
+}
+
+.watch-top,
+.games-toolbar,
+.music-header,
+.settings-top,
+.account-header{
+  min-height:var(--product-control);
+}
+
+.watch-top,
+.games-toolbar{gap:12px;}
+
+.watch-search,
+.games-search,
+.music-search-input,
+.music-home-search,
+.ai-sidebar-search,
+.ai-models-search,
+.settings-panel .select,
+.settings-panel input,
+.settings-panel textarea,
+.settings-panel select,
+.account-panel input,
+.account-panel textarea,
+.account-panel select{
+  min-height:var(--product-control);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--product-card-radius);
+  background:var(--surface);
+  color:var(--text-primary);
+  transition:background var(--speed) var(--ease-standard),border-color var(--speed) var(--ease-standard),box-shadow var(--speed) var(--ease-standard);
+}
+
+.watch-search:hover,
+.games-search:hover,
+.music-search-input:hover,
+.music-home-search:hover,
+.ai-sidebar-search:hover,
+.ai-models-search:hover,
+.settings-panel .select:hover,
+.settings-panel input:hover,
+.settings-panel textarea:hover,
+.settings-panel select:hover,
+.account-panel input:hover,
+.account-panel textarea:hover,
+.account-panel select:hover{border-color:var(--border-emphasis);}
+
+.watch-search:focus-within,
+.games-search:focus-within,
+.music-search-input:focus,
+.music-home-search:focus-within,
+.ai-sidebar-search:focus-within,
+.ai-models-search:focus-within,
+.settings-panel .select:focus-within,
+.settings-panel input:focus,
+.settings-panel textarea:focus,
+.settings-panel select:focus,
+.account-panel input:focus,
+.account-panel textarea:focus,
+.account-panel select:focus{border-color:var(--accent);box-shadow:var(--focus-ring);}
+
+/* Tabs, filters, and segmented navigation ------------------------------ */
+
+.watch-tabs,
+.games-category-tabs,
+.music-search-tabs,
+.music-library-tabs,
+.settings-tabs,
+.friends-tabs{
+  gap:3px;
+}
+
+.watch-tab,
+.games-category-tab,
+.music-search-tab,
+.music-library-tab,
+.settings-tabs button,
+.friends-tab{
+  min-height:var(--product-control-sm);
+  height:var(--product-control-sm);
+  padding:0 12px;
+  border:1px solid transparent;
+  border-radius:var(--radius-sm);
+  background:transparent;
+  color:var(--text-secondary);
+  font-size:11px;
+  transition:background var(--speed) var(--ease-standard),border-color var(--speed) var(--ease-standard),color var(--speed) var(--ease-standard);
+}
+
+.watch-tab:hover,
+.games-category-tab:hover,
+.music-search-tab:hover,
+.music-library-tab:hover,
+.settings-tabs button:hover,
+.friends-tab:hover{background:var(--surface-hover);border-color:var(--border-subtle);color:var(--text-primary);}
+
+.watch-tab.active,
+.games-category-tab.active,
+.music-search-tab.active,
+.music-library-tab.active,
+.settings-tabs button.active,
+.friends-tab.active{
+  background:var(--surface-selected);
+  border-color:var(--border-subtle);
+  box-shadow:none;
+  color:var(--text-primary);
+}
+
+.music-search-tab.active::after,
+.music-library-tab.active::after,
+.settings-tabs button.active::after{background:var(--accent);height:1px;border-radius:0;}
+
+/* Sections and surfaces ------------------------------------------------- */
+
+.watch-hero,
+.games-dedicated-section,
+.music-hero,
+.ai-usage-card,
+.preview-panel,
+.acct-card,
+.settings-group,
+.chat-context-panel,
+.chat-account-popover{
+  border:1px solid var(--border-subtle);
+  border-radius:var(--product-panel-radius);
+  box-shadow:none;
+}
+
+.watch-hero,
+.games-dedicated-section{overflow:hidden;}
+.music-hero{background:var(--surface);}
+
+.row-title,
+.games-section-title,
+.music-section-heading,
+.music-library-panel-heading{
+  min-height:34px;
+  padding-bottom:9px;
+  margin-bottom:10px;
+  border-bottom:1px solid var(--product-divider);
+}
+
+.row-title h2,
+.games-section-title h2,
+.music-section-title,
+.settings-group h3,
+.account-panel h2{font-size:17px;font-weight:500;letter-spacing:-.015em;}
+
+.row-title h2::after{display:none;}
+
+.game-card,
+.movie-card,
+.song-card-grid,
+.playlist-card,
+.action-card,
+.action-primary,
+.announcement-item{
+  border-radius:var(--product-card-radius);
+  border-color:var(--border-subtle);
+  box-shadow:none;
+}
+
+.game-card:hover,
+.movie-card:hover,
+.song-card-grid:hover,
+.playlist-card:hover,
+.action-card:hover,
+.action-primary:hover,
+.announcement-item:hover{border-color:var(--border-emphasis);}
+
+/* Actions and icon controls -------------------------------------------- */
+
+.hero-actions button,
+.games-player-btn,
+.player-btn,
+.music-primary-action,
+.music-secondary-action,
+.music-new-playlist-btn,
+.music-playlist-action-btn,
+.small-button,
+.ui-button,
+.acct-btn,
+.chat-confirm-actions button{
+  min-height:var(--product-control);
+  border-radius:var(--radius-sm);
+  font-size:12px;
+}
+
+.hero-actions button:hover,
+.games-player-btn:hover,
+.player-btn:hover,
+.music-primary-action:hover,
+.music-secondary-action:hover,
+.music-new-playlist-btn:hover,
+.music-playlist-action-btn:hover,
+.small-button:hover,
+.ui-button:hover,
+.acct-btn:hover,
+.chat-confirm-actions button:hover{transform:translateY(-1px);}
+
+.game-fav-btn,
+.song-card-action,
+.music-mode-btn,
+.music-transport-btn,
+.music-filter-btn,
+.music-text-action,
+.chat-actions-button,
+.chat-composer-plus,
+.message-actions button,
+.message-reply-btn,
+.message-react-btn,
+.acct-modal-close,
+.ai-composer-tool,
+.ai-send{
+  border-radius:var(--radius-sm);
+  transition:background var(--speed) var(--ease-standard),border-color var(--speed) var(--ease-standard),color var(--speed) var(--ease-standard),transform var(--speed) var(--ease-standard);
+}
+
+.game-fav-btn:hover,
+.song-card-action:hover,
+.music-mode-btn:hover,
+.music-transport-btn:hover,
+.music-filter-btn:hover,
+.music-text-action:hover,
+.chat-actions-button:hover,
+.chat-composer-plus:hover,
+.message-actions button:hover,
+.message-reply-btn:hover,
+.message-react-btn:hover,
+.acct-modal-close:hover,
+.ai-composer-tool:hover,
+.ai-send:hover{background:var(--surface-hover);border-color:var(--border-emphasis);color:var(--text-primary);}
+
+/* AI and Chat reading surfaces ----------------------------------------- */
+
+.ai-main,
+.chat-main{background:var(--bg);}
+
+.ai-chat-header,
+.chat-topbar{height:52px;min-height:52px;padding-inline:20px;border-bottom:1px solid var(--product-divider);background:var(--bg);}
+
+.ai-header-copy h1,
+.chat-topbar-name{font-size:15px;font-weight:500;letter-spacing:-.01em;}
+
+.ai-messages,
+.chat-messages{scrollbar-color:var(--border-strong) transparent;}
+
+.ai-composer-wrap{padding-bottom:18px;}
+.ai-composer,
+.chat-composer{border-radius:var(--product-panel-radius);background:var(--surface);box-shadow:none;}
+.ai-composer:focus-within,
+.chat-composer:focus-within{background:var(--surface-2);box-shadow:var(--focus-ring);}
+
+.chat-context-panel,
+.acct-popover{
+  border:1px solid var(--border-emphasis);
+  border-radius:var(--product-panel-radius);
+  background:var(--surface-overlay);
+  box-shadow:var(--shadow-overlay);
+}
+
+/* Detail / settings alignment ------------------------------------------ */
+
+.watch-details-view{max-width:var(--product-content-max);margin-inline:auto;}
+.details-back-btn{left:calc(var(--sidebar-wide,216px) + var(--product-gutter));border-radius:var(--radius-sm);}
+.settings-panel,
+.account-panel,
+.doc-panel{max-width:var(--product-content-max);}
+
+.settings-panel .setting-row,
+.settings-panel .settings-collection,
+.account-panel .acct-card{border-color:var(--border-subtle);border-radius:var(--product-card-radius);}
+
+/* Motion / responsive --------------------------------------------------- */
+
+@media(max-width:760px){
+  .chat-sidebar,.ai-sidebar,.music-sidebar{width:210px !important;min-width:210px !important;flex-basis:210px !important;}
+  .watch-app,.games-app{padding:16px !important;}
+  .ai-chat-header,.chat-topbar{padding-inline:14px;}
+}
+
+@media(max-width:560px){
+  .chat-sidebar,.ai-sidebar,.music-sidebar{width:100% !important;min-width:100% !important;flex-basis:100% !important;}
+  .watch-top,.games-toolbar{align-items:stretch;flex-direction:column;}
+  .watch-search,.games-search{max-width:none;width:100%;}
+  .watch-tabs,.games-category-tabs{overflow-x:auto;justify-content:flex-start;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .panel.active{animation:none;}
+}
+
+/* =====================================================================
+   Interaction refinement
+
+   Hover is intentionally the same quiet selected surface across Blur.
+   Controls do not grow a new outline or border just because the pointer
+   moved over them; focus still remains visible through the global ring.
+===================================================================== */
+
+:where(
+  .sidebar nav a,
+  .sidebar .bottom > a,
+  .sidebar .acct-bar > a,
+  .legal-toggle,
+  .chat-sidebar .sidebar-tab,
+  .chat-sidebar .channel-item,
+  .chat-sidebar .dm-item,
+  .ai-sidebar-nav-item,
+  .ai-sidebar-item,
+  .music-nav-btn,
+  .watch-tab,
+  .games-category-tab,
+  .music-search-tab,
+  .music-library-tab,
+  .settings-tabs button,
+  .friends-tab,
+  .ai-model-filter,
+  .ai-model-row,
+  .music-artist-result,
+  .music-album-result,
+  .chat-context-action,
+  .chat-actions-person,
+  .chat-pin-result,
+  .chat-mention-result,
+  .reaction-category-tab,
+  .reaction-emoji,
+  .acct-popover button,
+  .acct-popover a,
+  .ai-cowork-popover button,
+  .music-filter-clear,
+  .music-filter-heading button
+):is(:hover, .active, [aria-selected="true"], [aria-pressed="true"]){
+  background:var(--surface-selected) !important;
+  border-color:transparent !important;
+  box-shadow:none !important;
+  color:var(--text-primary) !important;
+}
+
+:where(
+  .sidebar nav a,
+  .sidebar .bottom > a,
+  .sidebar .acct-bar > a,
+  .legal-toggle,
+  .chat-sidebar .sidebar-tab,
+  .chat-sidebar .channel-item,
+  .chat-sidebar .dm-item,
+  .ai-sidebar-nav-item,
+  .ai-sidebar-item,
+  .music-nav-btn,
+  .watch-tab,
+  .games-category-tab,
+  .music-search-tab,
+  .music-library-tab,
+  .settings-tabs button,
+  .friends-tab,
+  .ai-model-filter,
+  .ai-model-row,
+  .music-artist-result,
+  .music-album-result,
+  .chat-context-action,
+  .chat-actions-person,
+  .chat-pin-result,
+  .chat-mention-result,
+  .reaction-category-tab,
+  .reaction-emoji,
+  .acct-popover button,
+  .acct-popover a,
+  .ai-cowork-popover button,
+  .music-filter-clear,
+  .music-filter-heading button
+):is(:hover, .active, [aria-selected="true"], [aria-pressed="true"]) svg{
+  color:var(--accent) !important;
+  stroke:currentColor;
+}
+
+/* Settings -------------------------------------------------------------- */
+
+.settings-panel{
+  width:min(720px,calc(100% - (var(--product-gutter) * 2)));
+  max-width:720px;
+  padding-top:24px;
+}
+
+.settings-top h1{
+  font-size:28px;
+  font-weight:500;
+  letter-spacing:-.025em;
+}
+
+.settings-subtitle{margin-top:6px;margin-bottom:18px;font-size:12px;color:var(--text-secondary);}
+
+.settings-tabs{
+  display:flex;
+  gap:3px;
+  padding:3px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md);
+  background:var(--surface);
+}
+
+.settings-tabs button{
+  flex:1 1 0;
+  height:32px;
+  padding:0 10px;
+  border:1px solid transparent;
+  border-radius:var(--radius-sm);
+  font-size:11px;
+}
+
+.settings-tabs button.active::after{display:none;}
+.settings-scroll{padding-top:22px;}
+.settings-page{gap:24px;}
+.settings-collection > h3,
+.settings-group h3{margin-bottom:8px;color:var(--text-tertiary);font-size:9px;letter-spacing:.12em;}
+
+.settings-group .setting-row,
+.settings-collection .setting-row{
+  background:var(--surface);
+  border-color:var(--border-subtle);
+  transition:background var(--speed) var(--ease-standard),color var(--speed) var(--ease-standard);
+}
+
+.settings-group .setting-row:hover,
+.settings-collection .setting-row:hover{
+  background:var(--surface-selected);
+  border-color:var(--border-subtle);
+}
+
+.settings-group:has(.theme-grid){padding:14px;border-color:var(--border-subtle);background:var(--surface);}
+.theme-grid{gap:8px;}
+.theme-card{
+  min-height:94px;
+  padding:13px;
+  border:1px solid transparent;
+  border-radius:var(--product-card-radius);
+  background:var(--surface-2);
+  transition:background var(--speed) var(--ease-standard),color var(--speed) var(--ease-standard),transform var(--speed) var(--ease-standard);
+}
+
+.theme-card:hover,
+.theme-card.active{background:var(--surface-selected);border-color:transparent;box-shadow:none;transform:translateY(-1px);}
+.theme-card.active::after{display:grid;place-items:center;}
+
+.settings-panel :where(.select,.small-button,.panic-key-button,.switch){border-radius:var(--radius-sm);}
+.settings-panel .small-button:hover,
+.settings-panel .panic-key-button:hover{background:var(--surface-selected);border-color:transparent;}
+.settings-panel .switch{border:1px solid var(--border-subtle);background:var(--surface-2);}
+.settings-panel .switch.on{background:var(--accent);border-color:transparent;}
+
+/* Music ----------------------------------------------------------------- */
+
+.music-player{
+  grid-template-columns:minmax(190px,250px) minmax(280px,1fr) auto;
+  gap:18px;
+  min-height:72px;
+  margin:0 var(--product-gutter) 16px;
+  padding:10px 14px 10px 10px;
+  border-color:var(--border-subtle);
+  border-radius:var(--product-panel-radius);
+  background:var(--surface);
+}
+
+.music-player-cover{width:46px;height:46px;border-radius:var(--radius-sm);}
+.music-player-info h3{font-size:13px;font-weight:500;}
+.music-player-info .music-artist-link{font-size:11px;color:var(--text-secondary);}
+.music-player-controls{gap:10px;}
+.music-transport-btn,
+.music-mode-btn,
+.music-icon-btn,
+.music-player-favorite{
+  border:0;
+  background:transparent;
+}
+
+.music-transport-btn:hover,
+.music-mode-btn:hover,
+.music-icon-btn:hover,
+.music-player-favorite:hover,
+.music-mode-btn.active,
+.music-icon-btn.active{
+  background:var(--surface-selected) !important;
+  border-color:transparent !important;
+  color:var(--text-primary);
+}
+
+.music-play-btn{border:0 !important;border-radius:var(--radius-sm);}
+.music-play-btn:hover{background:var(--accent);filter:brightness(1.05);}
+.music-progress::before{background:var(--surface-3);}
+.music-player-side{gap:8px;}
+.music-filter-btn[aria-expanded="true"]{background:var(--surface-selected);border-color:transparent;}
+.music-filter-panel{border-color:var(--border-emphasis);background:var(--surface-overlay);border-radius:var(--product-panel-radius);}
+.music-filter-select,.music-custom-years input{border-color:var(--border-subtle);border-radius:var(--radius-sm);}
+.music-filter-select:focus,.music-custom-years input:focus{border-color:var(--accent);box-shadow:var(--focus-ring);}
+.music-detail-back:hover{background:var(--surface-selected);border-color:transparent;color:var(--text-primary);}
+
+/* Chat ------------------------------------------------------------------ */
+
+.chat-topbar .chat-actions-button,
+.chat-topbar .chat-context-button,
+.chat-context-close,
+.chat-alerts-close,
+.chat-alerts-clear,
+.chat-composer-plus,
+.message-actions button,
+.message-reply-btn,
+.message-react-btn{
+  border-color:transparent;
+}
+
+.chat-topbar .chat-actions-button:hover,
+.chat-topbar .chat-context-button:hover,
+.chat-context-close:hover,
+.chat-alerts-close:hover,
+.chat-alerts-clear:hover,
+.chat-composer-plus:hover,
+.message-actions button:hover,
+.message-reply-btn:hover,
+.message-react-btn:hover{
+  background:var(--surface-selected) !important;
+  border-color:transparent !important;
+  color:var(--text-primary);
+}
+
+.chat-context-panel,
+.chat-gif-popover{
+  border-color:var(--border-emphasis);
+  border-radius:var(--product-panel-radius);
+  background:var(--surface-overlay);
+  box-shadow:var(--shadow-overlay);
+}
+
+.chat-context-action,
+.chat-actions-person,
+.chat-pin-result,
+.chat-mention-result{border-color:transparent;}
+.chat-context-action:hover,
+.chat-actions-person:hover,
+.chat-pin-result:hover,
+.chat-mention-result:hover{background:var(--surface-selected);border-color:transparent;}
+
+.chat-composer{border-color:var(--border-subtle);}
+.chat-composer:focus-within{border-color:var(--accent);}
+
+/* Shared menu geometry -------------------------------------------------- */
+
+.acct-popover{
+  padding:6px;
+  border-radius:var(--product-panel-radius);
+}
+
+.ai-model-filter,
+.acct-popover button,
+.acct-popover a{border-color:transparent;}
+
+/* Keep primary actions visually distinct; only their borders disappear on
+   hover, they do not inherit the quiet navigation hover surface. */
+.hero-actions .hero-watch-button:hover,
+.music-primary-action:hover,
+.music-new-playlist-btn:hover,
+.ui-button--primary:hover,
+.action-primary:hover{border-color:transparent;}
+
+/* =====================================================================
+   Final interaction reset
+
+   A few older, more specific rules still leaked borders/accent-blue hover
+   states into the refreshed surfaces.  Keep navigation quiet and let the
+   selected surface do the visual work everywhere.
+   ===================================================================== */
+
+/* Chat channel and DM rows: no pills, outlines, or inset active rails. */
+.chat-app .chat-sidebar .channel-item,
+.chat-app .chat-sidebar .dm-item{
+  border:0!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+
+.chat-app .chat-sidebar .channel-item:hover,
+.chat-app .chat-sidebar .channel-item:focus-visible,
+.chat-app .chat-sidebar .channel-item.active,
+.chat-app .chat-sidebar .dm-item:hover,
+.chat-app .chat-sidebar .dm-item:focus-visible,
+.chat-app .chat-sidebar .dm-item.active,
+.chat-app .chat-sidebar .channel-item.announcement,
+.chat-app .chat-sidebar .channel-item.announcement:hover{
+  background:var(--surface-selected)!important;
+  border:0!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  color:var(--text-primary)!important;
+}
+
+.chat-app .chat-sidebar .channel-item.drag-over,
+.chat-app .chat-sidebar .dm-item.drag-over{
+  background:var(--surface-selected)!important;
+  border:0!important;
+  box-shadow:inset 0 -2px var(--accent)!important;
+}
+
+/* Main navigation uses the exact same neutral selected surface for hover
+   and active states, including the compact bottom controls. */
+.sidebar nav a:hover,
+.sidebar nav a:focus-visible,
+.sidebar nav a.active,
+.sidebar .bottom>a:hover,
+.sidebar .bottom>a:focus-visible,
+.sidebar .bottom>a.active,
+.sidebar .acct-bar>a:hover,
+.sidebar .acct-bar>a:focus-visible,
+.sidebar .legal-toggle:hover,
+.sidebar .legal-toggle:focus-visible{
+  background:var(--surface-2)!important;
+  border:0!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  color:var(--text)!important;
+}
+
+.sidebar nav a,
+.sidebar .bottom>a,
+.sidebar .acct-bar>a,
+.sidebar .legal-toggle{
+  border:0!important;
+  border-color:transparent!important;
+}
+
+html[data-theme="pixelblur"] .sidebar nav a:hover,
+html[data-theme="pixelblur"] .sidebar nav a.active,
+html[data-theme="pixelblur"] .sidebar .bottom>a:hover,
+html[data-theme="pixelblur"] .sidebar .bottom>a.active{
+  background:var(--surface-2)!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+
+/* Settings controls share one compact geometry.  Segmented page tabs are
+   the only grouped control; individual fields/buttons stay square and quiet. */
+.settings-panel .settings-tabs{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:3px!important;
+  padding:3px!important;
+  border:1px solid var(--border-subtle)!important;
+  border-radius:var(--radius-md)!important;
+  background:var(--surface)!important;
+}
+
+.settings-panel .settings-tabs button,
+.settings-panel .settings-tabs button:hover,
+.settings-panel .settings-tabs button:focus-visible,
+.settings-panel .settings-tabs button.active{
+  min-height:32px!important;
+  height:32px!important;
+  padding:0 10px!important;
+  border:0!important;
+  border-radius:var(--radius-sm)!important;
+  box-shadow:none!important;
+}
+
+.settings-panel .settings-tabs button:hover,
+.settings-panel .settings-tabs button.active{
+  background:var(--surface-selected)!important;
+  color:var(--text-primary)!important;
+}
+
+.settings-panel .settings-tabs button.active::after{display:none!important;}
+
+.settings-panel .select,
+.settings-panel .small-button,
+.settings-panel .panic-key-button,
+.settings-panel .acct-input,
+.settings-panel .acct-textarea,
+.settings-panel .acct-banner-field{
+  min-height:36px!important;
+  height:36px;
+  border:1px solid var(--border-subtle)!important;
+  border-radius:var(--radius-sm)!important;
+  background:var(--surface)!important;
+  box-shadow:none!important;
+}
+
+.settings-panel .acct-textarea{height:auto;min-height:92px!important;}
+
+/* Banner media is a compound field, so it must keep room for its URL,
+   upload control, helper copy, and swatches instead of inheriting the
+   single-line input height. */
+.settings-panel .acct-banner-field{
+  height:auto!important;
+  min-height:0!important;
+  display:grid!important;
+  gap:10px!important;
+  padding:12px!important;
+}
+
+.settings-panel .acct-banner-field .acct-input{
+  width:100%;
+  height:36px!important;
+  min-height:36px!important;
+}
+
+.settings-panel .acct-banner-color-row{
+  display:grid!important;
+  gap:8px!important;
+  margin-top:2px!important;
+}
+
+.settings-panel .acct-banner-color-controls{
+  min-height:36px;
+  align-items:center;
+}
+
+.settings-panel .select:hover,
+.settings-panel .small-button:hover,
+.settings-panel .panic-key-button:hover,
+.settings-panel .acct-input:hover,
+.settings-panel .acct-textarea:hover,
+.settings-panel .acct-banner-field:hover,
+.settings-panel .select:focus,
+.settings-panel .acct-input:focus,
+.settings-panel .acct-textarea:focus,
+.settings-panel .acct-banner-field:focus{
+  background:var(--surface-selected)!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+
+.settings-panel .theme-card,
+.settings-panel .theme-card:hover,
+.settings-panel .theme-card.active{
+  border:0!important;
+  border-radius:var(--radius-sm)!important;
+  background:var(--surface-2)!important;
+  box-shadow:none!important;
+}
+
+.settings-panel .theme-card:hover,
+.settings-panel .theme-card.active{
+  background:var(--surface-selected)!important;
+  transform:none!important;
+}
+
+/* Music controls and result actions follow the same interaction language. */
+.music-app .music-nav-btn:hover,
+.music-app .music-nav-btn.active,
+.music-app .music-mode-btn:hover,
+.music-app .music-mode-btn.active,
+.music-app .music-transport-btn:hover,
+.music-app .music-icon-btn:hover,
+.music-app .music-icon-btn.active,
+.music-app .music-player-favorite:hover,
+.music-app .music-filter-btn:hover,
+.music-app .music-library-tab:hover,
+.music-app .music-library-tab.active,
+.music-app .music-search-tab:hover,
+.music-app .music-search-tab.active,
+.music-app .song-card-action:hover{
+  background:var(--surface-selected)!important;
+  border:0!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  color:var(--text-primary)!important;
+}
+
+/* Popover rows should never turn into blue outlined pills on hover. */
+.chat-context-action:hover,
+.chat-actions-person:hover,
+.chat-pin-result:hover,
+.chat-mention-result:hover,
+.chat-gif-result:hover,
+.ai-model-filter:hover,
+.acct-popover button:hover,
+.acct-popover a:hover{
+  background:var(--surface-selected)!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+
+/* Home browse actions are navigation too; keep them on the same selected
+   surface instead of the older grey/blue hover treatment. */
+.home .action-card:hover,
+.home .action-card:focus-visible,
+.home .action-primary:hover,
+.home .action-primary:focus-visible{
+  background:var(--surface-selected)!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+
+.home .action-card:hover .icon,
+.home .action-card:focus-visible .icon,
+.home .action-primary:hover .icon,
+.home .action-primary:focus-visible .icon{
+  background:var(--surface-selected)!important;
+  border-color:transparent!important;
+}
+
+/* Settings tabs are one connected control, not five floating pills. */
+.settings-panel .settings-tabs{
+  gap:0!important;
+  padding:2px!important;
+}
+
+.settings-panel .settings-tabs button,
+.settings-panel .settings-tabs button:hover,
+.settings-panel .settings-tabs button:focus-visible,
+.settings-panel .settings-tabs button.active{
+  border-radius:0!important;
+}
+
+.settings-panel .settings-tabs button:first-child{border-radius:var(--radius-sm) 0 0 var(--radius-sm)!important;}
+.settings-panel .settings-tabs button:last-child{border-radius:0 var(--radius-sm) var(--radius-sm) 0!important;}
+.settings-panel .settings-tabs button+button{border-left:1px solid var(--border-subtle)!important;}
+.settings-panel .settings-tabs button.active+button,
+.settings-panel .settings-tabs button:hover+button{border-left-color:transparent!important;}
+
+/* Keep all settings stacks joined edge-to-edge while retaining only the
+   outer group corners. */
+.settings-panel .settings-group .setting-row,
+.settings-panel .settings-collection .setting-row{
+  border-radius:0!important;
+  border-left:0!important;
+  border-right:0!important;
+}
+
+.settings-panel .settings-group .setting-row:first-of-type,
+.settings-panel .settings-collection .setting-row:first-of-type{
+  border-radius:var(--radius-sm) var(--radius-sm) 0 0!important;
+  border-top:1px solid var(--border-subtle)!important;
+}
+
+.settings-panel .settings-group .setting-row:last-child,
+.settings-panel .settings-collection .setting-row:last-child{
+  border-radius:0 0 var(--radius-sm) var(--radius-sm)!important;
+  border-bottom:1px solid var(--border-subtle)!important;
+}
+
+.settings-panel .settings-group .setting-row:only-of-type,
+.settings-panel .settings-collection .setting-row:only-of-type{
+  border-radius:var(--radius-sm)!important;
+}
+
+/* AI workspace ---------------------------------------------------------
+   Keep the conversation rail useful without repeating product labels or
+   turning the composer into a second toolbar. */
+.ai-app .ai-sidebar{
+  flex-basis:224px!important;
+  width:224px!important;
+  min-width:224px!important;
+  padding:12px 10px!important;
+  border-right:1px solid var(--border-subtle)!important;
+  background:var(--sidebar)!important;
+}
+
+.ai-app .ai-sidebar-nav{display:none!important;}
+
+.ai-app .ai-sidebar-search{
+  min-height:34px;
+  margin:2px 0 8px;
+  border:1px solid var(--border-subtle)!important;
+  border-radius:var(--radius-sm)!important;
+  background:var(--surface)!important;
+}
+
+.ai-app .ai-sidebar-search:focus-within{
+  border-color:var(--accent)!important;
+  background:var(--surface-selected)!important;
+  box-shadow:none!important;
+}
+
+.ai-app .ai-sidebar-section-label{
+  min-height:28px;
+  padding:8px 3px 5px;
+  color:var(--text-tertiary);
+  letter-spacing:.1em;
+}
+
+.ai-app .ai-sidebar-section-label .ai-sidebar-nav-count{margin-left:auto;letter-spacing:0;}
+.ai-app .ai-sidebar-item{border:0!important;border-radius:var(--radius-sm)!important;}
+.ai-app .ai-sidebar-item:hover,
+.ai-app .ai-sidebar-item.active{
+  border:0!important;
+  box-shadow:none!important;
+  background:var(--surface-selected)!important;
+}
+
+.ai-app .ai-sidebar-item-del{border:0!important;border-radius:3px!important;}
+.ai-app .ai-sidebar-item-del:hover{background:transparent!important;color:var(--text-primary);}
+
+.ai-app .ai-chat-header{
+  min-height:46px!important;
+  flex:0 0 46px!important;
+  gap:10px;
+  padding:0 16px!important;
+  border-bottom:1px solid var(--border-subtle)!important;
+  background:var(--surface)!important;
+}
+
+.ai-app .ai-header-copy{gap:0;}
+.ai-app .ai-header-kicker{display:none!important;}
+.ai-app .ai-header-copy h1{
+  font:500 14px/1.1 var(--font-body)!important;
+  letter-spacing:0!important;
+}
+
+.ai-app .ai-chat-header .ai-model-selector{
+  margin-left:auto;
+  width:auto;
+  max-width:220px;
+  height:30px!important;
+  min-height:30px!important;
+  padding:0 8px!important;
+  border:0!important;
+  border-radius:var(--radius-sm)!important;
+  color:var(--text-secondary);
+  background:var(--surface-selected)!important;
+  box-shadow:none!important;
+}
+
+.ai-app .ai-chat-header .ai-model-selector:hover,
+.ai-app .ai-chat-header .ai-model-selector.active,
+.ai-app .ai-chat-header .ai-model-selector:focus-visible{
+  border:0!important;
+  color:var(--text-primary);
+  background:var(--surface-selected)!important;
+  box-shadow:none!important;
+}
+
+.ai-app .ai-model-selector .ai-model-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ai-app .ai-model-selector .ai-model-arrow{font-size:12px;opacity:.65;}
+
+.ai-app .ai-messages{padding-top:20px!important;padding-bottom:232px!important;}
+.ai-app .ai-empty-mark,
+.ai-app .ai-empty>p{display:none!important;}
+.ai-app .ai-empty h2{font-size:clamp(25px,3vw,34px);}
+
+.ai-app .ai-composer-wrap{
+  right:0;
+  bottom:12px;
+  left:0;
+  padding:0 clamp(16px, 4vw, 64px)!important;
+}
+
+.ai-app .ai-main:has(.ai-empty) .ai-composer-wrap{top:auto;bottom:12px;transform:none;}
+
+.ai-app .ai-composer{
+  width:min(100%,760px)!important;
+  min-height:72px!important;
+  padding:9px 10px 8px!important;
+  border:1px solid var(--border-subtle)!important;
+  border-radius:var(--radius-sm)!important;
+  background:var(--surface)!important;
+  box-shadow:none!important;
+}
+
+.ai-app .ai-composer:focus-within{
+  border-color:var(--accent)!important;
+  background:var(--surface)!important;
+  box-shadow:none!important;
+}
+
+.ai-app .ai-composer textarea{
+  min-height:28px!important;
+  max-height:120px;
+  font-size:13px!important;
+  line-height:1.45!important;
+}
+
+.ai-app .ai-composer-bottom{
+  gap:5px;
+  margin-top:5px;
+  padding-top:0;
+  border-top:0;
+}
+
+.ai-app .ai-composer-controls{flex:0 0 auto;gap:2px;order:1;}
+.ai-app .ai-composer-hint{flex:1 1 auto;order:0;}
+
+.ai-app .ai-composer-tool{
+  display:grid;
+  width:28px;
+  height:28px;
+  min-height:28px;
+  place-items:center;
+  padding:0!important;
+  border:0!important;
+  border-radius:var(--radius-sm)!important;
+  color:var(--text-tertiary);
+  font-size:0;
+  background:transparent!important;
+}
+
+.ai-app .ai-composer-tool:hover,
+.ai-app .ai-composer-tool.active,
+.ai-app .ai-composer-tool:focus-visible{
+  color:var(--text-primary);
+  background:var(--surface-selected)!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+
+.ai-app .ai-composer-tool svg{width:14px;height:14px;}
+.ai-app .ai-send{order:2;width:30px;height:30px;min-height:30px;flex:0 0 30px;border-radius:var(--radius-sm)!important;}
+.ai-app .ai-composer-footnote{display:none!important;}
+
+.ai-model-dropdown-head{padding:7px 8px 8px!important;border-bottom:1px solid var(--border-subtle);}
+.ai-model-dropdown-head strong{font-size:12px!important;}
+.ai-model-dropdown-head button{border:0!important;border-radius:3px!important;background:transparent!important;}
+.ai-model-dropdown-head button:hover{background:var(--surface-selected)!important;border:0!important;}
+.ai-model-group-label{padding:8px 8px 4px!important;}
+.ai-model-option{min-height:42px!important;padding:7px 8px!important;}
+
+@media(max-width:760px){
+  .ai-app .ai-sidebar{flex-basis:224px!important;width:224px!important;min-width:224px!important;}
+  .ai-app .ai-chat-header{padding:0 12px!important;}
+  .ai-app .ai-chat-header .ai-model-selector{max-width:180px;}
+  .ai-app .ai-composer-wrap{padding:0 10px!important;}
+}
+
+/* AI follow-up refinements --------------------------------------------- */
+.ai-app .ai-sidebar-nav{
+  display:flex!important;
+  flex-direction:column;
+  gap:2px;
+  padding:0 0 10px;
+  border-bottom:1px solid var(--border-subtle);
+}
+
+.ai-app .ai-sidebar-nav-item{
+  min-height:32px;
+  padding:0 8px;
+  border:0!important;
+  border-radius:var(--radius-sm)!important;
+  background:transparent!important;
+  color:var(--text-secondary);
+  box-shadow:none!important;
+}
+
+.ai-app .ai-sidebar-nav-item:hover,
+.ai-app .ai-sidebar-nav-item:focus-visible,
+.ai-app .ai-sidebar-nav-item.active{
+  border:0!important;
+  background:var(--surface-selected)!important;
+  color:var(--text-primary);
+  box-shadow:none!important;
+}
+
+.ai-app .ai-sidebar-nav-item.active svg{color:var(--accent);}
+
+.ai-app .ai-sidebar-list{padding-top:0;}
+
+.ai-app .ai-empty .ai-suggest-grid{
+  display:flex!important;
+  flex-wrap:wrap;
+  width:min(100%,760px);
+  gap:8px;
+  margin-top:19px;
+}
+
+.ai-app .ai-empty .ai-suggest-card{
+  display:flex;
+  flex:1 1 calc(25% - 6px);
+  min-width:0;
+  align-items:center;
+  min-height:38px;
+  gap:8px;
+  padding:0 11px;
+  border:1px solid var(--border-subtle)!important;
+  border-radius:var(--radius-sm)!important;
+  background:transparent!important;
+  text-align:left;
+}
+
+.ai-app .ai-empty .ai-suggest-card>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.ai-app .ai-empty .ai-suggest-card:hover,
+.ai-app .ai-empty .ai-suggest-card:focus-visible{
+  border-color:transparent!important;
+  background:var(--surface-selected)!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+
+.ai-app .ai-empty .ai-suggest-index{
+  display:grid;
+  width:18px;
+  height:18px;
+  flex:0 0 18px;
+  place-items:center;
+  border:1px solid var(--border-subtle);
+  border-radius:3px;
+  color:var(--text-tertiary);
+  font:500 9px/1 var(--font-mono);
+}
+
+.ai-app .ai-empty .ai-suggest-card strong{font-size:11px;}
+.ai-app .ai-empty .ai-suggest-card small{display:none;}
+
+.ai-app .ai-composer-controls{order:0!important;flex:0 0 auto!important;}
+.ai-app .ai-composer-hint{order:1!important;flex:1 1 auto!important;}
+.ai-app .ai-composer-model-selector{order:2!important;flex:0 1 218px;margin-left:auto;}
+.ai-app .ai-send{order:3!important;margin-left:0;}
+
+.ai-app .ai-effort-toggle{width:30px;position:relative;}
+.ai-app .ai-effort-toggle .ai-effort-value{display:none;}
+.ai-app .ai-effort-toggle[data-effort="low"] svg{opacity:.65;}
+.ai-app .ai-effort-toggle[data-effort="high"] svg{color:var(--accent);}
+
+.ai-effort-popover{
+  position:fixed;
+  z-index:1000;
+}
+
+.ai-effort-heading{
+  padding:7px 8px 6px;
+  color:var(--text-tertiary);
+  font:500 9px/1 var(--font-mono);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.ai-effort-popover button{
+  display:flex;
+  width:100%;
+  min-height:38px;
+  align-items:center;
+  gap:8px;
+  padding:6px 8px;
+  text-align:left;
+}
+
+.ai-effort-popover button>span:last-child{display:flex;flex-direction:column;gap:2px;}
+.ai-effort-popover strong{font-size:11px;font-weight:500;}
+.ai-effort-popover small{color:var(--text-tertiary);font-size:9px;}
+.ai-effort-dot{width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:var(--text-tertiary);}
+.ai-effort-popover button.active .ai-effort-dot{background:var(--accent);}
+
+/* Final AI proportions: center the prompt presets as a compact group and
+   keep the conversation header closer to the small Watch/Games top bars. */
+.ai-app .ai-empty{
+  text-align:center!important;
+}
+
+.ai-app .ai-empty .ai-suggest-grid{
+  justify-content:center!important;
+  flex-wrap:nowrap!important;
+  margin-inline:auto!important;
+}
+
+.ai-app .ai-empty .ai-suggest-card{
+  flex:1 1 0!important;
+}
+
+.ai-app .ai-chat-header{
+  min-height:38px!important;
+  flex-basis:38px!important;
+  padding:0 14px!important;
+}
+
+.ai-app .ai-chat-header .ai-model-selector{
+  height:28px!important;
+  min-height:28px!important;
+}
+
+.ai-app .ai-chat-header .ai-mobile-toggle{
+  width:28px;
+  height:28px;
+  min-height:28px;
+}
+
+/* Settings groups should read as section labels plus connected rows, not as
+   extra cards nested inside the settings page. */
+.settings-panel .settings-group{
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.settings-panel .settings-group:has(.theme-grid){
+  padding:0!important;
+}
+
+/* AI model picker ------------------------------------------------------- */
+.ai-app .ai-composer-model-selector{
+  width:max-content!important;
+  max-width:min(218px, 34vw)!important;
+  flex:0 1 auto!important;
+}
+
+.ai-model-dropdown{
+  width:min(344px, calc(100vw - 16px));
+  padding:6px!important;
+  border-radius:var(--radius-md)!important;
+}
+
+.ai-model-search{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-height:34px;
+  padding:0 9px;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm);
+  color:var(--text-tertiary);
+  background:var(--surface-raised);
+}
+
+.ai-model-search:focus-within{ border-color:var(--accent); box-shadow:var(--focus-ring); }
+.ai-model-search-icon{ display:grid; width:14px; height:14px; flex:0 0 14px; place-items:center; }
+.ai-model-search-icon svg{ width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; }
+.ai-model-search input{ width:100%; min-width:0; border:0; outline:0; color:var(--text-primary); background:transparent; font:400 11px/1 var(--font-body); }
+.ai-model-search input::placeholder{ color:var(--text-tertiary); }
+.ai-model-dropdown-list{ max-height:280px; overflow:auto; padding-top:4px; }
+.ai-model-dropdown-list::-webkit-scrollbar{ width:5px; }
+.ai-model-dropdown-list::-webkit-scrollbar-thumb{ border-radius:var(--radius-pill); background:var(--border-emphasis); }
+.ai-model-group-label{ padding:9px 8px 5px!important; color:var(--text-tertiary); font:500 9px/1 var(--font-mono); letter-spacing:.08em; text-transform:none; }
+.ai-model-option{ min-height:40px!important; grid-template-columns:22px minmax(0,1fr) auto 16px; gap:7px; padding:6px 8px!important; border-radius:var(--radius-sm)!important; }
+.ai-model-option-copy{ gap:2px; }
+.ai-model-option-copy strong{ font-size:11px; font-weight:500; }
+.ai-model-option-copy small{ font-size:9px; }
+.ai-model-option-meta{ font-size:8px; }
+.ai-model-option-logo{ width:18px; height:18px; flex-basis:18px; }
+.ai-model-option-check{ font-size:11px; }
+.ai-model-dropdown-empty{ padding:18px 8px; color:var(--text-tertiary); font-size:11px; text-align:center; }
+.ai-model-thinking{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:5px; padding:8px 6px 2px; border-top:1px solid var(--border-subtle); }
+.ai-model-thinking-label{ display:flex; align-items:center; gap:7px; min-width:0; color:var(--text-secondary); }
+.ai-model-thinking-label svg{ width:14px; height:14px; flex:0 0 14px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.ai-model-thinking-label span{ display:flex; min-width:0; flex-direction:column; gap:2px; }
+.ai-model-thinking-label strong{ color:var(--text-primary); font-size:11px; font-weight:500; }
+.ai-model-thinking-label small{ color:var(--text-tertiary); font-size:9px; }
+.ai-model-thinking-controls{ display:flex; align-items:center; gap:4px; flex:0 0 auto; }
+.ai-model-thinking-options,
+.ai-model-search-options{ display:flex; align-items:center; gap:2px; padding:2px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); }
+.ai-model-thinking-options button,
+.ai-model-search-options button{ min-width:28px; height:24px; padding:0 5px; border:0; border-radius:var(--radius-sm); color:var(--text-tertiary); background:transparent; font:500 9px/1 var(--font-body); }
+.ai-model-thinking-options button:hover,
+.ai-model-thinking-options button.active,
+.ai-model-search-options button:hover,
+.ai-model-search-options button.active{ color:var(--text-primary); background:var(--surface-selected); }
+.ai-model-search-options .ai-model-search-toggle{
+  display:grid;
+  width:24px;
+  min-width:24px;
+  padding:0;
+  place-items:center;
+}
+.ai-model-search-toggle svg{
+  width:13px;
+  height:13px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+}
+
+@media(max-width:760px){
+  .ai-app .ai-composer-model-selector{ width:max-content!important; max-width:min(170px, 46vw)!important; flex-basis:auto!important; }
+  .ai-model-dropdown-list{ max-height:150px; }
+  .ai-model-thinking{ align-items:flex-start; flex-direction:column; }
+  .ai-model-thinking-controls{ align-self:flex-end; }
+}
+
+/* The conversation no longer needs a dedicated top bar. Keep only the
+   mobile conversation-list toggle as a small floating affordance. */
+.ai-app .ai-chat-header{
+  display:contents!important;
+}
+
+.ai-app .ai-chat-header .ai-header-copy{ display:none!important; }
+.ai-app .ai-chat-header .ai-mobile-toggle{ display:none; }
+
+@media(max-width:780px){
+  .ai-app .ai-chat-header .ai-mobile-toggle{
+    position:absolute;
+    z-index:5;
+    top:8px;
+    left:10px;
+    display:inline-flex;
+    margin:0;
+  }
+}
+
+/* Restrained radius system --------------------------------------------- */
+.sidebar nav a,
+.sidebar .bottom > a,
+.chat-sidebar .sidebar-tab,
+.chat-sidebar .channel-item,
+.chat-sidebar .dm-item,
+.ai-sidebar-nav-item,
+.ai-sidebar-item,
+.music-nav-btn{
+  border-radius:var(--product-row-radius)!important;
+}
+
+html.sidebar-expanded .sidebar nav a,
+html.sidebar-expanded .sidebar .bottom > a,
+html:not(.sidebar-expanded) .sidebar nav a,
+html:not(.sidebar-expanded) .sidebar .bottom > a,
+.ai-app .ai-sidebar-nav-item,
+.ai-app .ai-sidebar-item{
+  border-radius:var(--product-row-radius)!important;
+}
+
+.ui-button,
+.ui-icon-button,
+.music-search-tab,
+.music-library-tab,
+.music-genre-button,
+.music-filter-btn,
+.music-playlist-action-btn,
+.music-mode-btn,
+.music-transport-btn,
+.music-play-btn,
+.nf-home-btn,
+.chat-app .message-actions button,
+.chat-app .message-reply-btn,
+.chat-app .message-react-btn{
+  border-radius:var(--product-control-radius)!important;
+}
+
+.ai-app .ai-composer,
+.chat-app .chat-composer,
+.music-player,
+.ai-suggest-card,
+.ai-error-message,
+.watch-card,
+.games-card{
+  border-radius:var(--product-panel-radius)!important;
+}
+
+.ai-app .ai-composer-model-selector,
+.ai-app .ai-send,
+.ai-app .ai-composer-tool{
+  border-radius:var(--product-control-radius)!important;
+}
+
+/* Give the AI composer a little more breathing room without making it
+   oversized. The selector and action controls stay on one shared height. */
+.ai-app .ai-composer{
+  min-height:96px!important;
+  padding:10px 10px 9px!important;
+}
+
+.ai-app .ai-composer textarea{ min-height:32px!important; }
+.ai-app .ai-composer-bottom{ gap:6px; margin-top:6px; }
+.ai-app .ai-composer-tool,
+.ai-app .ai-composer-model-selector,
+.ai-app .ai-send{
+  height:32px!important;
+  min-height:32px!important;
+}
+
+/* Remaining workspace controls that are buttons, but were still using the
+   older nearly-square treatment. */
+.watch-tab,
+.games-category-tab,
+.player-btn,
+.games-player-btn,
+.music-nav-btn,
+.music-search-tab,
+.music-library-tab,
+.music-genre-button,
+.music-filter-btn,
+.music-text-action,
+.music-new-playlist-btn,
+.music-playlist-action-btn,
+.music-mode-btn,
+.music-transport-btn,
+.music-play-btn{
+  border-radius:var(--product-control-radius)!important;
+}
+
+.games-panel .games-dedicated-launch{
+  border-radius:var(--product-control-radius)!important;
+}
+
+/* Keep settings controls rounded without flattening the compact switches. */
+.settings-panel :where(.select,.small-button,.panic-key-button,.settings-dropdown-trigger){
+  border-radius:var(--product-control-radius)!important;
+}
+
+.settings-panel .switch{
+  border-radius:var(--radius-pill)!important;
+}
+
+.settings-panel .switch::before{
+  border-radius:50%!important;
+}
+
+/* Compact daily usage indicator, matching the simple count-and-rule treatment. */
+.ai-usage-card{
+  padding:8px 0 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+
+.ai-usage-summary{
+  color:var(--text-secondary);
+  font:500 10px/1.25 var(--font-body);
+}
+
+.ai-usage-summary strong{
+  color:var(--text-secondary);
+  font:inherit;
+  font-weight:500;
+}
+
+.ai-usage-track{
+  height:2px!important;
+  margin:8px 0 0!important;
+  border-radius:0!important;
+  background:var(--border-emphasis)!important;
+}
+
+.ai-usage-track span{
+  border-radius:0!important;
+  background:var(--text-secondary)!important;
+}
+
+/* Model picker rows use the provider mark as a logo, not a framed badge. */
+.ai-model-option{
+  grid-template-columns:22px minmax(0,1fr) 16px!important;
+}
+
+.ai-model-option-logo,
+.ai-model-icon .ai-provider-mark{
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+
+.ai-model-option-logo img,
+.ai-model-icon .ai-provider-mark img{
+  width:18px!important;
+  height:18px!important;
+}
+
+.ai-provider-mark img{
+  filter:brightness(0) saturate(100%) invert(59%)!important;
+  opacity:1!important;
+}
+
+.ai-model-option.active .ai-model-option-logo img,
+.ai-model-icon .ai-provider-mark img{
+  filter:brightness(0) saturate(100%) invert(95%) sepia(6%) saturate(200%) hue-rotate(22deg) brightness(102%) contrast(95%)!important;
+}
+
+.ai-model-option-copy{gap:0!important;}
+
+/* Model rows use one quiet fill for both hover and selection. */
+.ai-model-option:hover,
+.ai-model-option.active,
+.ai-model-option[aria-selected="true"]{
+  background:var(--surface-selected)!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  color:var(--text-primary)!important;
+}
+
+/* Shared popup and dialog chrome. Backdrops stay full-bleed; only the
+   floating surface gets the softer corner treatment. */
+:where(
+  .ui-menu,
+  .ui-dialog,
+  .changelog-modal,
+  .acct-modal,
+  .acct-pcard,
+  .modal-card,
+  .profile-card,
+  .chat-context-panel,
+  .online-popover,
+  .reaction-popover,
+  .message-more-popover,
+  .mention-popover,
+  .chat-account-popover,
+  .provider-dropdown,
+  .settings-dropdown-popover,
+  .music-filter-panel,
+  .ai-model-dropdown,
+  .ai-cowork-popover
+){
+  border-radius:var(--product-card-radius)!important;
+}
+
+:where(
+  .ai-model-search,
+  .ai-model-thinking-options,
+  .ai-model-search-options,
+  .settings-dropdown-trigger
+){
+  border-radius:var(--product-control-radius)!important;
+}
+
+/* AI composer utility placement: keep Temporary Chat available without
+   competing with the conversation title in the top bar. */
+.ai-app .ai-composer{
+  width:min(100%,720px)!important;
+}
+.ai-app .ai-composer-meta{
+  position:relative;
+  display:flex;
+  width:min(100%,720px);
+  min-height:16px;
+  margin:6px auto 0;
+  justify-content:flex-end;
+  align-items:center;
+}
+.ai-app .ai-composer-meta .ai-temporary-toggle{
+  min-height:20px;
+  margin:0;
+  padding:0 3px;
+  gap:5px;
+  border:0;
+  color:var(--text-tertiary);
+  font-size:10px;
+  opacity:.72;
+}
+.ai-app .ai-composer-meta .ai-temporary-toggle svg{width:12px;height:12px;flex-basis:12px;}
+.ai-app .ai-composer-meta .ai-temporary-toggle:hover,
+.ai-app .ai-composer-meta .ai-temporary-toggle.active,
+.ai-app .ai-composer-meta .ai-temporary-toggle:focus-visible{
+  color:var(--text-secondary);
+  opacity:1;
+  background:transparent;
+}
+.ai-app .ai-temporary-note{width:min(100%,720px);}
+
+@media (max-width:720px){
+  .ai-app .ai-composer-meta,
+  .ai-app .ai-temporary-note{width:100%;}
+}
+
+/* Match the specificity of existing page-level popup rules so the shared
+   radius wins consistently across each workspace. */
+.ui-menu,
+.ui-dialog,
+.changelog-modal,
+.acct-modal,
+.acct-pcard,
+.modal-card,
+.profile-card,
+.chat-context-panel,
+.online-popover,
+.reaction-popover,
+.message-more-popover,
+.mention-popover,
+.chat-account-popover,
+.provider-dropdown,
+.settings-dropdown-popover,
+.music-filter-panel,
+.ai-model-dropdown,
+.ai-cowork-popover{
+  border-radius:var(--product-card-radius)!important;
+}
+
+.ai-model-option{
+  border-radius:var(--product-control-radius)!important;
+}
+
+/* A few developer/announcement fields carry their own important radius;
+   keep those legacy text boxes in the same control family too. */
+.dev-prompt-line,
+.dev-input-wrap,
+.dev-event-type,
+.dev-event-duration,
+.dev-event-unit,
+.announcement-name,
+.announcement-box,
+.announcement-input,
+.dev-restart-seconds{
+  border-radius:var(--product-control-radius)!important;
+}
+
+/* Text-entry controls and their visible search-field shells share the same
+   compact rounded geometry throughout Blur. */
+:where(
+  input[type="text"],
+  input[type="search"],
+  input[type="url"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="time"],
+  input[type="month"],
+  input[type="week"],
+  textarea,
+  select,
+  .ui-field,
+  .ui-input,
+  .ui-textarea,
+  .ui-select,
+  .games-search,
+  .watch-search,
+  .music-search-wrap,
+  .forum-search,
+  .friends-search-wrap,
+  .ai-model-search,
+  .ai-sidebar-search,
+  .settings-dropdown-search,
+  .dev-input-wrap
+){
+  border-radius:var(--product-control-radius)!important;
+}

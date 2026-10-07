@@ -1,0 +1,472 @@
+/* =========================================================
+   profiles.js
+   Everything about the `profiles` table: fetching/creating/
+   editing rows, plus the first-run username modal and the
+   profile popup shown when clicking a username or avatar.
+   ========================================================= */
+
+const Profiles = {
+
+  cache: new Map(),
+  _pending: new Map(),
+  _cacheEpoch: 0,
+
+  clearCache(){
+    this._cacheEpoch++;
+    this.cache.clear();
+    this._pending.clear();
+  },
+
+  // Invalidate and clear a profile popup when Chat changes scope or the
+  // global session ends.  renderProfilePopup() uses the same token map to
+  // prevent a delayed profile request from resurrecting stale UI.
+  closePopup(container){
+    if (!container) return;
+    if (!this._popupTokens) this._popupTokens = new WeakMap();
+    // A loaded profile card owns a document-level Escape listener.  Remove
+    // that listener whenever Chat closes/replaces the overlay so repeated
+    // profile opens cannot accumulate stale handlers.
+    const cleanup = this._popupCleanups?.get(container);
+    if (cleanup) {
+      this._popupCleanups.delete(container);
+      try { cleanup(); } catch (error) { console.error("Profile popup cleanup failed:", error); }
+    }
+    this._popupTokens.set(container, (this._popupTokens.get(container) || 0) + 1);
+    container.innerHTML = "";
+  },
+
+  ACCENT_COLORS: ["#6C5CE7","#00B894","#0984E3","#E17055","#D63031","#00CEC9","#FDCB6E","#E84393"],
+
+  defaultAvatar(seed){
+    return `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(seed)}`;
+  },
+
+  safeImageUrl(value, seed = "?"){
+    const fallback = this.defaultAvatar(seed);
+    try {
+      const parsed = new URL(String(value || ""), document.baseURI);
+      return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : fallback;
+    } catch {
+      return fallback;
+    }
+  },
+
+  randomAccent(){
+    return this.ACCENT_COLORS[Math.floor(Math.random() * this.ACCENT_COLORS.length)];
+  },
+
+  async getById(id, options = {}){
+    if (!id) return null;
+    if (!options.force && this.cache.has(id)) return this.cache.get(id);
+    if (!options.force && this._pending.has(id)) return this._pending.get(id);
+
+    const requestEpoch = this._cacheEpoch;
+    const request = (async () => {
+      const { data, error } = await sb
+        .from("profiles")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        data.role = Permissions.normalize(data.role);
+        if (requestEpoch === this._cacheEpoch) this.cache.set(id, data);
+      } else {
+        // Do not keep returning a deleted profile from the in-memory cache.
+        // This matters for Friends/DM lists and profile popups after an
+        // account is removed or a row is temporarily no longer visible.
+        if (requestEpoch === this._cacheEpoch) this.cache.delete(id);
+      }
+      return data;
+    })();
+    if (!options.force) this._pending.set(id, request);
+    try { return await request; }
+    finally {
+      if (this._pending.get(id) === request) this._pending.delete(id);
+    }
+  },
+
+  /**
+   * Warm the profile cache in one request. Message lists used to fetch each
+   * author one at a time, turning a 50-message history into a long serial
+   * waterfall. Missing/deleted profiles are simply skipped so callers can
+   * continue rendering with their normal "Unknown" fallback.
+   */
+  async prefetch(ids){
+    const unique = [...new Set((ids || []).filter(Boolean))];
+    const missing = unique.filter(id => !this.cache.has(id));
+    if (!missing.length) return;
+    const requestEpoch = this._cacheEpoch;
+    try {
+      const { data, error } = await sb
+        .from("profiles")
+        .select("*")
+        .in("id", missing);
+      if (error) throw error;
+      const found = new Set();
+      for (const profile of data || []) {
+        if (!profile?.id) continue;
+        profile.role = Permissions.normalize(profile.role);
+        if (requestEpoch === this._cacheEpoch) this.cache.set(profile.id, profile);
+        found.add(profile.id);
+      }
+      // Mark missing rows as unavailable for this render, but do not cache a
+      // fake profile object that could mask a later legitimate row.
+      if (requestEpoch === this._cacheEpoch) {
+        for (const id of missing) if (!found.has(id)) this.cache.delete(id);
+      }
+    } catch (error) {
+      // A batch query is an optimization, never a reason to make Chat fail.
+      // renderOne() will fall back to its existing per-profile request path.
+      console.warn("Profile prefetch unavailable:", error?.message || error);
+    }
+  },
+
+  async usernameTaken(username){
+    const { data, error } = await sb
+      .from("profiles")
+      .select("id")
+      .ilike("username", username)
+      .maybeSingle();
+    if (error) throw error;
+    return !!data;
+  },
+
+  async createProfile({ id, username, bio = "" }){
+    username = String(username || "").trim();
+    if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
+      throw new Error("Usernames must be 3–24 characters using letters, numbers, or underscores.");
+    }
+    const nameError = window.BlurNamePolicy?.error(username);
+    if (nameError) throw new Error(nameError);
+    const avatar_url = this.defaultAvatar(username);
+    const accent_color = this.randomAccent();
+    const { data, error } = await sb
+      .from("profiles")
+      .insert({ id, username, avatar_url, bio, accent_color })
+      .select()
+      .single();
+    if (error) throw error;
+    data.role = Permissions.normalize(data.role);
+    this.cache.set(id, data);
+    return data;
+  },
+
+  async updateProfile(id, updates){
+    // Keep the client-side update shape intentionally narrow. Supabase RLS
+    // and the role-protection trigger remain authoritative, but an allowlist
+    // prevents stale/forged fields (especially `role`) from being sent by a
+    // normal profile-editor call in the first place.
+    const editable = new Set(["username", "display_name", "bio", "pronouns", "status_message", "accent_color", "avatar_url", "banner_url"]);
+    const payload = Object.fromEntries(Object.entries(updates || {}).filter(([key]) => editable.has(key)));
+    for (const key of ["username", "display_name"]) {
+      const nameError = window.BlurNamePolicy?.error(payload?.[key]);
+      if (nameError) throw new Error(nameError);
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, "username")
+        && !/^[a-zA-Z0-9_]{3,24}$/.test(String(payload.username || "").trim())) {
+      throw new Error("Usernames must be 3–24 characters using letters, numbers, or underscores.");
+    }
+    if (!Object.keys(payload).length) return this.getById(id, { force: true });
+    const { data, error } = await sb
+      .from("profiles")
+      .update(payload)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    data.role = Permissions.normalize(data.role);
+    this.cache.set(id, data);
+    return data;
+  },
+
+  /**
+   * Fallback modal — only shown if a signed-in user somehow has
+   * no profile row and no username stashed on their auth user
+   * metadata (normally the profile is created right at signup).
+   */
+  renderUsernameSetup(container, user, onDone){
+    container.innerHTML = `
+      <div class="modal-backdrop">
+        <div class="modal-card">
+          <h2>Choose a username</h2>
+          <p class="modal-sub">This is how other people on Blur will see you.</p>
+          <form class="username-form" novalidate>
+            <label>
+              Username
+              <input type="text" name="username" minlength="3" maxlength="24"
+                pattern="[a-zA-Z0-9_]+" required autocomplete="off" placeholder="e.g. nightowl">
+            </label>
+            <div class="auth-error" hidden></div>
+            <button type="submit" class="auth-submit">Continue</button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const form = container.querySelector(".username-form");
+    const errorBox = container.querySelector(".auth-error");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = form.username.value.trim();
+      errorBox.hidden = true;
+
+      try {
+        const nameError = window.BlurNamePolicy?.error(username);
+        if (nameError) {
+          errorBox.hidden = false;
+          errorBox.textContent = nameError;
+          return;
+        }
+        if (await Profiles.usernameTaken(username)) {
+          errorBox.hidden = false;
+          errorBox.textContent = "That username is already taken.";
+          return;
+        }
+        const profile = await Profiles.createProfile({ id: user.id, username });
+        onDone(profile);
+      } catch (err) {
+        errorBox.hidden = false;
+        errorBox.textContent = err.message || "Something went wrong.";
+      }
+    });
+  },
+
+  /**
+   * Popup shown when clicking a username / avatar anywhere in chat.
+   * Identity-first layout (accent banner, overlapping avatar, clear
+   * name hierarchy) using the same data and social actions as
+   * before. Own profile gets Edit / Sign out; other profiles get
+   * the existing friend/DM actions only.
+   */
+  async renderProfilePopup(container, userId, { isSelf = false } = {}){
+    if (!this._popupTokens) this._popupTokens = new WeakMap();
+    if (!this._popupCleanups) this._popupCleanups = new WeakMap();
+    // Replacing an already-open card should also release its old keyboard
+    // listener before the new async profile load begins.
+    const previousCleanup = this._popupCleanups.get(container);
+    if (previousCleanup) {
+      this._popupCleanups.delete(container);
+      try { previousCleanup(); } catch (error) { console.error("Profile popup cleanup failed:", error); }
+    }
+    const popupToken = (this._popupTokens.get(container) || 0) + 1;
+    this._popupTokens.set(container, popupToken);
+    // Roles can be changed manually in Supabase; refresh this visible
+    // profile so the badge never lags behind the database indefinitely.
+    let profile;
+    try {
+      profile = await this.getById(userId, { force: true });
+    } catch (error) {
+      // A transient profile request should not create an unhandled promise
+      // rejection (profile popups are opened from click handlers). Keep the
+      // overlay usable and let the caller try again later.
+      console.error("Profile popup load failed:", error);
+      if (this._popupTokens.get(container) !== popupToken) return;
+      container.innerHTML = `<div class="modal-backdrop"><section class="modal-card profile-load-error" role="dialog" aria-modal="true" aria-label="Profile unavailable"><h2>Profile unavailable</h2><p class="modal-sub">Couldn’t load this profile right now.</p><button type="button" class="auth-submit profile-load-close">Close</button></section></div>`;
+      container.querySelector(".profile-load-close")?.addEventListener("click", () => this.closePopup(container));
+      return;
+    }
+    if (this._popupTokens.get(container) !== popupToken) return;
+    if (!profile) {
+      // A deleted profile should not leave the previously opened person's
+      // card visible over the new click target.
+      container.innerHTML = `<div class="modal-backdrop"><section class="modal-card profile-load-error" role="dialog" aria-modal="true" aria-label="Profile unavailable"><h2>Profile unavailable</h2><p class="modal-sub">This profile is no longer available.</p><button type="button" class="auth-submit profile-load-close">Close</button></section></div>`;
+      container.querySelector(".profile-load-close")?.addEventListener("click", () => this.closePopup(container));
+      return;
+    }
+
+    const accent = profile.accent_color || "#c9c39a";
+    const joined = new Date(profile.created_at).toLocaleDateString(undefined, {
+      year: "numeric", month: "long", day: "numeric"
+    });
+
+    container.innerHTML = `
+      <div class="acct-backdrop">
+        <div class="acct-pcard" role="dialog" aria-modal="true" aria-label="Profile">
+          <div class="acct-pcard-accent${profile.banner_url ? " has-image" : ""}" style="${AccountUI.bannerStyle(profile)}"></div>
+          <button type="button" class="acct-modal-close" aria-label="Close">&times;</button>
+          <div class="acct-pcard-body">
+            <div class="acct-avatar-wrap">
+              ${AccountUI.avatarHtml(profile)}
+            </div>
+
+            <div class="acct-pcard-identity">
+              <div class="acct-display-name">${escapeHtml(profile.display_name || profile.username)}${profile.status_message ? `<span class="acct-status-bubble" title="${escapeAttr(profile.status_message)}">${escapeHtml(profile.status_message)}</span>` : ``}</div>
+              <div class="acct-username">@${escapeHtml(profile.username)}${profile.pronouns ? ` <span class="acct-pronouns">· ${escapeHtml(profile.pronouns)}</span>` : ``}</div>
+              <div class="acct-identity-meta"><span class="profile-role-chip role-${escapeAttr(Permissions.normalize(profile.role))}">${escapeHtml(Permissions.label(profile.role))}</span></div>
+            </div>
+
+            ${!isSelf ? this._friendSectionHtml(userId) : ``}
+
+            <div class="acct-pcard-section">
+              <span class="acct-meta-label">About</span>
+              ${profile.bio
+                ? `<p class="acct-info-value acct-bio">${escapeHtml(profile.bio)}</p>`
+                : `<p class="acct-info-value acct-empty-note">${isSelf ? "Add a bio about yourself." : "No bio yet."}</p>`}
+            </div>
+
+            <div class="acct-pcard-section">
+              <span class="acct-meta-label">Joined</span>
+              <span class="acct-info-value">${escapeHtml(joined)}</span>
+            </div>
+
+            ${isSelf ? `
+            <div class="acct-actions">
+              <button type="button" class="acct-btn acct-btn-primary" data-acct-popup-edit>
+                <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>
+                Edit profile
+              </button>
+              <button type="button" class="acct-btn acct-btn-danger" data-acct-popup-signout>
+                <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>
+                Sign out
+              </button>
+            </div>` : ``}
+          </div>
+        </div>
+      </div>
+    `;
+
+    const onKeydown = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closePopup();
+      }
+    };
+    const cleanup = () => document.removeEventListener("keydown", onKeydown);
+    this._popupCleanups.set(container, cleanup);
+    const closePopup = () => {
+      if (this._popupCleanups.get(container) === cleanup) this._popupCleanups.delete(container);
+      cleanup();
+      this.closePopup(container);
+    };
+    document.addEventListener("keydown", onKeydown);
+
+    container.querySelector(".acct-modal-close").addEventListener("click", closePopup);
+    container.querySelector(".acct-backdrop").addEventListener("click", (e) => {
+      if (e.target.classList.contains("acct-backdrop")) closePopup();
+    });
+
+    if (isSelf) {
+      container.querySelector("[data-acct-popup-edit]").addEventListener("click", () => {
+        cleanup();
+        this._popupCleanups.delete(container);
+        this.renderEditProfile(container, profile);
+      });
+      container.querySelector("[data-acct-popup-signout]").addEventListener("click", () => Account.signOut());
+    } else {
+      const messageBtn = container.querySelector("[data-profile-friend-message]");
+      if (messageBtn) messageBtn.addEventListener("click", () => {
+        this.closePopup(container);
+        Chat.openDM?.(messageBtn.dataset.profileFriendMessage);
+      });
+
+      const addBtn = container.querySelector("[data-profile-friend-add]");
+      if (addBtn) addBtn.addEventListener("click", async () => {
+        addBtn.disabled = true;
+        addBtn.textContent = "Sending…";
+        try {
+          await Friends.sendRequest(addBtn.dataset.profileFriendAdd);
+          this.renderProfilePopup(container, userId, { isSelf }).catch(error => console.error("Profile popup refresh failed:", error));
+        } catch (err) {
+          addBtn.disabled = false;
+          addBtn.textContent = "Add Friend";
+          console.error("Send friend request failed:", err);
+        }
+      });
+
+      const acceptBtn = container.querySelector("[data-profile-friend-accept]");
+      if (acceptBtn) acceptBtn.addEventListener("click", async () => {
+        acceptBtn.disabled = true;
+        try {
+          await Friends.accept(acceptBtn.dataset.profileFriendAccept);
+          this.renderProfilePopup(container, userId, { isSelf }).catch(error => console.error("Profile popup refresh failed:", error));
+        } catch (err) {
+          acceptBtn.disabled = false;
+          console.error("Accept friend request failed:", err);
+        }
+      });
+
+      const removeBtn = container.querySelector("[data-profile-friend-remove]");
+      if (removeBtn) removeBtn.addEventListener("click", async () => {
+        removeBtn.disabled = true;
+        try {
+          await Friends.remove(removeBtn.dataset.profileFriendRemove);
+          this.renderProfilePopup(container, userId, { isSelf }).catch(error => console.error("Profile popup refresh failed:", error));
+        } catch (err) {
+          removeBtn.disabled = false;
+          console.error("Remove friendship failed:", err);
+        }
+      });
+    }
+  },
+
+  /** Builds the friend-action row shown on someone else's profile popup. */
+  _friendSectionHtml(userId){
+    const rel = Friends.relation(userId);
+
+    if (rel.status === "friends") {
+      return `
+        <div class="profile-friend-section">
+          <span class="profile-friend-status">✓ Friends</span>
+          <button type="button" class="friend-action-btn friend-action-message" data-profile-friend-message="${userId}">Message</button>
+          <button type="button" class="friend-action-btn friend-action-remove" data-profile-friend-remove="${rel.row.id}">Remove</button>
+        </div>
+      `;
+    }
+    if (rel.status === "outgoing") {
+      return `
+        <div class="profile-friend-section">
+          <span class="profile-friend-status">Request sent</span>
+          <button type="button" class="friend-action-btn friend-action-cancel" data-profile-friend-remove="${rel.row.id}">Cancel</button>
+        </div>
+      `;
+    }
+    if (rel.status === "incoming") {
+      return `
+        <div class="profile-friend-section">
+          <button type="button" class="friend-action-btn friend-action-accept" data-profile-friend-accept="${rel.row.id}">Accept Request</button>
+          <button type="button" class="friend-action-btn friend-action-decline" data-profile-friend-remove="${rel.row.id}">Decline</button>
+        </div>
+      `;
+    }
+    return `
+      <div class="profile-friend-section">
+        <button type="button" class="friend-action-btn friend-action-add" data-profile-friend-add="${userId}">Add Friend</button>
+      </div>
+    `;
+  },
+
+  /**
+   * Edit-profile UI. Delegates to the shared global profile
+   * editor (account-ui.js) so Chat and the Account panel use
+   * the exact same editing experience. The old signature —
+   * (container, profile) rendering into a chat overlay — is
+   * preserved.
+   */
+  renderEditProfile(container, profile){
+    AccountUI.renderProfileEditor(container, profile, {
+      onSaved: (updated) => {
+        Chat.onProfileUpdated?.(updated);
+      },
+      onCancel: () => {}
+    });
+  }
+};
+
+// Shared string-escaping helpers — used by profiles.js,
+// channels.js and messages.js whenever untrusted text (a
+// username, bio, or message) is dropped into innerHTML.
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function escapeAttr(str){
+  return escapeHtml(str);
+}

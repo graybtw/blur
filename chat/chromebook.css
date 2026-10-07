@@ -1,0 +1,292 @@
+/* ================================================================
+   Chromebook / compact laptop layout
+
+   Chromebooks commonly have a desktop-width viewport with a shorter
+   available height (especially with the browser shelf and split-screen
+   layouts). Keep Chat as a two-column workspace, but let every flex child
+   shrink and use a smaller rhythm before the phone breakpoints take over.
+   This file is intentionally scoped to Chat and does not change behavior.
+================================================================ */
+
+body:has(#chat-root) .chat-panel,
+body:has(#chat-root) #chat-root,
+body:has(#chat-root) .chat-app,
+body:has(#chat-root) .chat-main,
+body:has(#chat-root) .chat-sidebar {
+  min-width: 0;
+  min-height: 0;
+}
+
+body:has(#chat-root) .chat-app {
+  overflow: hidden;
+}
+
+body:has(#chat-root) .chat-main {
+  overflow: hidden;
+}
+
+body:has(#chat-root) .chat-sidebar {
+  overflow: hidden;
+}
+
+body:has(#chat-root) .chat-sidebar .channel-list,
+body:has(#chat-root) .chat-sidebar .dm-list,
+body:has(#chat-root) .chat-sidebar .group-list {
+  min-height: 0;
+}
+
+body:has(#chat-root) .chat-messages {
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+body:has(#chat-root) .chat-topbar,
+body:has(#chat-root) .chat-composer,
+body:has(#chat-root) .chat-group-members {
+  min-width: 0;
+}
+
+body:has(#chat-root) .chat-topbar {
+  flex-wrap: nowrap;
+}
+
+body:has(#chat-root) .chat-topbar-topic {
+  min-width: 0;
+}
+
+body:has(#chat-root) .chat-topbar .friends-tabs {
+  min-width: 0;
+}
+
+body:has(#chat-root) .chat-composer textarea#chat-input {
+  min-width: 0;
+}
+
+body:has(#chat-root) .chat-send-feedback,
+body:has(#chat-root) .chat-dm-restriction {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Desktop-width Chromebook windows: preserve the rail, reduce its footprint
+   enough to leave the conversation a comfortable reading width. */
+@media (max-width: 1180px) and (min-width: 961px) {
+  body:has(#chat-root) .chat-sidebar {
+    width: 204px !important;
+    min-width: 204px !important;
+    flex-basis: 204px !important;
+    padding: 10px 7px 8px !important;
+  }
+
+  body:has(#chat-root) .chat-sidebar .sidebar-tabs {
+    margin-inline: 1px;
+    margin-bottom: 8px;
+  }
+
+  body:has(#chat-root) .chat-sidebar .sidebar-tab {
+    min-height: 30px;
+    height: 30px;
+    font-size: 9px;
+  }
+
+  body:has(#chat-root) .chat-sidebar .channel-divider {
+    margin-top: 9px;
+    margin-bottom: 4px;
+  }
+
+  body:has(#chat-root) .chat-sidebar .channel-item,
+  body:has(#chat-root) .chat-sidebar .dm-item {
+    min-height: 30px;
+    height: 30px;
+    padding-inline: 7px;
+    font-size: 11.5px;
+  }
+
+  body:has(#chat-root) .chat-user-bar {
+    padding-top: 6px;
+  }
+
+  body:has(#chat-root) .chat-topbar {
+    height: 52px;
+    min-height: 52px;
+    padding-inline: 14px;
+    gap: 8px;
+  }
+
+  body:has(#chat-root) .chat-topbar-name {
+    max-width: 27vw;
+    font-size: 15px;
+  }
+
+  body:has(#chat-root) .chat-topbar-topic {
+    max-width: 28vw;
+    font-size: 10px;
+  }
+
+  body:has(#chat-root) .chat-messages {
+    --chat-gutter: 16px;
+    padding-top: 14px;
+    gap: 4px;
+  }
+
+  body:has(#chat-root) .message-row {
+    gap: 9px;
+    padding-inline: 5px;
+  }
+
+  body:has(#chat-root) .message-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  body:has(#chat-root) .message-text {
+    line-height: 1.48;
+  }
+
+  body:has(#chat-root) .chat-composer {
+    min-height: 42px;
+    margin-inline: 16px;
+    margin-bottom: 12px;
+  }
+
+  body:has(#chat-root) .chat-composer textarea#chat-input {
+    min-height: 32px;
+    height: 32px;
+    padding-block: 6px;
+  }
+}
+
+/* Short Chromebook screens: reclaim vertical room from chrome and gutters,
+   while keeping the composer and user bar reachable at all times. */
+@media (max-height: 760px) and (min-width: 761px) {
+  body:has(#chat-root) .chat-sidebar {
+    width: 208px !important;
+    min-width: 208px !important;
+    flex-basis: 208px !important;
+    padding-top: 7px !important;
+    padding-bottom: 6px !important;
+  }
+
+  body:has(#chat-root) .chat-sidebar .sidebar-tabs {
+    margin-bottom: 5px;
+  }
+
+  body:has(#chat-root) .chat-sidebar .sidebar-tab {
+    min-height: 28px;
+    height: 28px;
+  }
+
+  body:has(#chat-root) .chat-sidebar .channel-divider {
+    margin-top: 6px;
+    margin-bottom: 3px;
+    padding-bottom: 4px;
+  }
+
+  body:has(#chat-root) .chat-sidebar .channel-item,
+  body:has(#chat-root) .chat-sidebar .dm-item {
+    min-height: 28px;
+    height: 28px;
+  }
+
+  body:has(#chat-root) .chat-user-bar {
+    margin-top: 5px;
+    padding-top: 5px;
+  }
+
+  body:has(#chat-root) .chat-topbar {
+    height: 48px;
+    min-height: 48px;
+  }
+
+  body:has(#chat-root) .chat-topbar-hash {
+    width: 22px;
+    height: 22px;
+  }
+
+  body:has(#chat-root) .chat-topbar-name {
+    font-size: 14px;
+  }
+
+  body:has(#chat-root) .chat-topbar-topic {
+    display: none;
+  }
+
+  body:has(#chat-root) .chat-messages {
+    padding-top: 10px;
+    padding-bottom: 6px;
+    gap: 3px;
+  }
+
+  body:has(#chat-root) .message-row {
+    padding-block: 1px;
+  }
+
+  body:has(#chat-root) .chat-composer {
+    min-height: 40px;
+    margin-bottom: 8px;
+  }
+
+  body:has(#chat-root) .chat-composer textarea#chat-input {
+    min-height: 30px;
+    height: 30px;
+    padding-block: 5px;
+  }
+
+  body:has(#chat-root) .chat-composer .chat-composer-plus,
+  body:has(#chat-root) .chat-composer button[type="submit"] {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* The legacy phone breakpoint stacked Chat at 960px. A Chromebook in a
+   split window can still have 800–950px of width, so keep a compact rail
+   beside the conversation until the actual phone breakpoint at 760px. */
+@media (max-width: 960px) and (min-width: 761px) {
+  body:has(#chat-root) .chat-app {
+    flex-direction: row;
+  }
+
+  body:has(#chat-root) .chat-sidebar {
+    width: 190px !important;
+    min-width: 190px !important;
+    flex-basis: 190px !important;
+    height: 100%;
+    max-height: none;
+    border-right: 1px solid var(--border-subtle);
+    border-bottom: 0;
+  }
+
+  body:has(#chat-root) .chat-topbar {
+    padding-inline: 12px;
+  }
+
+  body:has(#chat-root) .chat-topbar-name {
+    max-width: 34vw;
+  }
+}
+
+/* Small split-screen windows still need a readable top bar. Hide only
+   secondary decoration; actions remain available through their buttons. */
+@media (max-width: 1000px) and (min-width: 761px) {
+  body:has(#chat-root) .chat-topbar-topic {
+    display: none;
+  }
+
+  body:has(#chat-root) .chat-topbar-name {
+    max-width: 34vw;
+  }
+
+  body:has(#chat-root) .chat-actions-button #online-count {
+    display: none;
+  }
+
+  body:has(#chat-root) .chat-messages {
+    --chat-gutter: 12px;
+  }
+
+  body:has(#chat-root) .chat-composer {
+    margin-inline: 12px;
+  }
+}

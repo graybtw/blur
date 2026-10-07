@@ -1,0 +1,1067 @@
+// ======================================================
+// BLUR EVENTS SYSTEM
+// Admin-triggered global effects shown to every connected user for a set
+// duration. Events are deliberately small, global visual moments rather than
+// a second application layered over Blur.
+// ======================================================
+
+
+const EVENT_TYPES = {
+
+  "yin-yang": {
+    label: "Yin Yang",
+    description: "Shift the entire site into a living balance of light and shadow.",
+    emojis: ["✦", "✧", "·", "○", "●"],
+    mode: "float",
+    particle: "dust",
+    special: "yinyang",
+    particleInterval: 420,
+    particleCount: 1
+  },
+  "matrix": {
+    label: "Matrix",
+    description: "Drop Blur into a live green terminal: code rain, scanlines, and system noise.",
+    emojis: [],
+    mode: "float",
+    particle: null,
+    special: "matrix",
+    particleInterval: 0,
+    particleCount: 0
+  },
+  "snowfall": {
+    label: "Snowfall",
+    description: "A quiet drift of snow and starlight across the site.",
+    emojis: ["❄", "✦", "·"],
+    mode: "rain",
+    particle: "snow",
+    particleInterval: 300,
+    particleCount: 1
+  },
+  "fireflies": {
+    label: "Fireflies",
+    description: "Warm little lights float through the dark for a moment.",
+    emojis: ["·", "✦", "✧"],
+    mode: "float",
+    particle: "firefly",
+    particleInterval: 260,
+    particleCount: 1
+  },
+  "meteor-shower": {
+    label: "Meteor Shower",
+    description: "A handful of bright meteors streak across the night.",
+    emojis: ["✦", "☄"],
+    mode: "diagonal",
+    particle: "meteor",
+    particleInterval: 520,
+    particleCount: 1
+  },
+  "heartfall": {
+    label: "Heartfall",
+    description: "Soft hearts drift down across every Blur page.",
+    emojis: ["♡", "♥", "✦"],
+    mode: "rain",
+    particle: "heart",
+    particleInterval: 360,
+    particleCount: 1
+  }
+
+};
+
+
+let eventSpawnTimer = null;
+let eventCleanupTimer = null;
+let eventRemoveTimer = null;
+let matrixIntroTimer = null;
+let matrixFrameId = null;
+let matrixRuntimeCleanup = null;
+let eventPollTimer = null;
+let eventRealtimeChannel = null;
+let activeEventKey = null;
+const stoppedEventIds = new Set();
+
+
+function matrixMotionReduced(){
+  return Boolean(
+    document.documentElement?.classList.contains("reduce-motion") ||
+    document.body?.classList.contains("force-reduce-motion")
+  );
+}
+
+
+function stopMatrixRuntime(){
+  if(matrixFrameId !== null){
+    window.cancelAnimationFrame?.(matrixFrameId);
+    matrixFrameId = null;
+  }
+  if(matrixRuntimeCleanup){
+    matrixRuntimeCleanup();
+    matrixRuntimeCleanup = null;
+  }
+}
+
+
+// Matrix used to rely entirely on CSS keyframes. That made the event appear
+// frozen when a preference, a browser extension, or the site's motion rules
+// shortened/disabled animations. A small requestAnimationFrame loop keeps the
+// code rain and boot glitch deterministic while remaining click-through.
+function startMatrixRuntime(scene){
+  stopMatrixRuntime();
+  if(!scene || typeof window.requestAnimationFrame !== "function") return;
+
+  const columns = [...scene.querySelectorAll(".site-event-matrix-column")];
+  const canvas = scene.querySelector(".site-event-matrix-canvas");
+  const glitch = scene.querySelector(".site-event-matrix-glitch");
+  const flash = scene.querySelector(".site-event-matrix-flash");
+  const reduced = matrixMotionReduced();
+  const glyphs = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ<>[]{}\\/+=-*#@$%";
+  let drawCanvas = null;
+  let canvasActive = false;
+
+  // Canvas is used for the actual rain so the event is not dependent on CSS
+  // animation support or dozens of independently animated DOM nodes.
+  if(canvas && typeof canvas.getContext === "function"){
+    const context = canvas.getContext("2d");
+    if(context){
+      canvasActive = true;
+      scene.classList.add("matrix-canvas-active");
+      let width = 0;
+      let height = 0;
+      let fontSize = 14;
+      let cell = 18;
+      let streams = [];
+
+      const resizeCanvas = () => {
+        width = Math.max(1, scene.clientWidth || window.innerWidth || 1200);
+        height = Math.max(1, scene.clientHeight || window.innerHeight || 800);
+        fontSize = Math.max(11, Math.min(17, width / 92));
+        cell = Math.max(15, fontSize * 1.45);
+        const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        streams = Array.from({length: Math.ceil(width / cell) + 2}, (_, index) => ({
+          x: index * cell + Math.random() * 5,
+          y: Math.random() * height,
+          speed: 1.35 + Math.random() * 2.25,
+          length: 12 + Math.floor(Math.random() * 27),
+          chars: Array.from({length: 34}, () => glyphs[Math.floor(Math.random() * glyphs.length)])
+        }));
+      };
+
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas, {passive:true});
+      matrixRuntimeCleanup = () => {
+        window.removeEventListener("resize", resizeCanvas);
+        scene.classList.remove("matrix-canvas-active");
+        context.clearRect(0, 0, width, height);
+      };
+
+      drawCanvas = (elapsed, delta) => {
+        context.clearRect(0, 0, width, height);
+        context.textBaseline = "top";
+        context.font = `${fontSize}px "IBM Plex Mono", monospace`;
+        const glyphTick = Math.floor(elapsed / 115);
+        streams.forEach((stream, streamIndex) => {
+          if(!reduced) stream.y += stream.speed * delta;
+          if(stream.y - stream.length * fontSize > height){
+            stream.y = -Math.random() * height * .5;
+            stream.speed = 1.35 + Math.random() * 2.25;
+          }
+          for(let index = 0; index < stream.length; index += 1){
+            const y = stream.y - index * fontSize;
+            if(y < -fontSize || y > height + fontSize) continue;
+            const strength = Math.max(.08, 1 - index / stream.length);
+            const char = stream.chars[(glyphTick + index + streamIndex) % stream.chars.length];
+            if(index === 0){
+              context.fillStyle = `rgba(220,255,224,${Math.min(.98, strength)})`;
+              context.shadowColor = "rgba(35,255,82,.92)";
+              context.shadowBlur = 9;
+            }else{
+              context.fillStyle = `rgba(28,${Math.round(168 + strength * 62)},${Math.round(65 + strength * 54)},${Math.min(.78, strength * .72)})`;
+              context.shadowBlur = 0;
+            }
+            context.fillText(char, stream.x, y);
+          }
+        });
+        context.shadowBlur = 0;
+      };
+    }
+  }
+
+  // Inline animation styles make the fallback DOM streams win over global
+  // reduced-motion rules when canvas is unavailable.
+  // Leave the CSS intro animation in place as a fallback; the runtime adds
+  // extra jitter when available instead of disabling the baseline effect.
+  scene.style.transform = "none";
+  scene.style.filter = "none";
+  columns.forEach((column, index) => {
+    // Keep the CSS streams alive as a visual safety net. If a browser pauses
+    // Canvas frames, the event still has moving rain instead of only static
+    // decoration.
+    // Once the runtime is available, drive the fallback columns from the same
+    // clock as the canvas. This keeps the glyphs moving even when a browser
+    // renders Canvas with reduced contrast or pauses CSS animations.
+    column.style.animation = "none";
+    column.dataset.matrixSpeed = String(6500 + Math.random() * 7000);
+    column.dataset.matrixPhase = String(Math.random() * 9000 + index * 180);
+    column.dataset.matrixOpacity = column.style.opacity || "0.5";
+  });
+
+  if(reduced){
+    if(drawCanvas) drawCanvas(0, 0);
+    columns.forEach((column, index) => {
+      column.style.top = `${(index % 7) * 13 - 10}vh`;
+      column.style.transform = `translate3d(0, ${(index % 5) * 7}vh, 0)`;
+      if(!canvasActive) column.style.opacity = "0.28";
+    });
+    if(glitch) glitch.style.opacity = "0";
+    if(flash) flash.style.opacity = "0";
+    return;
+  }
+
+  const startedAt = performance.now();
+  const bootDuration = 1450;
+  let lastGlyphSwap = -Infinity;
+  let lastFrameAt = startedAt;
+  const glitchBands = [
+    "inset(0 0 0 0)",
+    "inset(8% 0 78% 0)",
+    "inset(46% 0 38% 0)",
+    "inset(76% 0 10% 0)",
+    "inset(21% 0 57% 0)",
+    "inset(58% 0 24% 0)"
+  ];
+  let runtimeFrameCount = 0;
+  scene.dataset.matrixFrames = "0";
+
+  const frame = (now) => {
+    if(!scene.isConnected || !scene.closest(".site-event-fx")?.classList.contains("site-event-matrix-mode")){
+      matrixFrameId = null;
+      if(matrixRuntimeCleanup){
+        matrixRuntimeCleanup();
+        matrixRuntimeCleanup = null;
+      }
+      return;
+    }
+
+    const elapsed = now - startedAt;
+    const delta = Math.min(48, Math.max(0, now - lastFrameAt));
+    lastFrameAt = now;
+    runtimeFrameCount += 1;
+    scene.dataset.matrixFrames = String(runtimeFrameCount);
+    if(drawCanvas) drawCanvas(elapsed, delta);
+
+    const elapsedInRain = elapsed;
+    columns.forEach((column) => {
+      const duration = Math.max(4200, Number(column.dataset.matrixSpeed) || 8200);
+      const phase = Number(column.dataset.matrixPhase) || 0;
+      const progress = ((elapsedInRain + phase) % duration) / duration;
+      column.style.transform = `translate3d(0, ${progress * 246}vh, 0)`;
+    });
+
+    if(elapsed - lastGlyphSwap > 120){
+      columns.forEach((column, index) => {
+        const chars = String(column.textContent || "").split("");
+        if(!chars.length) return;
+        const position = (Math.floor(elapsed / 120) * 11 + index * 17) % chars.length;
+        if(chars[position] !== "\n"){
+          chars[position] = glyphs[(Math.floor(elapsed / 120) + index) % glyphs.length];
+          column.textContent = chars.join("");
+        }
+      });
+      lastGlyphSwap = elapsed;
+    }
+
+    if(scene.classList.contains("is-glitching")){
+      const bootProgress = Math.min(1, elapsed / bootDuration);
+      const band = glitchBands[Math.min(glitchBands.length - 1, Math.floor(bootProgress * glitchBands.length))];
+      const jitterX = Math.sin(elapsed / 17) * 1.15;
+      const jitterY = Math.cos(elapsed / 23) * 0.42;
+      if(glitch){
+        glitch.style.clipPath = band;
+        glitch.style.opacity = String(bootProgress < .82 ? .88 : .16);
+        glitch.style.transform = `translate3d(${jitterX}%, ${jitterY}%, 0)`;
+      }
+      if(flash){
+        flash.style.opacity = bootProgress < .075 || (bootProgress > .21 && bootProgress < .27) ? ".82" : "0";
+      }
+      scene.style.transform = `translate3d(${jitterX * .32}%, ${jitterY * .24}%, 0) skewX(${Math.sin(elapsed / 31) * .42}deg)`;
+      scene.style.filter = `contrast(${1.18 + Math.sin(elapsed / 29) * .35}) brightness(${.9 + Math.sin(elapsed / 22) * .16}) saturate(1.2)`;
+    }else{
+      if(glitch){ glitch.style.opacity = "0"; glitch.style.transform = "none"; }
+      if(flash) flash.style.opacity = "0";
+      scene.style.transform = "none";
+      scene.style.filter = "none";
+    }
+
+    matrixFrameId = window.requestAnimationFrame(frame);
+  };
+
+  matrixFrameId = window.requestAnimationFrame(frame);
+}
+
+
+function setupEventSender(root){
+
+
+const typeSelect =
+root.querySelector(".dev-event-type");
+
+
+const durationInput =
+root.querySelector(".dev-event-duration");
+
+
+const unitSelect =
+root.querySelector(".dev-event-unit");
+
+
+const startButton =
+root.querySelector(".dev-event-start");
+
+const stopButton =
+root.querySelector(".dev-event-stop");
+
+const eventHeading = root.querySelector(".dev-event-heading");
+const eventDescription = root.querySelector(".dev-event-description");
+
+
+const state =
+root.querySelector(".dev-event-state");
+
+
+if(!typeSelect || !durationInput || !unitSelect || !startButton){
+    console.warn("Event elements missing");
+    return;
+}
+
+const updateEventCopy = () => {
+  const config = EVENT_TYPES[typeSelect.value];
+  if(eventHeading && config) eventHeading.textContent = config.label;
+  if(eventDescription && config) eventDescription.textContent = config.description;
+};
+typeSelect.addEventListener("change", updateEventCopy);
+updateEventCopy();
+
+if(stopButton){
+  stopButton.onclick = async ()=>{
+    stopButton.disabled = true;
+    const now = new Date().toISOString();
+    // Write a timestamp safely in the past so client/server clock skew cannot
+    // make the just-stopped event look active on the next poll.
+    const endedAt = new Date(Date.now() - 60000).toISOString();
+    const { data: activeRows, error: readError } = await window.sb
+      .from("events")
+      .select("id")
+      .gt("ends_at", now);
+    let error = readError;
+    if(!error && activeRows?.length){
+      activeRows.forEach(row => stoppedEventIds.add(String(row.id)));
+      const results = await Promise.all(activeRows.map(row =>
+        window.sb.from("events").update({ ends_at: endedAt }).eq("id", row.id)
+      ));
+      error = results.find(result => result.error)?.error || null;
+    }
+    stopButton.disabled = false;
+
+    if(error){
+      console.error(error);
+      if(state) state.textContent = error.message || "Could not stop event";
+      return;
+    }
+
+    stopGlobalEvent();
+  };
+}
+
+
+startButton.onclick = async ()=>{
+
+
+const type =
+typeSelect.value;
+
+
+const amount =
+parseInt(durationInput.value, 10);
+
+
+const unitSeconds =
+parseInt(unitSelect.value, 10);
+
+
+if(!EVENT_TYPES[type]){
+
+state.textContent =
+"Unknown event";
+
+return;
+
+}
+
+
+if(!amount || amount < 1){
+
+state.textContent =
+"Invalid duration";
+
+return;
+
+}
+
+
+const durationSeconds =
+amount * unitSeconds;
+
+
+const endsAt =
+new Date(
+Date.now() + durationSeconds * 1000
+).toISOString();
+
+
+state.textContent =
+"Starting...";
+
+startButton.disabled = true;
+
+
+const {error} =
+await window.sb
+.from("events")
+.insert({
+
+title:
+EVENT_TYPES[type].label,
+
+message:
+type,
+
+duration:
+durationSeconds,
+
+ends_at:
+endsAt
+
+});
+
+
+startButton.disabled = false;
+
+
+if(error){
+
+console.error(error);
+
+state.textContent =
+error.message || "Failed";
+
+return;
+
+}
+
+
+state.textContent =
+"Event started";
+
+
+};
+
+
+}
+
+
+
+function setupEventRealtime(){
+
+  if(!window.sb){
+    // The Supabase client is loaded immediately before the Dev Panel, but keep
+    // a short retry so an early page load cannot silently miss the global event.
+    setTimeout(setupEventRealtime, 500);
+    return;
+  }
+
+  if(eventRealtimeChannel) return;
+
+  eventRealtimeChannel = window.sb
+ .channel("global-events")
+.on(
+"postgres_changes",
+{
+ event:"*",
+schema:"public",
+table:"events"
+},
+(payload)=>{
+
+if(payload.eventType === "DELETE"){
+  stopGlobalEvent();
+  return;
+}
+
+const row = payload.new || payload.old;
+if(!row) return;
+
+const remainingMs =
+new Date(row.ends_at).getTime() - Date.now();
+
+const eventType = resolveEventType(row);
+
+if(remainingMs > 0 && eventType){
+
+    playGlobalEvent(eventType, remainingMs, row.id || `${eventType}:${row.ends_at}`);
+
+} else if(payload.eventType === "UPDATE") {
+  if(row.id != null) stoppedEventIds.add(String(row.id));
+  stopGlobalEvent();
+}
+
+}
+
+)
+ .subscribe();
+
+
+checkActiveEvent();
+
+  // Realtime can be briefly unavailable while a session is restored. A small
+  // poll keeps short-lived global events visible without requiring a reload.
+  if(!eventPollTimer){
+    eventPollTimer = setInterval(checkActiveEvent, 5000);
+  }
+
+  if(window.sb.auth?.onAuthStateChange){
+    window.sb.auth.onAuthStateChange(()=>{
+      setTimeout(checkActiveEvent, 0);
+    });
+  }
+
+
+}
+
+
+
+async function checkActiveEvent(){
+
+
+const {data, error} =
+await window.sb
+  .from("events")
+  .select("*")
+  .gt("ends_at", new Date().toISOString())
+  .order("created_at", {ascending:false})
+  .limit(20);
+
+
+if(error){
+    console.error(error);
+    return;
+}
+
+
+const visibleEvents = (data || [])
+  .filter(row => !stoppedEventIds.has(String(row.id)))
+  .map(row => ({ row, eventType: resolveEventType(row) }))
+  .filter(item => item.eventType);
+
+if(visibleEvents.length){
+
+const remainingMs =
+new Date(visibleEvents[0].row.ends_at).getTime() - Date.now();
+
+const eventType = visibleEvents[0].eventType;
+
+if(remainingMs > 0 && eventType){
+    playGlobalEvent(eventType, remainingMs, visibleEvents[0].row.id || `${eventType}:${visibleEvents[0].row.ends_at}`);
+}
+
+}
+
+else if(activeEventKey){
+  stopGlobalEvent();
+}
+
+
+}
+
+
+
+function ensureFxLayer(){
+
+
+if(eventRemoveTimer){
+  clearTimeout(eventRemoveTimer);
+  eventRemoveTimer = null;
+}
+
+let layer =
+document.querySelector(".site-event-fx");
+
+
+if(!layer){
+
+layer = document.createElement("div");
+layer.className = "site-event-fx";
+
+document.body.appendChild(layer);
+
+}
+
+// Keep the event layer visible even when a user has a reduced-motion or
+// performance preference that disables animation styles elsewhere.
+layer.style.setProperty("position", "fixed");
+layer.style.setProperty("inset", "0");
+  layer.style.setProperty("pointer-events", "none");
+  layer.style.setProperty("overflow", "hidden");
+  layer.style.removeProperty("transition");
+// Keep the existing global event stacking order. Matrix lowers its own mode
+// below the sidebar in CSS so its terminal texture cannot hide navigation.
+layer.style.setProperty("z-index", "12");
+
+
+return layer;
+
+
+}
+
+
+function resolveEventType(row){
+  // Support both the current title/message rows and older rows that stored
+  // the event key in `type`.
+  const raw = [row?.message, row?.title, row?.type, row?.event_type]
+    .filter(Boolean)
+    .map(value => String(value).trim().toLowerCase())
+    .join(" ");
+  if(raw === "yin-yang" || (raw.includes("yin") && raw.includes("yang"))){
+    return "yin-yang";
+  }
+  if(raw === "matrix" || raw.includes("matrix")) return "matrix";
+  if(raw.includes("snow")) return "snowfall";
+  if(raw.includes("firefly") || raw.includes("fireflies")) return "fireflies";
+  if(raw.includes("meteor")) return "meteor-shower";
+  if(raw.includes("heartfall") || raw.includes("heart fall")) return "heartfall";
+  return null;
+}
+
+
+function spawnParticle(layer, config){
+
+
+const emoji =
+config.emojis[
+Math.floor(Math.random() * config.emojis.length)
+];
+
+
+const particle =
+document.createElement("span");
+
+  particle.className =
+`site-event-particle site-event-${config.mode}`;
+
+// Keep event particles above opaque page surfaces while leaving the layer
+// completely click-through.
+particle.style.zIndex = "3";
+
+
+particle.textContent = config.particle === "dust" ? "" : emoji;
+
+
+const left =
+Math.random() * 100;
+
+const duration =
+4 + Math.random() * 3;
+
+const delay =
+Math.random() * 0.4;
+
+const size =
+24 + Math.random() * 20;
+
+
+particle.style.left = `${left}vw`;
+particle.style.fontSize = `${size}px`;
+particle.style.animationDuration = `${duration}s`;
+particle.style.animationDelay = `${delay}s`;
+
+if(config.particle === "dust"){
+  particle.classList.add("site-event-dust");
+  particle.style.top = `${Math.random() * 100}vh`;
+  particle.style.left = `${Math.random() * 100}vw`;
+  particle.style.width = `${1.5 + Math.random() * 3.5}px`;
+  particle.style.height = particle.style.width;
+  particle.style.animationDuration = `${8 + Math.random() * 10}s`;
+  particle.style.animationDelay = `${Math.random() * 2}s`;
+  particle.style.opacity = `${0.16 + Math.random() * 0.28}`;
+} else if(config.particle === "snow"){
+  particle.classList.add("site-event-snow");
+  particle.style.top = "-44px";
+  particle.style.fontSize = `${16 + Math.random() * 18}px`;
+  particle.style.animationDuration = `${7 + Math.random() * 5}s`;
+  particle.style.animationDelay = `${Math.random() * 1.4}s`;
+  particle.style.opacity = `${0.4 + Math.random() * 0.45}`;
+} else if(config.particle === "firefly"){
+  particle.classList.add("site-event-firefly");
+  particle.style.top = `${8 + Math.random() * 84}vh`;
+  particle.style.left = `${Math.random() * 100}vw`;
+  particle.style.fontSize = `${11 + Math.random() * 11}px`;
+  particle.style.animationDuration = `${6 + Math.random() * 6}s`;
+  particle.style.animationDelay = `${Math.random() * 2}s`;
+  particle.style.opacity = `${0.35 + Math.random() * 0.55}`;
+} else if(config.particle === "meteor"){
+  particle.classList.add("site-event-meteor");
+  particle.style.top = `${Math.random() * 72}vh`;
+  particle.style.left = `${60 + Math.random() * 40}vw`;
+  particle.style.fontSize = `${16 + Math.random() * 16}px`;
+  particle.style.animationDuration = `${2.8 + Math.random() * 2.4}s`;
+  particle.style.animationDelay = `${Math.random() * 1.4}s`;
+  particle.style.opacity = `${0.55 + Math.random() * 0.45}`;
+} else if(config.particle === "heart"){
+  particle.classList.add("site-event-heart");
+  particle.style.top = "-44px";
+  particle.style.fontSize = `${18 + Math.random() * 16}px`;
+  particle.style.animationDuration = `${5.5 + Math.random() * 3.5}s`;
+  particle.style.animationDelay = `${Math.random() * 1.4}s`;
+  particle.style.opacity = `${0.45 + Math.random() * 0.45}`;
+} else if(config.mode === "float"){
+  particle.style.top = `${Math.random() * 100}vh`;
+  particle.style.left = `${Math.random() * 100}vw`;
+  particle.style.animationDuration = `${5 + Math.random() * 5}s`;
+  particle.style.animationDelay = `${Math.random() * 1.2}s`;
+  particle.style.opacity = `${0.25 + Math.random() * 0.5}`;
+}
+
+if(config.mode === "diagonal"){
+    particle.style.left = `${60 + Math.random() * 40}vw`;
+}
+
+
+particle.addEventListener("animationend", ()=>{
+    particle.remove();
+});
+
+
+layer.appendChild(particle);
+
+
+}
+
+
+function ensureYinYangScene(layer){
+
+  let scene = layer.querySelector(".site-event-yinyang-scene");
+  if(scene) return scene;
+
+  scene = document.createElement("div");
+  scene.className = "site-event-yinyang-scene";
+  scene.innerHTML = `
+    <div class="site-event-yinyang-backdrop"></div>
+    <div class="site-event-yinyang-rays"></div>
+    <div class="site-event-yinyang-orbit site-event-yinyang-orbit-a"></div>
+    <div class="site-event-yinyang-orbit site-event-yinyang-orbit-b"></div>
+    <div class="site-event-yinyang-core" aria-hidden="true">
+      <div class="site-event-yinyang-disc">
+        <svg viewBox="0 0 100 100" role="presentation">
+          <circle cx="50" cy="50" r="46" fill="#f2f2ed"/>
+          <path d="M50 4a46 46 0 0 1 0 92a23 23 0 0 1 0-46a23 23 0 0 0 0-46z" fill="#171715"/>
+          <circle cx="50" cy="27" r="7" fill="#f2f2ed"/>
+          <circle cx="50" cy="73" r="7" fill="#171715"/>
+        </svg>
+      </div>
+    </div>
+    <div class="site-event-yinyang-vignette"></div>
+  `;
+  layer.appendChild(scene);
+  return scene;
+}
+
+
+function ensureMatrixScene(layer){
+  let scene = layer.querySelector(".site-event-matrix-scene");
+  if(scene) return scene;
+
+  scene = document.createElement("div");
+  scene.className = "site-event-matrix-scene site-event-scene is-glitching";
+  scene.innerHTML = `
+    <div class="site-event-matrix-backdrop"></div>
+    <canvas class="site-event-matrix-canvas" aria-hidden="true"></canvas>
+    <div class="site-event-matrix-code" aria-hidden="true"></div>
+    <div class="site-event-matrix-grid" aria-hidden="true"></div>
+    <div class="site-event-matrix-scanlines" aria-hidden="true"></div>
+    <div class="site-event-matrix-camera site-event-matrix-camera-a" aria-hidden="true"></div>
+    <div class="site-event-matrix-camera site-event-matrix-camera-b" aria-hidden="true"></div>
+    <div class="site-event-matrix-popups" aria-hidden="true"></div>
+    <div class="site-event-matrix-core" aria-hidden="true"><span>BLUR // MATRIX</span></div>
+    <div class="site-event-matrix-target" aria-hidden="true"></div>
+    <div class="site-event-matrix-glitch" aria-hidden="true"></div>
+    <div class="site-event-matrix-flash" aria-hidden="true"></div>
+    <div class="site-event-matrix-vignette" aria-hidden="true"></div>
+  `;
+
+  const codeRoot = scene.querySelector(".site-event-matrix-code");
+  const alphabet = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ<>[]{}\/\\+=-*#@$%";
+  const columnCount = Math.min(58, Math.max(18, Math.ceil((window.innerWidth || 1200) / 28)));
+
+  for(let index = 0; index < columnCount; index += 1){
+    const column = document.createElement("span");
+    column.className = "site-event-matrix-column";
+    column.textContent = Array.from({length: 44}, () =>
+      alphabet[Math.floor(Math.random() * alphabet.length)]
+    ).join("\n");
+    column.style.left = `${(index / columnCount) * 100 + Math.random() * 1.3}%`;
+    column.style.animationDuration = `${3.4 + Math.random() * 4.2}s`;
+    column.style.animationDelay = `${-Math.random() * 5}s`;
+    // Keep the streams legible against Blur's dark surfaces; the runtime
+    // loop still fades each column as it travels so the field never becomes
+    // a solid wall of green.
+    column.style.opacity = `${0.36 + Math.random() * 0.46}`;
+    codeRoot.appendChild(column);
+  }
+
+  const popupRoot = scene.querySelector(".site-event-matrix-popups");
+  const popupCopy = [
+    ["SIGNAL", "LOCKED // 07"],
+    ["NODE", "BLUR-01 ONLINE"],
+    ["TRACE", "0x7A / 100%"],
+    ["UPLINK", "ENCRYPTED"],
+    ["WATCHER", "CONNECTED"],
+    ["PACKET", "0101 1100"],
+    ["CHANNEL", "SECURE"],
+    ["SYSTEM", "NOMINAL"]
+  ];
+
+  popupCopy.forEach(([label, value], index) => {
+    const popup = document.createElement("div");
+    popup.className = "site-event-matrix-popup";
+    popup.innerHTML = `<span class="site-event-matrix-popup-label"></span><strong></strong>`;
+    popup.querySelector(".site-event-matrix-popup-label").textContent = label;
+    popup.querySelector("strong").textContent = value;
+    popup.style.left = `${6 + Math.random() * 82}%`;
+    popup.style.top = `${8 + Math.random() * 76}%`;
+    popup.style.animationDelay = `${index * 280 + Math.random() * 700}ms`;
+    popupRoot.appendChild(popup);
+  });
+
+  layer.appendChild(scene);
+  return scene;
+}
+
+
+function playGlobalEvent(type, durationMs, eventKey){
+
+
+const config =
+EVENT_TYPES[type];
+
+
+if(!config){
+    console.warn("Unknown event type:", type);
+    return;
+}
+
+const key = eventKey || `${type}:${Math.round(Date.now() / 1000)}`;
+if(activeEventKey === key) return;
+activeEventKey = key;
+
+if(eventSpawnTimer){
+    clearInterval(eventSpawnTimer);
+    eventSpawnTimer = null;
+}
+
+
+if(eventCleanupTimer){
+    clearTimeout(eventCleanupTimer);
+    eventCleanupTimer = null;
+}
+
+if(matrixIntroTimer){
+  clearTimeout(matrixIntroTimer);
+  matrixIntroTimer = null;
+}
+
+stopMatrixRuntime();
+
+
+const layer =
+ensureFxLayer();
+
+// A new global event replaces the previous one immediately. Clearing the old
+// particles prevents one event's effects from leaking into another.
+layer.querySelectorAll(".site-event-particle").forEach(particle => particle.remove());
+
+layer.classList.toggle("site-event-yinyang-mode", config.special === "yinyang");
+layer.classList.toggle("site-event-matrix-mode", config.special === "matrix");
+
+if(config.special === "yinyang" || config.special === "matrix"){
+  layer.style.setProperty("display", "block");
+  layer.style.setProperty("visibility", "visible");
+  layer.style.setProperty("opacity", "1");
+  layer.style.setProperty("background", "transparent");
+} else {
+  layer.style.removeProperty("display");
+  layer.style.removeProperty("visibility");
+  layer.style.removeProperty("opacity");
+  layer.style.removeProperty("background");
+}
+
+if(config.special === "yinyang"){
+  layer.querySelector(".site-event-matrix-scene")?.remove();
+  ensureYinYangScene(layer);
+}else if(config.special === "matrix"){
+  layer.querySelector(".site-event-yinyang-scene")?.remove();
+  const scene = ensureMatrixScene(layer);
+  scene.classList.remove("is-leaving", "is-glitching");
+  // Restart the boot sequence even if a previous event left the scene node
+  // mounted during its short fade-out window.
+  void scene.offsetWidth;
+  scene.classList.add("is-glitching");
+  startMatrixRuntime(scene);
+  matrixIntroTimer = setTimeout(()=>{
+    scene.classList.remove("is-glitching");
+    matrixIntroTimer = null;
+  }, 1450);
+}else{
+  layer.querySelector(".site-event-yinyang-scene")?.remove();
+  layer.querySelector(".site-event-matrix-scene")?.remove();
+}
+
+if(config.particle){
+  const particleInterval = config.particleInterval || 180;
+  eventSpawnTimer = setInterval(()=>{
+    for(let i = 0; i < (config.particleCount || 1); i += 1){
+      spawnParticle(layer, config);
+    }
+  }, particleInterval);
+
+  // Seed the scene immediately so short events and slow connections still
+  // show a visible effect before the first interval tick.
+  for(let i = 0; i < (config.particleCount || 1); i += 1){
+    spawnParticle(layer, config);
+  }
+}
+
+
+eventCleanupTimer = setTimeout(()=>{
+
+clearInterval(eventSpawnTimer);
+eventSpawnTimer = null;
+
+if(matrixIntroTimer){
+  clearTimeout(matrixIntroTimer);
+  matrixIntroTimer = null;
+}
+
+stopMatrixRuntime();
+
+const scene = layer.querySelector(".site-event-matrix-scene, .site-event-yinyang-scene");
+if(scene){
+  scene.style.animation = "";
+  scene.style.transform = "";
+  scene.style.filter = "";
+  scene.classList.add("is-leaving");
+  setTimeout(()=>scene.remove(), 700);
+}
+layer.querySelectorAll(".site-event-particle").forEach(particle => particle.remove());
+layer.classList.remove("site-event-yinyang-mode", "site-event-matrix-mode");
+layer.style.removeProperty("display");
+layer.style.removeProperty("visibility");
+layer.style.removeProperty("opacity");
+layer.style.removeProperty("background");
+
+// Particles are intentionally cleared with the event instead of lingering
+// after the atmosphere has ended.
+eventRemoveTimer = setTimeout(()=>{
+  eventRemoveTimer = null;
+  if(layer && !layer.children.length) layer.remove();
+}, 720);
+
+if(activeEventKey === key){
+  activeEventKey = null;
+}
+
+}, durationMs);
+
+
+}
+
+
+function stopGlobalEvent(){
+  if(eventSpawnTimer){
+    clearInterval(eventSpawnTimer);
+    eventSpawnTimer = null;
+  }
+  if(eventCleanupTimer){
+    clearTimeout(eventCleanupTimer);
+    eventCleanupTimer = null;
+  }
+
+  if(matrixIntroTimer){
+    clearTimeout(matrixIntroTimer);
+    matrixIntroTimer = null;
+  }
+
+  stopMatrixRuntime();
+
+  const layer = document.querySelector(".site-event-fx");
+  activeEventKey = null;
+  if(!layer) return;
+
+  if(eventRemoveTimer){
+    clearTimeout(eventRemoveTimer);
+    eventRemoveTimer = null;
+  }
+
+  const scene = layer.querySelector(".site-event-matrix-scene, .site-event-yinyang-scene");
+  if(scene){
+    scene.style.animation = "";
+    scene.style.transform = "";
+    scene.style.filter = "";
+    scene.classList.add("is-leaving");
+  }
+  layer.classList.remove("site-event-yinyang-mode", "site-event-matrix-mode");
+  layer.style.setProperty("opacity", "0");
+  layer.style.setProperty("transition", "opacity 560ms ease");
+
+  eventRemoveTimer = setTimeout(()=>{
+    eventRemoveTimer = null;
+    layer.remove();
+  }, 720);
+}
+
+
+// Local-only visual harness. It is intentionally query-gated and never runs
+// in normal navigation; it lets us verify the renderer without a Supabase
+// event row while iterating on the effect.
+if(typeof window !== "undefined" && window.location?.search.includes("matrix-debug")){
+  window.addEventListener("DOMContentLoaded", () => {
+    const changelog = document.querySelector("#changelog-overlay");
+    changelog?.classList.remove("open");
+    if(changelog) changelog.style.display = "none";
+    document.querySelector("#beta-toast")?.remove();
+    const layer = ensureFxLayer();
+    layer.classList.add("site-event-matrix-mode");
+    const scene = ensureMatrixScene(layer);
+    scene.classList.add("is-glitching");
+    startMatrixRuntime(scene);
+    setTimeout(() => scene.classList.remove("is-glitching"), 1450);
+    setTimeout(() => {
+      document.title = `matrix-frames:${scene.dataset.matrixFrames || "0"}`;
+      stopMatrixRuntime();
+    }, 900);
+  });
+}
+
+
+
+// exported startup
+
+window.setupEventSystem =
+function(root){
+
+setupEventSender(root);
+setupEventRealtime();
+
+};

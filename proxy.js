@@ -22,11 +22,6 @@ const Proxy = {
     <div class="proxy-agreement">
 
         <div class="proxy-agreement-header">
-
-            <div class="mark">
-                <span></span>
-            </div>
-
             <h1>Before You Continue</h1>
 
             <p>
@@ -76,6 +71,27 @@ const Proxy = {
         </section>
 
         <section>
+            <h3>Third-Party Services &amp; Accounts</h3>
+            <p>Blur does not control the websites you open through the Browser. Their content, availability, terms, cookies, tracking, and privacy practices are governed by those third parties. If you sign into an outside account, submit information, download a file, or follow a link, that interaction is between you and the third party.</p>
+        </section>
+
+        <section>
+            <h3>Information &amp; Local Storage</h3>
+            <p>Blur is designed to minimize data collection. Browser preferences and other application settings may be stored locally in your browser. The sites you visit may independently collect information through their own systems, and anything you enter into a third-party site may be processed under that site's policy.</p>
+            <p>You can clear applicable local Blur data through Settings or your browser controls. Clearing local data may remove preferences and other on-device state.</p>
+        </section>
+
+        <section>
+            <h3>Safety, Downloads &amp; Security</h3>
+            <p>No browser can guarantee that third-party content is accurate or safe. Watch for phishing, malware, fraudulent downloads, deceptive permissions, and inappropriate content. Keep your device and accounts protected, verify downloads before opening them, and follow the rules of your school, workplace, organization, and internet provider.</p>
+        </section>
+
+        <section>
+            <h3>Availability &amp; Changes</h3>
+            <p>Blur Browser may be changed, interrupted, limited, or discontinued without notice. We may update this agreement as the Browser and its supporting services change. The Legal and Privacy documents provide additional information about Blur's service, data practices, and your choices.</p>
+        </section>
+
+        <section>
 
             <h3>Your Agreement</h3>
 
@@ -87,15 +103,17 @@ const Proxy = {
 
         <div class="proxy-actions">
 
-            <button class="proxy-cancel">
+            <button class="proxy-cancel ui-button ui-button--quiet">
                 Cancel
             </button>
 
-            <button class="proxy-accept">
+            <button class="proxy-accept ui-button ui-button--primary">
                 I Accept
             </button>
 
         </div>
+
+        <p class="proxy-legal-links">Read the <a href="#" data-tab="legal">Terms</a> and <a href="#" data-tab="privacy">Privacy Policy</a>.</p>
 
     </div>
 

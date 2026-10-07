@@ -1,15 +1,23 @@
 (() => {
 
-  const CURRENT_VERSION = '1.0.3';
+  const CURRENT_VERSION = '1.1.2';
 
   const CHANGELOG = [
-    'added 2 new ports (games)',
-    'added a whole new section in games (yt playables) 50+ games',
-    'changed the game player popup to whole screen',
-    'added popout button in the game player',
+    'new profile features',
+    'ai tab improvements',
+    'lots of bug fixes',
+    'and lots more!',
   ];
 
-  const DEV_NOTE = "guys pleaseee i will fix movies sooon";
+  const DEV_NOTE = "woohoo new update";
+
+  window.blurChangelog = {
+    version: CURRENT_VERSION,
+    entries: CHANGELOG.slice(),
+    devNote: DEV_NOTE,
+    open: () => openChangelog(),
+    close: () => closeChangelog()
+  };
 
   function buildBody(){
     const body = document.getElementById('changelog-body');
@@ -45,9 +53,6 @@
     document.getElementById('changelog-overlay').addEventListener('click', e => {
       if (e.target.id === 'changelog-overlay') closeChangelog();
     });
-
-    // always open on load
-    openChangelog();
 
   });
 

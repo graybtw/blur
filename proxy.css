@@ -35,7 +35,7 @@
 
     padding:60px;
 
-    background:rgba(6,6,5,.92);
+    background:var(--bg);
     backdrop-filter:blur(10px);
 
     z-index:50;
@@ -86,7 +86,7 @@
     width:52px;
     height:52px;
 
-    border-radius:12px;
+    border-radius:var(--radius-lg);
 
     background:var(--surface);
     border:1px solid var(--border-strong);
@@ -183,7 +183,7 @@
 
     padding:0 20px;
 
-    border-radius:9px;
+    border-radius:var(--radius-md);
 
     font-size:13.5px;
 
@@ -257,7 +257,7 @@
     width:56px;
     height:56px;
 
-    border-radius:12px;
+    border-radius:var(--radius-lg);
 
     background:var(--surface);
 
@@ -337,3 +337,20 @@
     }
 
 }
+
+.proxy-agreement-header .mark span{
+    display:block;
+    width:16px;
+    height:16px;
+    border:2px solid var(--accent);
+    border-radius:50%;
+}
+
+.proxy-legal-links{
+    margin-top:16px;
+    text-align:center;
+    color:var(--muted-dim);
+    font-size:11px;
+}
+.proxy-legal-links a{ color:var(--accent); text-decoration:none; }
+.proxy-legal-links a:hover{ text-decoration:underline; }

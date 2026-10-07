@@ -21,26 +21,58 @@ const DirectMessages = {
   _listeners: [],
   _listSub: null,
   _msgSub: null,
+  _memberSub: null,
+  _generation: 0,
 
   activeId: null,
   PAGE_SIZE: 50,
 
   /** Load every conversation involving this user and start listening for live changes. */
   async init(userId){
+    // A session can change without a full page reload (for example when a
+    // second account signs in from another tab). Tear down the old channels
+    // first so the new account never receives duplicate events or stale rows.
+    this.teardown();
+    const generation = ++this._generation;
     this._userId = userId;
-    const { data, error } = await sb
+    let result = await sb
       .from("dm_conversations")
       .select("*")
-      .or(`user_a.eq.${userId},user_b.eq.${userId}`);
+      .or(`user_a.eq.${userId},user_b.eq.${userId}`)
+      .eq("is_group", false);
+    // Keep existing 1:1 DMs usable on installations that have not applied
+    // the optional group migration yet.
+    if (result.error && /is_group|column/i.test(result.error.message || "")) {
+      result = await sb.from("dm_conversations").select("*").or(`user_a.eq.${userId},user_b.eq.${userId}`);
+    }
+    const { data, error } = result;
     if (error) throw error;
-    this._rows = data || [];
-    await Promise.all(this._rows.map(row => this._hydrate(row)));
-    this._subscribeList();
+    if (generation !== this._generation) return;
+    const rows = data || [];
+    try {
+      const { data: memberships } = await sb.from("group_members").select("conversation_id,last_read_at").eq("user_id", userId);
+      const ids = (memberships || []).map(m => m.conversation_id).filter(id => !rows.some(r => r.id === id));
+      if (ids.length) {
+        const { data: groups } = await sb.from("dm_conversations").select("*").in("id", ids).eq("is_group", true);
+        if (generation !== this._generation) return;
+        rows.push(...(groups || []));
+      }
+    } catch (err) { if (!/relation|group_members/i.test(String(err?.message))) console.warn("Group chat load failed", err); }
+    // Warm all one-to-one participants in one request before hydration. Group
+    // memberships still hydrate independently because each group has its own
+    // participant list, but the common DM path no longer becomes an N+1 load.
+    await Profiles.prefetch(rows.filter(row => !row.is_group).map(row => this.otherId(row, userId)));
+    await Promise.all(rows.map(row => this._hydrate(row, userId)));
+    if (generation !== this._generation) return;
+    this._rows = rows;
+    this._subscribeList(generation);
   },
 
   /** Call on sign-out to stop listening and clear state. */
   teardown(){
+    this._generation++;
     if (this._listSub) { sb.removeChannel(this._listSub); this._listSub = null; }
+    if (this._memberSub) { sb.removeChannel(this._memberSub); this._memberSub = null; }
     this.unsubscribeConversation();
     this._rows = [];
     this._userId = null;
@@ -59,45 +91,136 @@ const DirectMessages = {
     });
   },
 
-  async _hydrate(row){
-    row._otherProfile = await Profiles.getById(this.otherId(row));
+  _clearConversationState(conversationId){
+    if (!conversationId) return;
+    if (typeof Unread !== "undefined") Unread.clear("dm", conversationId);
+    if (typeof Mentions !== "undefined") Mentions.clear("dm", conversationId);
   },
 
-  _subscribeList(){
+  // A new group can arrive through both realtime channels plus the local
+  // create result. Keep the local list keyed by conversation id.
+  _upsertRow(row){
+    if (!row?.id) return;
+    const index = this._rows.findIndex(existing => existing.id === row.id);
+    if (index === -1) this._rows.push(row);
+    else this._rows[index] = { ...this._rows[index], ...row };
+  },
+
+  async _hydrate(row, userId = this._userId){
+    if (row.is_group) {
+      try {
+        const { data } = await sb.from("group_members").select("user_id,last_read_at").eq("conversation_id", row.id);
+        const memberships = data || [];
+        await Profiles.prefetch(memberships.map(member => member?.user_id));
+        row._members = (await Promise.all(memberships.map(async m => {
+          try { return Profiles.cache.get(m.user_id) || await Profiles.getById(m.user_id); }
+          catch (error) { console.warn("Group member profile unavailable:", error?.message || error); return null; }
+        }))).filter(Boolean);
+        row._myMembership = memberships.find(m => m.user_id === userId) || null;
+      } catch { row._members = []; }
+      row._otherProfile = null;
+    } else {
+      try { row._otherProfile = await Profiles.getById(this.otherId(row, userId)); }
+      catch (error) { console.warn("DM profile unavailable:", error?.message || error); row._otherProfile = null; }
+    }
+  },
+
+  _subscribeList(generation = this._generation){
     this._listSub = sb
       .channel(`dm_conversations:${this._userId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "dm_conversations" }, async (payload) => {
+        if (generation !== this._generation) return;
+        if (!payload?.eventType) return;
         const row = payload.eventType === "DELETE" ? payload.old : payload.new;
-        if (!row || (row.user_a !== this._userId && row.user_b !== this._userId)) return;
+        if (!row || (!row.is_group && row.user_a !== this._userId && row.user_b !== this._userId)) return;
+
+        // Group conversations are visible only while we have an active
+        // membership. The creator is stored in user_a for compatibility
+        // with the original DM schema, so never use user_a alone as access.
+        if (row.is_group && payload.eventType !== "DELETE") {
+          let membership = null;
+          try {
+            const result = await sb.from("group_members")
+              .select("conversation_id")
+              .eq("conversation_id", row.id)
+              .eq("user_id", this._userId)
+              .maybeSingle();
+            membership = result.data;
+          } catch (error) {
+            console.warn("Group membership check failed:", error?.message || error);
+            return;
+          }
+          if (generation !== this._generation) return;
+          if (!membership) {
+            this._clearConversationState(row.id);
+            this._rows = this._rows.filter(r => r.id !== row.id);
+            this._notify();
+            return;
+          }
+        }
 
         if (payload.eventType === "DELETE") {
+          this._clearConversationState(row.id);
           this._rows = this._rows.filter(r => r.id !== row.id);
         } else {
           const idx = this._rows.findIndex(r => r.id === row.id);
           if (idx >= 0) {
             row._otherProfile = this._rows[idx]._otherProfile;
+            row._members = this._rows[idx]._members;
             this._rows[idx] = row;
           } else {
-            await this._hydrate(row);
-            this._rows.push(row);
+            await this._hydrate(row, this._userId);
+            if (generation !== this._generation) return;
+            if (row.is_group && !row._myMembership) return;
+            this._upsertRow(row);
           }
         }
         this._notify();
       })
       .subscribe();
+    this._memberSub = sb
+      .channel(`group-members:${this._userId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "group_members", filter: `user_id=eq.${this._userId}` }, async (payload) => {
+        if (generation !== this._generation) return;
+        if (!payload.new?.conversation_id) return;
+        let data = null;
+        try {
+          const result = await sb.from("dm_conversations").select("*").eq("id", payload.new.conversation_id).eq("is_group", true).maybeSingle();
+          data = result.data;
+        } catch (error) {
+          console.warn("Group conversation refresh failed:", error?.message || error);
+          return;
+        }
+        if (generation !== this._generation) return;
+        if (!data || this._rows.some(row => row.id === data.id)) return;
+        await this._hydrate(data, this._userId);
+        if (generation !== this._generation) return;
+        if (!data._myMembership) return;
+        this._upsertRow(data); this._notify();
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "group_members", filter: `user_id=eq.${this._userId}` }, (payload) => {
+        if (generation !== this._generation) return;
+        if (!payload.old?.conversation_id) return;
+        this._clearConversationState(payload.old.conversation_id);
+        this._rows = this._rows.filter(row => row.id !== payload.old.conversation_id); this._notify();
+      })
+      .subscribe();
   },
 
-  otherId(row){
-    return row.user_a === this._userId ? row.user_b : row.user_a;
+  otherId(row, userId = this._userId){
+    if (row?.is_group) return null;
+    return row.user_a === userId ? row.user_b : row.user_a;
   },
 
   _myLastReadAt(row){
+    if (row?.is_group) return row._myMembership?.last_read_at || row.last_message_at;
     return row.user_a === this._userId ? row.user_a_last_read_at : row.user_b_last_read_at;
   },
 
   isUnread(row){
-    if (row.id === this.activeId) return false;
-    return new Date(row.last_message_at) > new Date(this._myLastReadAt(row));
+    if (!row?.id || row.id === this.activeId || !row.last_message_at) return false;
+    const lastRead = this._myLastReadAt(row);
+    return !!lastRead && new Date(row.last_message_at) > new Date(lastRead);
   },
 
   hasUnread(){
@@ -118,16 +241,23 @@ const DirectMessages = {
     let row = this._rows.find(r => this.otherId(r) === otherUserId);
     if (row) return row;
 
-    const { data: existing, error: findErr } = await sb
+    let existingResult = await sb
       .from("dm_conversations")
       .select("*")
       .or(`and(user_a.eq.${this._userId},user_b.eq.${otherUserId}),and(user_a.eq.${otherUserId},user_b.eq.${this._userId})`)
+      .eq("is_group", false)
       .maybeSingle();
+    if (existingResult.error && /is_group|column/i.test(existingResult.error.message || "")) {
+      existingResult = await sb.from("dm_conversations").select("*")
+        .or(`and(user_a.eq.${this._userId},user_b.eq.${otherUserId}),and(user_a.eq.${otherUserId},user_b.eq.${this._userId})`)
+        .maybeSingle();
+    }
+    const { data: existing, error: findErr } = existingResult;
     if (findErr) throw findErr;
 
     if (existing) {
       await this._hydrate(existing);
-      this._rows.push(existing);
+      this._upsertRow(existing);
       this._notify();
       return existing;
     }
@@ -139,9 +269,91 @@ const DirectMessages = {
       .single();
     if (error) throw error;
     await this._hydrate(data);
-    this._rows.push(data);
+    this._upsertRow(data);
     this._notify();
     return data;
+  },
+
+  async createGroup(name, bio, memberIds){
+    const members = [...new Set([this._userId, ...(memberIds || [])])];
+    if (members.length < 2) throw new Error("Choose at least one friend.");
+    // Generate the id client-side so the conversation can be inserted and
+    // membership granted before reading it back. Group visibility is
+    // membership-based, so returning the row before membership exists would
+    // correctly be blocked by RLS.
+    const conversationId = globalThis.crypto?.randomUUID?.();
+    if (!conversationId) throw new Error("Your browser cannot create group chats securely.");
+    const { error } = await sb.from("dm_conversations").insert({ id: conversationId, user_a: this._userId, user_b: members[1], is_group: true, name: String(name || "Group chat").trim().slice(0, 60), bio: String(bio || "").trim().slice(0, 160), created_by: this._userId });
+    if (error) throw error;
+    const { error: memberError } = await sb.from("group_members").insert(members.map(user_id => ({ conversation_id: conversationId, user_id })));
+    if (memberError) {
+      // Keep failed group creation from leaving an inaccessible conversation
+      // behind if a membership insert is rejected.
+      await sb.from("dm_conversations").delete().eq("id", conversationId).eq("created_by", this._userId);
+      throw memberError;
+    }
+    const { data, error: fetchError } = await sb.from("dm_conversations").select("*").eq("id", conversationId).single();
+    if (fetchError) throw fetchError;
+    await this._hydrate(data);
+    this._upsertRow(data);
+    this._notify();
+    return data;
+  },
+
+  async refreshGroupMembers(conversationId){
+    const row = this._rows.find(item => item.id === conversationId && item.is_group);
+    if (!row) return null;
+    await this._hydrate(row);
+    this._notify();
+    return row;
+  },
+
+  async updateGroupSettings(conversationId, name, bio = ""){
+    const { data, error } = await sb.rpc("blur_update_group_settings", {
+      p_conversation_id: conversationId,
+      p_name: String(name || "").trim().slice(0, 60),
+      p_bio: String(bio || "").trim().slice(0, 160)
+    });
+    if (error) throw error;
+    const row = this._rows.find(item => item.id === conversationId);
+    if (row && data) Object.assign(row, data);
+    this._notify();
+    return row || data;
+  },
+
+  async addGroupMember(conversationId, userId){
+    if (!conversationId || !userId) throw new Error("Choose a member to add.");
+    const { error } = await sb.from("group_members").insert({ conversation_id: conversationId, user_id: userId });
+    if (error) throw error;
+    return this.refreshGroupMembers(conversationId);
+  },
+
+  async removeGroupMember(conversationId, userId){
+    if (!conversationId || !userId) throw new Error("Member not found.");
+    if (userId === this._userId) throw new Error("Use Leave group to remove yourself.");
+    const { error } = await sb.from("group_members").delete().eq("conversation_id", conversationId).eq("user_id", userId);
+    if (error) throw error;
+    return this.refreshGroupMembers(conversationId);
+  },
+
+  async leaveGroup(conversationId){
+    const { error } = await sb.from("group_members").delete().eq("conversation_id", conversationId).eq("user_id", this._userId);
+    if (error) throw error;
+    this._rows = this._rows.filter(row => row.id !== conversationId);
+    this._clearConversationState(conversationId);
+    if (this.activeId === conversationId) this.activeId = null;
+    this._notify();
+  },
+
+  async deleteGroup(conversationId){
+    const row = this._rows.find(item => item.id === conversationId && item.is_group);
+    if (!row || row.created_by !== this._userId) throw new Error("Only the group creator can delete this group.");
+    const { error } = await sb.from("dm_conversations").delete().eq("id", conversationId).eq("created_by", this._userId);
+    if (error) throw error;
+    this._rows = this._rows.filter(item => item.id !== conversationId);
+    this._clearConversationState(conversationId);
+    if (this.activeId === conversationId) this.activeId = null;
+    this._notify();
   },
 
   /** Bumps our own "last read" pointer to now — call on open and on receiving a message while open. */
@@ -149,6 +361,13 @@ const DirectMessages = {
     const row = this._rows.find(r => r.id === conversationId);
     if (!row) return;
     const nowIso = new Date().toISOString();
+    if (row.is_group) {
+      const { error } = await sb.from("group_members").update({ last_read_at: nowIso }).eq("conversation_id", conversationId).eq("user_id", this._userId);
+      if (error) console.error("Failed to mark group read:", error);
+      if (row._myMembership) row._myMembership.last_read_at = nowIso;
+      this._notify();
+      return;
+    }
     const field = row.user_a === this._userId ? "user_a_last_read_at" : "user_b_last_read_at";
     row[field] = nowIso; // optimistic, so the unread dot clears immediately
     this._notify();
@@ -162,9 +381,23 @@ const DirectMessages = {
 
   render(container, onSelect){
     const rows = this.sortedConversations();
+    this._renderRows(container, rows, onSelect);
+  },
+
+  renderSeparated(dmContainer, groupContainer, onSelect){
+    const rows = this.sortedConversations();
+    const defaultSort = list => [...list].sort((a, b) => new Date(b.last_message_at) - new Date(a.last_message_at));
+    const dms = defaultSort(rows.filter(row => !row.is_group));
+    const groups = defaultSort(rows.filter(row => row.is_group));
+    this._renderRows(dmContainer, dms, onSelect, "No conversations yet.<br>Message a friend to start one.");
+    this._renderRows(groupContainer, groups, onSelect, "No group chats yet.");
+  },
+
+  _renderRows(container, rows, onSelect, emptyText = "No conversations yet.<br>Message a friend to start one."){
+    if (!container) return;
     container.innerHTML = rows.length
       ? rows.map(row => this._rowHtml(row)).join("")
-      : `<div class="dm-list-empty">No conversations yet.<br>Message a friend to start one.</div>`;
+      : `<div class="dm-list-empty">${emptyText}</div>`;
 
     container.querySelectorAll("[data-dm-conversation]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -175,13 +408,23 @@ const DirectMessages = {
   },
 
   _rowHtml(row){
-    const p = row._otherProfile;
-    if (!p) return "";
+    const unread = (typeof Unread !== "undefined" && Unread.has("dm", row.id)) || this.isUnread(row);
+    if (row.is_group) {
+      const members = (row._members || []).slice(0, 4);
+      const avatars = members.map(member => `<img src="${escapeAttr(Profiles.safeImageUrl(member?.avatar_url, member?.username || "member"))}" alt="">`).join("");
+      return `<button type="button" class="dm-item dm-group-item ${row.id === this.activeId ? "active" : ""} ${unread ? "has-unread" : ""}" data-dm-conversation="${row.id}"><span class="dm-group-avatar-grid">${avatars || `<span>◎</span>`}</span><span class="dm-item-name">${escapeHtml(row.name || "Group chat")}</span>${unread ? `<span class="dm-item-dot"></span>` : ``}</button>`;
+    }
+    // Keep the conversation visible even when the participant profile is
+    // temporarily unavailable. The fallback avatar preserves the same icon
+    // rhythm as channels and lets the user retry/open the conversation.
+    const p = row._otherProfile || {};
+    const displayName = p.display_name || p.username || "Unknown contact";
+    const username = p.username || "contact";
     return `
-      <button type="button" class="dm-item ${row.id === this.activeId ? "active" : ""}" data-dm-conversation="${row.id}">
-        <img class="dm-item-avatar" src="${p.avatar_url}" alt="">
-        <span class="dm-item-name">${escapeHtml(p.display_name || p.username)}</span>
-        ${this.isUnread(row) ? `<span class="dm-item-dot"></span>` : ``}
+      <button type="button" class="dm-item ${row.id === this.activeId ? "active" : ""} ${unread ? "has-unread" : ""}" data-dm-conversation="${row.id}">
+        <img class="dm-item-avatar" src="${escapeAttr(Profiles.safeImageUrl(p.avatar_url, username))}" alt="">
+        <span class="dm-item-name">${escapeHtml(displayName)}</span>
+        ${unread ? `<span class="dm-item-dot"></span>` : ``}
       </button>
     `;
   },
@@ -205,22 +448,75 @@ const DirectMessages = {
       .order("created_at", { ascending: false })
       .limit(this.PAGE_SIZE);
     if (error) throw error;
-    return data.reverse();
+    return (data || []).reverse();
   },
 
-  async send(conversationId, senderId, content){
-    content = content.trim();
-    if (!content) return;
-    const { error } = await sb
+  /** Load the next older page without disturbing the current DM scroll position. */
+  async loadOlder(conversationId, beforeCreatedAt){
+    if (!conversationId || !beforeCreatedAt) return [];
+    const { data, error } = await sb
       .from("dm_messages")
-      .insert({ conversation_id: conversationId, sender_id: senderId, content });
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .lt("created_at", beforeCreatedAt)
+      .order("created_at", { ascending: false })
+      .limit(this.PAGE_SIZE);
     if (error) throw error;
+    return (data || []).reverse();
+  },
+
+  async send(conversationId, senderId, content, replyToId = null, options = {}){
+    content = String(content ?? "").trim();
+    const attachment = options?.attachment || null;
+    if (!content && !attachment) return;
+    if (content.length > 500 && !Permissions.canBypassMessageLimit(Chat.profile)) {
+      throw new Error("Messages are limited to 500 characters.");
+    }
+
+    const payload = { conversation_id: conversationId, sender_id: senderId, content };
+    if (replyToId) payload.reply_to_id = replyToId;
+    if (attachment?.path) {
+      payload.attachment_path = String(attachment.path);
+      payload.attachment_name = String(attachment.name || "file").slice(0, 240);
+      payload.attachment_type = String(attachment.type || "application/octet-stream").slice(0, 120);
+      payload.attachment_size = Number(attachment.size) || 0;
+    } else if (attachment?.url) {
+      payload.attachment_url = String(attachment.url);
+      payload.attachment_name = String(attachment.name || "GIF").slice(0, 240);
+      payload.attachment_type = String(attachment.type || "image/gif").slice(0, 120);
+      payload.attachment_size = Number(attachment.size) || 0;
+    }
+
+    const { error } = await sb.from("dm_messages").insert(payload);
+    if (error) {
+      // If the messaging migration (supabase-messaging-migration.sql)
+      // hasn't been applied yet, reply_to_id doesn't exist — degrade
+      // by sending without the reply link rather than losing the message.
+      if (replyToId && /reply_to_id/i.test(error.message || "")) {
+        console.warn("DM replies need chat/supabase-messaging-migration.sql — sending without the reply link.");
+        const { reply_to_id: _ignoredReply, ...withoutReply } = payload;
+        const { error: retryErr } = await sb
+          .from("dm_messages")
+          .insert(withoutReply);
+        if (retryErr) throw retryErr;
+      } else {
+        throw error;
+      }
+    }
     // So sending doesn't leave your own conversation looking unread.
     this.markRead(conversationId);
   },
 
   subscribeToConversation(conversationId, onInsert){
     this.unsubscribeConversation();
+    const handlers = typeof onInsert === "function" ? { insert: onInsert } : (onInsert || {});
+    const dispatch = (handler, row) => {
+      if (!row?.id || typeof handler !== "function") return;
+      try {
+        const result = handler(row);
+        if (result?.catch) result.catch(error => console.error("DM realtime handler failed:", error));
+      } catch (error) { console.error("DM realtime handler failed:", error); }
+    };
     this._msgSub = sb
       .channel(`dm_messages:${conversationId}`)
       .on("postgres_changes", {
@@ -228,7 +524,9 @@ const DirectMessages = {
         schema: "public",
         table: "dm_messages",
         filter: `conversation_id=eq.${conversationId}`
-      }, (payload) => onInsert(payload.new))
+      }, (payload) => dispatch(handlers.insert, payload?.new))
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "dm_messages", filter: `conversation_id=eq.${conversationId}` }, (payload) => dispatch(handlers.update, payload?.new))
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "dm_messages", filter: `conversation_id=eq.${conversationId}` }, (payload) => dispatch(handlers.delete, payload?.old))
       .subscribe();
   },
 
@@ -239,53 +537,15 @@ const DirectMessages = {
     }
   },
 
-  async renderList(container, messages){
-    container.innerHTML = "";
-    for (const msg of messages) {
-      try {
-        container.appendChild(await this.renderOne(msg));
-      } catch (err) {
-        console.error("Failed to render DM", msg.id, err);
-      }
-    }
-    container.scrollTop = container.scrollHeight;
+  async renderList(container, messages, isCurrent = () => true){
+    return Messages.renderList(container, messages, isCurrent, "dm");
   },
 
-  async appendOne(container, msg){
-    const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 80;
-    try {
-      container.appendChild(await this.renderOne(msg));
-    } catch (err) {
-      console.error("Failed to render DM", msg.id, err);
-      return;
-    }
-    if (atBottom) container.scrollTop = container.scrollHeight;
+  async prependList(container, messages, isCurrent = () => true){
+    return Messages.prependList(container, messages, isCurrent, "dm");
   },
 
-  async renderOne(msg){
-    const author = await Profiles.getById(msg.sender_id);
-    const el = document.createElement("div");
-    el.className = "message-row";
-    el.dataset.messageId = msg.id;
-
-    const time = new Date(msg.created_at).toLocaleTimeString(undefined, {
-      hour: "2-digit", minute: "2-digit"
-    });
-    const displayName = author?.display_name || author?.username || "Unknown";
-
-    // No reply-quote or reaction row here — DMs don't support
-    // either yet (both are channel-message-only features today).
-    el.innerHTML = `
-      <img class="message-avatar" src="${author?.avatar_url ?? Profiles.defaultAvatar("?")}" alt="" data-user="${msg.sender_id}">
-      <div class="message-body">
-        <div class="message-meta">
-          <span class="message-author" data-user="${msg.sender_id}">${escapeHtml(displayName)}</span>
-          <span class="message-time">${time}</span>
-        </div>
-        <div class="message-text"></div>
-      </div>
-    `;
-    el.querySelector(".message-text").textContent = msg.content;
-    return el;
+  async appendOne(container, msg, isCurrent = () => true){
+    return Messages.appendOne(container, msg, "dm", isCurrent);
   }
 };

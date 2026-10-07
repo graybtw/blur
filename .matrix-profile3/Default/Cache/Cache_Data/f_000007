@@ -1,0 +1,1253 @@
+/* =========================================================
+   account.css
+   Global account experience: sidebar account area, account
+   panel, profile card, profile editor, auth overlay.
+
+   Uses the shared design tokens from main.css (surfaces,
+   borders, brass accent, Fraunces / Inter / IBM Plex Mono).
+   ========================================================= */
+
+
+/* ============ SIDEBAR ACCOUNT AREA ============ */
+/* Footer cluster: identity bar (with inline Settings affordance)
+   anchored at the very bottom, mono legal micro-links beneath it —
+   one clearly-bounded footer, matching the nav's rhythm above. */
+
+/* footer container: one subtle divider separates it from the nav */
+.sidebar .bottom{
+  margin-top:auto;
+  padding-top:12px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+/* identity bar: account entry + settings affordance share one row */
+.sidebar .acct-bar{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:2px 0;
+}
+
+.sidebar .acct-nav{
+  flex:1;
+  min-width:0;
+  padding:6px 10px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:var(--muted);
+  cursor:pointer;
+  position:relative;
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve);
+}
+
+.sidebar .acct-nav:hover{
+  background:var(--surface);
+  color:var(--text);
+}
+
+.sidebar .acct-nav.active{
+  background:var(--surface-2);
+  color:var(--text);
+}
+
+.sidebar .acct-nav.active::before{
+  content:'';
+  position:absolute;
+  left:-14px;
+  top:8px;
+  bottom:8px;
+  width:2px;
+  border-radius:2px;
+  background:var(--accent);
+}
+
+.sidebar .acct-nav .icon-slot{
+  width:26px;
+  height:26px;
+}
+
+.sidebar .acct-nav-icon{
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.6;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  opacity:.75;
+  transition:opacity var(--speed) var(--curve);
+}
+
+.sidebar .acct-nav:hover .acct-nav-icon{
+  opacity:1;
+}
+
+.sidebar .acct-nav.active .acct-nav-icon{
+  opacity:1;
+  stroke:var(--accent);
+}
+
+/* avatar matches .user-bar-avatar treatment, sized to the icon slot */
+.sidebar .acct-nav-avatar{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  object-fit:cover;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  box-sizing:border-box;
+  display:block;
+}
+
+/* the `hidden` attribute doesn't hide SVG in Chrome — enforce it */
+.sidebar .acct-nav-avatar[hidden],
+.sidebar .acct-nav-icon[hidden]{
+  display:none;
+}
+
+.sidebar .acct-nav-text{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:1px;
+  min-width:0;
+}
+
+.sidebar .acct-nav-name{
+  font-size:12.5px;
+  font-weight:500;
+  line-height:1.2;
+  color:inherit;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.sidebar .acct-nav-sub{
+  font-family:var(--font-mono);
+  font-size:9.5px;
+  font-weight:400;
+  letter-spacing:.02em;
+  line-height:1.2;
+  color:var(--muted-dim);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  transition:color var(--speed) var(--curve);
+}
+
+.sidebar .acct-nav:hover .acct-nav-sub{
+  color:var(--muted);
+}
+
+/* settings affordance, grouped with the identity bar */
+.sidebar .acct-settings{
+  width:32px;
+  height:32px;
+  flex-shrink:0;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--muted);
+  cursor:pointer;
+  transition:background var(--speed) var(--curve), color var(--speed) var(--curve);
+}
+
+.sidebar .acct-settings svg{
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.6;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  opacity:.75;
+  transition:opacity var(--speed) var(--curve);
+}
+
+.sidebar .acct-settings:hover{
+  background:var(--surface);
+  color:var(--text);
+}
+
+.sidebar .acct-settings:hover svg{
+  opacity:1;
+}
+
+.sidebar .acct-settings.active{
+  background:var(--surface-2);
+  color:var(--text);
+}
+
+.sidebar .acct-settings.active svg{
+  stroke:var(--accent);
+  opacity:1;
+}
+
+/* the generic .bottom a.active::before bar makes no sense on a
+   compact icon button */
+.sidebar .acct-settings.active::before{
+  display:none;
+}
+
+/* mono micro-footer sits at the very bottom, like a copyright line */
+.sidebar .legal-row{
+  padding:4px 10px 2px;
+}
+
+/* narrow layout: sidebar collapses to icons — match the other items */
+@media (max-width:960px){
+  .sidebar .bottom{
+    border-top:none;
+    padding-top:0;
+    margin-top:0;
+  }
+  .sidebar .acct-nav{
+    padding:8px;
+  }
+  .sidebar .acct-nav-text{
+    display:none;
+  }
+  .sidebar .legal-row{
+    display:none;
+  }
+}
+
+
+/* ============ AUTH OVERLAY (opened from anywhere) ============ */
+
+.acct-auth-overlay{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--overlay-scrim);
+  animation:acct-fade var(--speed-slow) var(--curve);
+}
+
+.acct-auth-overlay .auth-screen{
+  position:static;
+  background:transparent;
+  z-index:auto;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* the host must fill the overlay — as a fit-content flex item the
+   auth card's min(380px, 88%) width resolves against its own text
+   and the sign-in card shrink-wraps skinny */
+.acct-auth-overlay .acct-auth-host{
+  width:100%;
+}
+
+.acct-auth-close{
+  position:absolute;
+  top:18px;
+  right:20px;
+  width:34px;
+  height:34px;
+  border-radius:var(--radius-md);
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:color var(--speed) var(--curve), border-color var(--speed) var(--curve);
+}
+
+.acct-auth-close:hover{
+  color:var(--text);
+  border-color:var(--border-strong);
+}
+
+.acct-auth-close svg{
+  width:15px;
+  height:15px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+}
+
+
+/* ============ ACCOUNT PANEL ============ */
+
+.account-panel{
+  width:min(640px,90%);
+  flex-direction:column;
+  gap:22px;
+  padding:40px 0 48px;
+}
+
+/* internal navigation: Profile | Edit Profile — same underline
+   treatment as Settings tabs */
+.acct-subtabs{
+  display:flex;
+  gap:22px;
+  border-bottom:1px solid var(--border);
+}
+
+.acct-subtab{
+  height:36px;
+  padding:0 2px;
+  border:none;
+  background:none;
+  color:var(--muted);
+  font-family:var(--font-body);
+  font-size:13px;
+  font-weight:500;
+  position:relative;
+  cursor:pointer;
+  transition:color var(--speed) var(--curve);
+}
+
+.acct-subtab:hover{ color:var(--text); }
+.acct-subtab.active{ color:var(--text); }
+
+.acct-subtab.active::after{
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-1px;
+  height:2px;
+  border-radius:var(--radius-sm);
+  background:var(--accent);
+}
+
+/* matches .eyebrow-row / .eyebrow-rule / .eyebrow on Home exactly */
+.acct-eyebrow-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.acct-eyebrow-rule{
+  width:22px;
+  height:1px;
+  background:var(--accent);
+}
+
+.acct-eyebrow{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* logged-out entry card — action-card surface language */
+.acct-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+}
+
+.acct-signedout{
+  text-align:center;
+  padding:36px 28px;
+}
+
+.acct-mark{
+  width:44px;
+  height:44px;
+  margin:0 auto 16px;
+  border-radius:var(--radius-md);
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.acct-mark span{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--accent);
+}
+
+.acct-signedout h2{
+  font-family:var(--font-display);
+  font-size:24px;
+  font-weight:600;
+  letter-spacing:-.015em;
+  color:var(--white);
+}
+
+.acct-signedout p{
+  font-size:13.5px;
+  line-height:1.55;
+  color:var(--muted);
+  margin:8px auto 0;
+  max-width:320px;
+}
+
+.acct-signedout-actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-top:22px;
+  flex-wrap:wrap;
+}
+
+/* ---- logged-in profile view: identity, then info, then actions ---- */
+
+.acct-profile-banner{
+  height:88px;
+  margin:0 0 14px;
+  border-radius:var(--radius-lg);
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  border:1px solid var(--border);
+  border-bottom:0;
+}
+
+.acct-profile-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.acct-avatar-wrap{position:relative;flex:0 0 auto;}
+.acct-status-bubble{display:inline-block;vertical-align:middle;width:max-content;max-width:190px;margin:0 0 0 8px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:12px 12px 12px 3px;background:var(--surface-2);color:var(--text);font-family:var(--font-body);font-size:11px;font-weight:400;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:var(--shadow-soft);}
+
+.acct-avatar{
+  border-radius:50%;
+  object-fit:cover;
+  background:var(--surface-2);
+  box-sizing:border-box;
+  flex-shrink:0;
+}
+
+.acct-profile-head .acct-avatar{
+  width:96px;
+  height:96px;
+  border:2px solid var(--accent);
+  padding:2px;
+}
+
+.acct-avatar-fallback{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--font-display);
+  font-weight:600;
+  color:var(--text);
+}
+
+.acct-identity{
+  min-width:0;
+}
+
+.acct-identity-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.profile-role-chip{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid var(--border-strong);border-radius:var(--radius-pill);background:var(--surface-2);color:var(--muted);font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;}
+.profile-role-chip.role-owner{color:var(--accent);border-color:var(--accent-dim);}
+.profile-role-chip.role-admin,.profile-role-chip.role-community_manager,.profile-role-chip.role-moderator{color:var(--text);}
+
+.acct-display-name{
+  font-family:var(--font-display);
+  font-size:27px;
+  font-weight:600;
+  letter-spacing:-.015em;
+  line-height:1.15;
+  color:var(--white);
+  overflow-wrap:anywhere;
+}
+
+.acct-username{
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:.02em;
+  color:var(--muted-dim);
+  margin-top:3px;
+}
+
+.acct-pronouns{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.02em;
+  color:var(--muted-dim);
+  margin-left:10px;
+}
+
+.acct-status-pill{
+  display:inline-block;
+  padding:5px 11px;
+  border-radius:7px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  font-size:12px;
+  color:var(--text);
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+
+.acct-status-row{
+  margin-top:10px;
+}
+
+.acct-identity .acct-status-row{
+  margin-top:12px;
+}
+
+/* profile-information group — mirrors .settings-list rhythm */
+.acct-info-list{
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  background:var(--surface);
+  overflow:hidden;
+}
+
+.acct-info-row{
+  display:flex;
+  align-items:baseline;
+  gap:16px;
+  padding:13px 16px;
+}
+
+.acct-info-row + .acct-info-row{
+  border-top:1px solid var(--border);
+}
+
+.acct-meta-label{
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  color:var(--muted-dim);
+  width:76px;
+  flex-shrink:0;
+}
+
+.acct-info-value{
+  flex:1;
+  min-width:0;
+  font-size:13px;
+  line-height:1.55;
+  color:var(--text);
+}
+
+.acct-bio{
+  font-size:13px;
+  line-height:1.55;
+  color:var(--text);
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+
+.acct-empty-note{
+  font-size:12.5px;
+  color:var(--muted-dim);
+  font-style:italic;
+}
+
+.acct-accent-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.02em;
+  color:var(--muted);
+}
+
+.acct-accent-dot{
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  border:1px solid var(--border-strong);
+}
+
+.acct-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.acct-btn{
+  height:38px;
+  padding:0 18px;
+  border-radius:9px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:background var(--speed) var(--curve), border-color var(--speed) var(--curve), opacity var(--speed) var(--curve), transform var(--speed) var(--curve);
+}
+
+.acct-btn:disabled{
+  opacity:.5;
+  cursor:default;
+  transform:none;
+}
+
+.acct-btn-primary{
+  background:var(--accent);
+  border:1px solid var(--accent);
+  color:var(--bg);
+}
+
+.acct-btn-primary:hover:not(:disabled){
+  opacity:.88;
+  transform:translateY(-1px);
+}
+
+.acct-btn-ghost{
+  background:transparent;
+  border:1px solid var(--border-strong);
+  color:var(--text);
+}
+
+.acct-btn-ghost:hover:not(:disabled){
+  background:var(--surface-2);
+  border-color:var(--accent);
+}
+
+.acct-btn-danger{
+  background:transparent;
+  border:1px solid var(--border-strong);
+  color:var(--danger);
+}
+
+.acct-btn-danger:hover:not(:disabled){
+  background:var(--danger-dim);
+  border-color:var(--danger-border);
+}
+
+.acct-btn-success{
+  background:var(--success);
+  border-color:var(--success);
+  color:#0a0a09;
+}
+
+.acct-btn svg{
+  width:14px;
+  height:14px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+
+/* ============ MODAL FOUNDATION (editor — global + chat overlay) ============ */
+
+.acct-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  background:rgba(6,6,5,.7);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  animation:acct-fade var(--speed) var(--curve);
+}
+
+/* inside the chat overlay the backdrop scopes to that panel */
+.chat-overlay .acct-backdrop{
+  position:absolute;
+  z-index:21;
+}
+
+@keyframes acct-fade{
+  from{ opacity:0; }
+  to{ opacity:1; }
+}
+
+@keyframes acct-rise{
+  from{ opacity:0; transform:translateY(6px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+.acct-modal{
+  width:min(520px,94%);
+  max-height:min(680px,92vh);
+  overflow-y:auto;
+  border-radius:var(--radius-dialog);
+  border:1px solid var(--border-strong);
+  background:var(--surface);
+  box-shadow:var(--shadow-overlay);
+  animation:acct-rise var(--speed-slow) var(--curve);
+}
+
+.acct-modal-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:30px;
+  height:30px;
+  border-radius:var(--radius-sm);
+  color:var(--muted-dim);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:color var(--speed) var(--curve), background var(--speed) var(--curve);
+}
+
+.acct-modal-close:hover{
+  color:var(--text);
+  background:var(--surface-2);
+}
+
+.acct-modal-close svg{
+  width:14px;
+  height:14px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+}
+
+
+/* ============ PROFILE EDITOR ============ */
+
+.acct-editor{
+  position:relative;
+  text-align:left;
+}
+
+/* inline (Account panel) variant — full-width view, no dialog chrome */
+.acct-editor.acct-editor-inline{
+  width:100%;
+  max-width:none;
+  max-height:none;
+  box-shadow:none;
+  border-color:var(--border);
+  animation:none;
+  overflow:visible;
+}
+
+/* sub-tab view: no floating X — leaving is done via the sub-tabs */
+.acct-editor-inline .acct-modal-close{
+  display:none;
+}
+
+.acct-editor-head{
+  padding:22px 24px 0;
+}
+
+.acct-editor-head .acct-eyebrow{
+  display:block;
+}
+
+.acct-editor-head h2{
+  font-family:var(--font-display);
+  font-size:21px;
+  font-weight:600;
+  letter-spacing:-.015em;
+  color:var(--white);
+  margin-top:4px;
+}
+
+/* live preview — mirrors .action-card surface language */
+.acct-preview{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin:16px 24px 0;
+  padding:14px 16px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  background:var(--surface-2);
+}
+
+.acct-preview .acct-avatar{
+  width:56px;
+  height:56px;
+  border:2px solid var(--accent);
+  padding:2px;
+}
+
+.acct-preview-info{
+  min-width:0;
+}
+
+.acct-preview-name{
+  font-family:var(--font-display);
+  font-size:15.5px;
+  font-weight:600;
+  color:var(--white);
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+
+.acct-preview-username{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--muted-dim);
+  margin-top:1px;
+}
+
+.acct-preview-status{
+  font-size:11.5px;
+  color:var(--muted);
+  margin-top:5px;
+  overflow-wrap:anywhere;
+}
+
+.acct-editor-form{
+  padding:20px 24px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+/* mono section labels, like chat's .profile-section-label */
+.acct-section-label{
+  display:block;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  color:var(--muted-dim);
+  margin-bottom:-6px;
+}
+
+.acct-field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+}
+
+.acct-field-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.acct-label-row{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.acct-label{
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+}
+
+.acct-counter{
+  font-family:var(--font-mono);
+  font-size:10px;
+  color:var(--muted-dim);
+}
+
+.acct-counter.limit{
+  color:var(--danger);
+}
+
+/* input treatment matches settings.css (.panic-input): surface-2,
+   9px radius, accent focus border */
+.acct-input{
+  height:40px;
+  border-radius:9px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--text);
+  padding:0 13px;
+  font:inherit;
+  font-size:13.5px;
+  width:100%;
+  outline:none;
+  transition:border-color var(--speed) var(--curve);
+}
+
+.acct-textarea{
+  height:auto;
+  min-height:74px;
+  padding:11px 13px;
+  resize:vertical;
+  font-family:var(--font-body);
+  line-height:1.5;
+}
+
+.acct-input:focus{
+  border-color:var(--accent);
+}
+
+.acct-input:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  background:var(--surface-2);
+}
+
+.acct-input[aria-invalid="true"]{
+  border-color:var(--danger-border);
+}
+
+.acct-hint{
+  font-size:11px;
+  color:var(--muted-dim);
+  line-height:1.45;
+}
+
+.acct-error{
+  font-size:11.5px;
+  color:var(--danger);
+  line-height:1.45;
+}
+
+.acct-ok{
+  font-size:11.5px;
+  color:var(--success);
+}
+
+/* avatar field: preview + url input side by side */
+.acct-avatar-field{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+}
+
+.acct-avatar-field .acct-avatar{
+  width:60px;
+  height:60px;
+  border:2px solid var(--accent);
+  padding:2px;
+  margin-top:2px;
+}
+
+.acct-avatar-field .acct-field{
+  flex:1;
+}
+
+.acct-upload-label{
+  display:block;
+  margin-top:10px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.acct-file-input{
+  display:block;
+  width:100%;
+  margin-top:5px;
+  color:var(--muted);
+  font:inherit;
+  font-size:11px;
+}
+
+.acct-file-input::file-selector-button{
+  margin-right:8px;
+  padding:5px 8px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  background:var(--surface-2);
+  color:var(--text-secondary);
+  font:inherit;
+  cursor:pointer;
+}
+
+.acct-file-input::file-selector-button:hover{
+  border-color:var(--border-strong);
+  color:var(--text);
+}
+
+.acct-banner-field{
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  background:var(--surface-2);
+}
+
+.acct-preview-banner{
+  position:absolute;
+  inset:0 0 auto;
+  height:54px;
+  border-radius:inherit;
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  opacity:.9;
+}
+
+.acct-preview{
+  position:relative;
+  overflow:hidden;
+}
+
+.acct-preview .acct-avatar,
+.acct-preview .acct-avatar-fallback,
+.acct-preview-info{
+  position:relative;
+  z-index:1;
+}
+
+.acct-preview .acct-avatar,
+.acct-preview .acct-avatar-fallback{
+  margin-top:18px;
+}
+
+/* accent swatches */
+.acct-swatches{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.acct-swatch{
+  width:27px;
+  height:27px;
+  border-radius:50%;
+  border:2px solid transparent;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  transition:transform var(--speed) var(--curve), border-color var(--speed) var(--curve);
+}
+
+.acct-swatch:hover{
+  transform:scale(1.08);
+}
+
+.acct-swatch.selected{
+  border-color:var(--text);
+}
+
+.acct-swatch svg{
+  width:13px;
+  height:13px;
+  fill:none;
+  stroke:#0a0a09;
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  opacity:0;
+  transition:opacity var(--speed) var(--curve);
+}
+
+.acct-swatch.selected svg{
+  opacity:1;
+}
+
+/* footer */
+.acct-editor-foot{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border-top:1px solid var(--border);
+  padding-top:16px;
+}
+
+.acct-dirty-note{
+  font-size:11.5px;
+  color:var(--danger);
+  flex:1;
+  min-width:0;
+}
+
+.acct-editor-foot .spacer{
+  flex:1;
+}
+
+.acct-save-spinner{
+  border-color:rgba(10,10,9,.3);
+  border-top-color:var(--bg);
+}
+
+/* responsive editor */
+@media (max-width:560px){
+  .acct-field-row{
+    grid-template-columns:1fr;
+  }
+  .acct-editor-head,
+  .acct-editor-form{
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .acct-preview{
+    margin-left:16px;
+    margin-right:16px;
+  }
+}
+
+
+/* ============ PROFILE CARD (shared: chat popup) ============ */
+/* Identity pattern from Blur's original profile popup: flat
+   accent banner with the avatar overlapping it. */
+
+.acct-pcard{
+  position:relative;
+  width:min(360px,94%);
+  max-height:min(640px,90vh);
+  overflow-y:auto;
+  border-radius:var(--radius-dialog);
+  border:1px solid var(--border-strong);
+  background:var(--surface);
+  box-shadow:var(--shadow-overlay);
+  text-align:left;
+  animation:acct-rise var(--speed-slow) var(--curve);
+}
+
+/* flat banner in the user's accent — same idea as the original
+   .profile-banner, kept short and gradient-free */
+.acct-pcard-accent{
+  height:64px;
+  background:var(--accent);
+}
+
+.acct-pcard .acct-avatar{
+  width:76px;
+  height:76px;
+  border:3px solid var(--surface);
+  margin-top:-38px;
+  display:block;
+}
+
+.acct-pcard .acct-avatar-fallback{
+  font-size:26px;
+}
+
+.acct-pcard-body{
+  padding:12px 20px 18px;
+}
+
+/* close button floats over the banner — same treatment as the
+   original .profile-card .modal-close */
+.acct-pcard .acct-modal-close{
+  background:rgba(6,6,5,.5);
+  border:none;
+  color:var(--white);
+}
+
+.acct-pcard .acct-modal-close:hover{
+  background:rgba(6,6,5,.7);
+}
+
+.acct-pcard-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.acct-pcard-identity{
+  min-width:0;
+  margin-top:2px;
+}
+
+.acct-pcard .acct-avatar-wrap{margin-top:-38px;}
+.acct-pcard .acct-avatar-wrap .acct-avatar{margin-top:0;}
+.acct-pcard .acct-status-bubble{max-width:185px;}
+.acct-pcard .acct-identity-meta{margin-top:7px;}
+
+.acct-pcard .acct-display-name{
+  font-size:20px;
+}
+
+/* Profile editor layout: keep related controls together and use the
+   available width instead of stacking every field into one long column. */
+.acct-editor{
+  width:min(760px,94vw);
+  max-height:min(790px,92vh);
+}
+
+.acct-editor-form{
+  padding:18px 24px 24px;
+  gap:14px;
+}
+
+.acct-editor-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) minmax(230px,.8fr);
+  gap:12px;
+  align-items:start;
+}
+
+.acct-editor-section{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-width:0;
+  padding:14px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  background:var(--surface-2);
+}
+
+.acct-editor-section-media{grid-column:1;grid-row:1 / span 2;}
+.acct-editor-section-about{grid-column:2;grid-row:1;}
+.acct-editor-section-accent{grid-column:2;grid-row:2;}
+
+.acct-section-heading{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  padding-bottom:9px;
+  border-bottom:1px solid var(--border);
+}
+
+.acct-section-heading .acct-section-label{margin:0;color:var(--text-secondary);}
+.acct-section-note{color:var(--muted-dim);font:9px var(--font-mono);text-align:right;}
+.acct-editor-section .acct-avatar-field{padding:0;border:0;background:transparent;}
+.acct-editor-section .acct-banner-field{margin:0;padding:11px;background:var(--surface);}
+.acct-editor-section .acct-field-row{gap:10px;}
+.acct-editor-section .acct-input{background:var(--surface);}
+.acct-editor-section .acct-swatches{gap:8px;}
+.acct-editor-section .acct-swatch{width:25px;height:25px;}
+
+@media(max-width:680px){
+  .acct-editor{width:min(520px,94vw);}
+  .acct-editor-form{padding-left:16px;padding-right:16px;}
+  .acct-editor-grid{grid-template-columns:1fr;}
+  .acct-editor-section-media,
+  .acct-editor-section-about,
+  .acct-editor-section-accent{grid-column:1;grid-row:auto;}
+}
+
+.acct-pcard-section{
+  margin-top:16px;
+}
+
+.acct-pcard-section .acct-meta-label{
+  display:block;
+  margin-bottom:5px;
+  width:auto;
+}
+
+.acct-pcard-section .acct-info-value{
+  font-size:13px;
+}
+
+.acct-pcard .acct-actions{
+  margin-top:18px;
+}
+
+/* friend-action row keeps chat.css button styles; just space it */
+.acct-pcard .profile-friend-section{
+  margin-top:14px;
+}
+
+/* inline editor (Account sub-tab): reads as a view, not a dialog —
+   no X close, normal page scroll */
+.profile-role-value{ text-transform:capitalize; }

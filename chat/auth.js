@@ -1,6 +1,13 @@
 /* =========================================================
    auth.js
-   Supabase Auth (username + password, no email required).
+   Supabase Auth credentials + sign-in UI (username + password,
+   no email required).
+
+   The auth LIFECYCLE (session restore, profile loading, state
+   listeners, sign-out) lives in the global Account service —
+   see account.js at the project root. This file only knows how
+   to turn a username+password into a session and how to draw
+   the sign-in card; it holds no auth state.
 
    Supabase Auth itself is still email-based under the hood, so
    we deterministically turn every username into a fake, never-
@@ -22,33 +29,17 @@
 
 const Auth = {
 
-  currentUser: null,
-  _onChange: null,
-
   usernameToEmail(username){
     return `${username.trim().toLowerCase()}@accounts.blur.invalid`;
   },
 
-  /**
-   * Subscribes to Supabase's auth state. `onChange(user | null)`
-   * is passed straight through to onAuthStateChange, which
-   * Supabase already fires once immediately with whatever the
-   * current session is (event "INITIAL_SESSION") — so we don't
-   * also do our own separate getSession() + call here. Doing
-   * both used to fire onChange twice in a row for the same
-   * sign-in, which raced with profile creation in chat.js.
-   */
-  async init(onChange){
-    this._onChange = onChange;
-
-    sb.auth.onAuthStateChange((_event, session) => {
-      this.currentUser = session?.user ?? null;
-      this._onChange(this.currentUser);
-    });
-  },
-
   async signUp(username, password){
     username = username.trim();
+    if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
+      throw new Error("Usernames must be 3–24 characters using letters, numbers, or underscores.");
+    }
+    const nameError = window.BlurNamePolicy?.error(username);
+    if (nameError) throw new Error(nameError);
     const email = this.usernameToEmail(username);
 
     const { data, error } = await sb.auth.signUp({
@@ -91,10 +82,6 @@ const Auth = {
       throw error;
     }
     return data;
-  },
-
-  async signOut(){
-    await sb.auth.signOut();
   },
 
   /**

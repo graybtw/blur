@@ -21,7 +21,7 @@ const Watch = {
         browseScroll: 0,
         currentProviderId: null,
         playerRetryCount: 0,
-        adDetectionCount: 0
+        adDetectionCount: 0,
     },
 
     elements: {},
@@ -40,40 +40,10 @@ const Watch = {
     ========================= */
     providers: [
         {
-            id: "popcornpirate",
-            name: "Popcorn Pirate [has ads but works]",
-            movie: id => `https://www.popcorn-pirate.com/player/movie/${id}`,
-            tv: (id, s, e) => `https://www.popcorn-pirate.com/player/tv/${id}/${s}/${e}`
-        },
-        {
-            id: "movieweb",
-            name: "Movie-Web [down]",
-            movie: id => `https://movie-web.app/movie/${id}`,
-            tv: (id, s, e) => `https://movie-web.app/tv/${id}/${s}/${e}`
-        },
-        {
-            id: "lookmovie",
-            name: "LookMovie",
-            movie: id => `https://lookmovie2.to/movie/${id}`,
-            tv: (id, s, e) => `https://lookmovie2.to/tv/${id}/${s}/${e}`
-        },
-        {
-            id: "soap2day",
-            name: "Soap2Day",
-            movie: id => `https://soap2day.to/movie/${id}`,
-            tv: (id, s, e) => `https://soap2day.to/tv/${id}/${s}/${e}`
-        },
-        {
-            id: "vidlink",
-            name: "VidLink",
-            movie: id => `https://vidlink.pro/movie/${id}`,
-            tv: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}`
-        },
-        {
-            id: "vidsrc_cc",
-            name: "VidSrc.cc",
-            movie: id => `https://vidsrc.cc/embed/movie/${id}`,
-            tv: (id, s, e) => `https://vidsrc.cc/embed/tv/${id}/${s}/${e}`
+            id: "framextv",
+            name: "FrameXtv [likely has ads, untested]",
+            movie: id => `https://framextv.tech/watch/${id}`,
+            tv: (id, s, e) => `https://framextv.tech/watch/${id}/${s}/${e}`
         }
     ],
 
@@ -103,33 +73,37 @@ const Watch = {
         <div class="watch-app">
             <div id="watchBrowseView" class="watch-browse-view">
                 <div class="watch-top">
-                    <div class="watch-search">
+                    <div class="watch-search ui-field">
                         <span class="search-icon">
-                            <img src="assets/icons/search.png">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <circle cx="11" cy="11" r="7"></circle>
+                                <path d="M21 21l-4.3-4.3"></path>
+                            </svg>
                         </span>
-                        <input id="watchSearch" placeholder="Search movies and TV shows..." autocomplete="off">
+                        <input id="watchSearch" type="search" placeholder="Search..." autocomplete="off" aria-label="Search movies and TV shows" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="watchSearchSuggestions">
+                        <div id="watchSearchSuggestions" class="watch-search-suggestions" role="listbox" aria-label="Search suggestions" hidden></div>
                     </div>
                     <div class="watch-tabs">
-                        <button class="watch-tab active" data-watch-tab="home">Home</button>
-                        <button class="watch-tab" data-watch-tab="movies">Movies</button>
-                        <button class="watch-tab" data-watch-tab="tv">TV Shows</button>
-                        <button class="watch-tab" data-watch-tab="anime">Anime</button>
+                        <button type="button" class="watch-tab active" data-watch-tab="home" aria-pressed="true">Home</button>
+                        <button type="button" class="watch-tab" data-watch-tab="movies" aria-pressed="false">Movies</button>
+                        <button type="button" class="watch-tab" data-watch-tab="tv" aria-pressed="false">TV Shows</button>
+                        <button type="button" class="watch-tab" data-watch-tab="anime" aria-pressed="false">Anime</button>
                     </div>
                 </div>
 
-                <section class="watch-hero">
+                <section class="watch-hero watch-hero-feature" aria-label="Featured movie or show">
                     <div class="hero-background">
-                        <img id="watchHeroImage">
+                        <img id="watchHeroImage" alt="" aria-hidden="true">
+                        <img id="watchHeroImageNext" class="hero-image-next" alt="" aria-hidden="true">
                         <div class="hero-overlay"></div>
                     </div>
                     <div class="hero-content">
-                        <span id="watchHeroLabel">Trending</span>
                         <h1 id="watchHeroTitle">Loading...</h1>
                         <p id="watchHeroDescription">Loading movies...</p>
                         <div id="watchHeroMeta"></div>
                         <div class="hero-actions">
-                            <button class="hero-watch-button">▶ Watch</button>
-                            <button class="hero-info-button">More Info</button>
+                            <button type="button" class="hero-watch-button ui-button ui-button--primary">▶ Watch</button>
+                            <button type="button" class="hero-info-button ui-button ui-button--secondary">More Info</button>
                         </div>
                     </div>
                     <div class="hero-dots" id="heroDots"></div>
@@ -139,18 +113,18 @@ const Watch = {
             </div>
 
             <div id="watchDetailsView" class="watch-details-view hidden">
-                <button id="detailsBackBtn" class="details-back-btn">
+                <button type="button" id="detailsBackBtn" class="details-back-btn" aria-label="Back to browsing">
                     <span class="details-back-arrow">←</span>
                     <span>Back</span>
                 </button>
 
                 <div class="details-hero">
                     <div class="details-hero-bg">
-                        <img id="detailsImage">
+                        <img id="detailsImage" alt="" aria-hidden="true">
                         <div class="details-hero-overlay"></div>
                     </div>
                     <div class="details-hero-content">
-                        <img id="detailsPoster" class="details-poster">
+                        <img id="detailsPoster" class="details-poster" alt="">
                         <div class="details-info">
                             <div class="details-title-row">
                                 <h1 id="detailsTitle"></h1>
@@ -159,13 +133,13 @@ const Watch = {
                             <p id="detailsDescription"></p>
                             <div id="detailsGenres" class="details-genres"></div>
                             <div class="provider-actions">
-                                <button class="details-watch">▶ Watch Now</button>
+                                <button type="button" class="details-watch">▶ Watch Now</button>
                                 <div class="provider-selector">
-                                    <button id="providerCurrent" class="provider-current">
+                                    <button type="button" id="providerCurrent" class="provider-current" aria-controls="providerDropdown" aria-expanded="false">
                                         <span id="providerCurrentName">Select Provider</span>
                                         <span class="provider-arrow">▼</span>
                                     </button>
-                                    <div id="providerDropdown" class="provider-dropdown"></div>
+                                    <div id="providerDropdown" class="provider-dropdown ui-menu"></div>
                                 </div>
                             </div>
                         </div>
@@ -177,24 +151,40 @@ const Watch = {
                         <div class="episode-picker-top">
                             <h2 class="details-section-title">Episodes</h2>
                             <div class="season-selector">
-                                <button id="seasonCurrent" class="provider-current">
+                                <button type="button" id="seasonCurrent" class="provider-current" aria-controls="seasonDropdown" aria-expanded="false">
                                     <span id="seasonCurrentName">Season 1</span>
                                     <span class="provider-arrow">▼</span>
                                 </button>
-                                <div id="seasonDropdown" class="provider-dropdown"></div>
+                                <div id="seasonDropdown" class="provider-dropdown ui-menu"></div>
                             </div>
                         </div>
                         <div id="episodeList" class="episode-list"></div>
                     </div>
 
                     <div id="castSection" class="cast-section hidden">
-                        <h2 class="details-section-title">Cast</h2>
-                        <div id="castRow" class="cast-row"></div>
+                        <h2 id="castTitle" class="details-section-title">Cast</h2>
+                        <div id="castCarousel" class="details-carousel">
+                            <button type="button" class="row-arrow left details-scroll-arrow" data-scroll-step="-1" aria-label="Scroll cast left">‹</button>
+                            <div id="castRow" class="cast-row details-horizontal-scroll"></div>
+                            <button type="button" class="row-arrow right details-scroll-arrow" data-scroll-step="1" aria-label="Scroll cast right">›</button>
+                        </div>
+                        <div id="crewSection" class="crew-section hidden">
+                            <h2 class="details-section-title">Production Crew</h2>
+                            <div class="details-carousel">
+                                <button type="button" class="row-arrow left details-scroll-arrow" data-scroll-step="-1" aria-label="Scroll key crew left">‹</button>
+                                <div id="crewRow" class="crew-row details-horizontal-scroll" role="list"></div>
+                                <button type="button" class="row-arrow right details-scroll-arrow" data-scroll-step="1" aria-label="Scroll key crew right">›</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="relatedSection" class="related-section hidden">
                         <h2 class="details-section-title">More Like This</h2>
-                        <div id="relatedRow" class="row-scroll"></div>
+                        <div class="details-carousel">
+                            <button type="button" class="row-arrow left details-scroll-arrow" data-scroll-step="-1" aria-label="Scroll related titles left">‹</button>
+                            <div id="relatedRow" class="row-scroll details-horizontal-scroll"></div>
+                            <button type="button" class="row-arrow right details-scroll-arrow" data-scroll-step="1" aria-label="Scroll related titles right">›</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -207,25 +197,25 @@ const Watch = {
                         <h2 id="playerTitle"></h2>
                     </div>
                     <div class="player-controls">
-                        <button id="playerReload" class="player-btn" title="Reload Player">
+                        <button type="button" id="playerReload" class="player-btn" title="Reload Player" aria-label="Reload player">
                             <svg viewBox="0 0 24 24">
                                 <path d="M23 4v6h-6"/>
                                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                             </svg>
                         </button>
-                        <button id="playerPopout" class="player-btn" title="Open in new tab">
+                        <button type="button" id="playerPopout" class="player-btn" title="Open in new tab" aria-label="Open player in new tab">
                             <svg viewBox="0 0 24 24">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                                 <polyline points="15 3 21 3 21 9"/>
                                 <line x1="10" y1="14" x2="21" y2="3"/>
                             </svg>
                         </button>
-                        <button id="playerFullscreen" class="player-btn" title="Fullscreen">
+                        <button type="button" id="playerFullscreen" class="player-btn" title="Fullscreen" aria-label="Toggle fullscreen">
                             <svg viewBox="0 0 24 24">
                                 <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/>
                             </svg>
                         </button>
-                        <button id="playerClose" class="player-btn" title="Close">
+                        <button type="button" id="playerClose" class="player-btn" title="Close" aria-label="Close player">
                             <svg viewBox="0 0 24 24">
                                 <path d="M6 6l12 12M18 6L6 18"/>
                             </svg>
@@ -252,6 +242,7 @@ const Watch = {
             backBtn: document.querySelector("#detailsBackBtn"),
             search: document.querySelector("#watchSearch"),
             heroImage: document.querySelector("#watchHeroImage"),
+            heroImageNext: document.querySelector("#watchHeroImageNext"),
             heroTitle: document.querySelector("#watchHeroTitle"),
             heroDescription: document.querySelector("#watchHeroDescription"),
             heroMeta: document.querySelector("#watchHeroMeta"),
@@ -281,7 +272,11 @@ const Watch = {
             providerCurrentName: document.querySelector("#providerCurrentName"),
             providerDropdown: document.querySelector("#providerDropdown"),
             castSection: document.querySelector("#castSection"),
+            castTitle: document.querySelector("#castTitle"),
+            castCarousel: document.querySelector("#castCarousel"),
             castRow: document.querySelector("#castRow"),
+            crewSection: document.querySelector("#crewSection"),
+            crewRow: document.querySelector("#crewRow"),
             relatedSection: document.querySelector("#relatedSection"),
             relatedRow: document.querySelector("#relatedRow")
         };
@@ -295,7 +290,14 @@ const Watch = {
             button.onclick = () => {
                 document.querySelectorAll("[data-watch-tab]").forEach(t => t.classList.remove("active"));
                 button.classList.add("active");
+                document.querySelectorAll("[data-watch-tab]").forEach(t => t.setAttribute("aria-pressed", String(t === button)));
                 this.state.tab = button.dataset.watchTab;
+                this.state.searchQuery = "";
+                this._suggestionQuery = "";
+                this._searchRequestId = (this._searchRequestId || 0) + 1;
+                if (this.elements.search) this.elements.search.value = "";
+                this.updateSearchContext();
+                this.closeSearchSuggestions();
                 this.loadRows();
                 this.loadHero();
             };
@@ -354,6 +356,28 @@ const Watch = {
         return ids.map(id => this.genres[id]).filter(Boolean).slice(0, 3);
     },
 
+    // Keep the Anime shelf suitable for a general-audience community. TMDB's
+    // `adult` flag catches titles explicitly marked as adult, while the title
+    // and synopsis check catches common adult-only labels that are sometimes
+    // missing that flag. This is intentionally scoped to Anime so ordinary
+    // movie/TV browsing keeps its existing catalog behavior.
+    animeContentFilter: {
+        blockedPattern: /(?:\bhentai\b|\becchi\b|\bporn(?:ography)?\b|\bxxx\b|\bnsfw\b|\br[-\s]?18\b|\b18\s*\+\b|\berotic\b|\bsex(?:ual|ually)?\b|\bnud(?:e|ity)\b|\blewd\b|\bexplicit\b|\buncensored\b|\buncut\b|\badult\b)/i,
+        blockedTitlePattern: /(?:\boverflow\b|\bharem\s+camp\b|\badam['’]s\s+sweet\s+agony\b|\bjimihen\b|\binterspecies\s+reviewers\b|\byosuga\s+no\s+sora\b|\bseikon\s+no\s+qwaser\b|\bcaressing\s+my\s+hibernating\s+bear\b|\bcrazy\s+over\s+his\s+fingers\b|\bafter\s+closing\b)/i,
+        allows(item) {
+            if (!item || item.adult === true) return false;
+            const text = [item.title, item.name, item.overview, item.original_title, item.original_name]
+                .filter(Boolean)
+                .join(" ");
+            return !this.blockedPattern.test(text) && !this.blockedTitlePattern.test(String(item.title || item.name || ""));
+        }
+    },
+
+    filterAnimeItems(items) {
+        if (!Array.isArray(items)) return [];
+        return items.filter(item => this.animeContentFilter.allows(item));
+    },
+
     /* =========================
        HERO
     ========================= */
@@ -365,10 +389,14 @@ const Watch = {
     },
 
     loadHero: async function() {
+        const requestId = this._heroLoadRequestId = (this._heroLoadRequestId || 0) + 1;
         const endpoint = this.heroConfig[this.state.tab] || this.heroConfig.home;
         const data = await this.api(endpoint);
-        if (!data || !data.results) return;
-        this.state.heroItems = data.results
+        if (requestId !== this._heroLoadRequestId || !data || !data.results) return;
+        const heroResults = this.state.tab === "anime"
+            ? this.filterAnimeItems(data.results)
+            : data.results;
+        this.state.heroItems = heroResults
             .map(item => this.formatMedia(item))
             .filter(item => item.backdrop && item.title)
             .slice(0, 8);
@@ -386,46 +414,104 @@ const Watch = {
             return;
         }
 
-        const img = this.elements.heroImage;
-        img.style.opacity = "0";
-        setTimeout(() => {
-            img.src = movie.backdrop;
-            img.onload = () => img.style.opacity = "1";
-        }, 250);
-
-        this.elements.heroTitle.textContent = movie.title;
-        this.elements.heroDescription.textContent = movie.description;
         this.renderHeroDots();
-        this.elements.heroMeta.innerHTML = `
-            <span>⭐ ${movie.rating}</span>
-            <span>${movie.year}</span>
-            <span>${movie.type === "tv" ? "TV Show" : "Movie"}</span>
-        `;
+
+        // A repeated render of the currently requested item should only refresh
+        // the dots. Re-loading its image would create an unnecessary flash.
+        if (this._heroRequestedMovieId === movie.id) return;
+        this._heroRequestedMovieId = movie.id;
+
+        const imageRequestId = this._heroImageRequestId = (this._heroImageRequestId || 0) + 1;
+        clearTimeout(this._heroContentTimer);
+        const activeImage = this._heroActiveImage || this.elements.heroImage;
+        const incomingImage = activeImage === this.elements.heroImage
+            ? this.elements.heroImageNext
+            : this.elements.heroImage;
+        const content = this.elements.heroTitle.closest(".hero-content");
+        const hasPreviousCopy = this._heroDisplayedMovieId != null;
+        const isChangingMovie = hasPreviousCopy && this._heroDisplayedMovieId !== movie.id;
+
+        const updateCopy = () => {
+            this.elements.heroTitle.textContent = movie.title;
+            this.elements.heroDescription.textContent = movie.description;
+            this.elements.heroMeta.innerHTML = `
+                <span>⭐ ${movie.rating}</span>
+                <span>${movie.year}</span>
+                <span>${movie.type === "tv" ? "TV Show" : "Movie"}</span>
+            `;
+            this._heroDisplayedMovieId = movie.id;
+        };
+
+        const commitCopy = () => {
+            if (imageRequestId !== this._heroImageRequestId) return;
+            if (!isChangingMovie || !content) {
+                updateCopy();
+                content?.classList.remove("is-changing");
+                return;
+            }
+
+            content.classList.add("is-changing");
+            this._heroContentTimer = setTimeout(() => {
+                if (imageRequestId !== this._heroImageRequestId) return;
+                updateCopy();
+                requestAnimationFrame(() => {
+                    if (imageRequestId === this._heroImageRequestId) content.classList.remove("is-changing");
+                });
+            }, 140);
+        };
+
+        if (!incomingImage || !movie.backdrop) {
+            commitCopy();
+            return;
+        }
+
+        incomingImage.classList.remove("is-visible");
+        incomingImage.onload = () => {
+            if (imageRequestId !== this._heroImageRequestId) return;
+            incomingImage.classList.add("is-visible");
+            activeImage.classList.remove("is-visible");
+            this._heroActiveImage = incomingImage;
+            commitCopy();
+        };
+        incomingImage.onerror = () => {
+            if (imageRequestId === this._heroImageRequestId) commitCopy();
+        };
+        incomingImage.src = movie.backdrop;
     },
 
     renderHeroDots: function() {
         const container = this.elements.dots;
         if (!container) return;
-        container.innerHTML = "";
+
+        if (container.children.length !== this.state.heroItems.length) {
+            container.replaceChildren(...this.state.heroItems.map(() => {
+                const dot = document.createElement("button");
+                dot.type = "button";
+                dot.className = "hero-dot";
+                return dot;
+            }));
+        }
+
         this.state.heroItems.forEach((movie, index) => {
-            const dot = document.createElement("button");
-            dot.className = "hero-dot";
-            if (index === this.state.currentHero) dot.classList.add("active");
+            const dot = container.children[index];
+            dot.setAttribute("aria-label", `Show ${movie.title}`);
+            dot.setAttribute("aria-pressed", String(index === this.state.currentHero));
+            dot.title = movie.title;
+            dot.classList.toggle("active", index === this.state.currentHero);
             dot.onclick = () => {
                 this.state.currentHero = index;
                 this.renderHero();
-                this.renderHeroDots();
             };
-            container.appendChild(dot);
         });
     },
 
     startHeroRotation: function() {
         setInterval(() => {
+            // Performance Mode: keep the featured item still instead of rotating.
+            if (document.documentElement.classList.contains("performance-mode")) return;
             if (!this.state.heroItems.length || this.state.view === "details") return;
             this.state.currentHero = (this.state.currentHero + 1) % this.state.heroItems.length;
             this.renderHero();
-            this.renderHeroDots();
         }, 8000);
     },
 
@@ -478,7 +564,10 @@ const Watch = {
 
     renderSkeletonRows: function(count = 3) {
         this.elements.rows.innerHTML = "";
-        const isLandscape = this.state.view === "browse" && this.state.tab === "home";
+        // Watch uses one consistent portrait card rhythm across every browse
+        // surface. Home previously switched to landscape backdrops, which
+        // made the first tab feel like a different product from Movies/TV.
+        const isLandscape = false;
         for (let i = 0; i < count; i++) {
             const section = document.createElement("section");
             section.className = "watch-row skeleton-row";
@@ -501,15 +590,36 @@ const Watch = {
     },
 
     loadRows: async function() {
+        const requestId = this._rowsRequestId = (this._rowsRequestId || 0) + 1;
         this.renderSkeletonRows();
         const rows = this.rowConfig[this.state.tab];
         if (!rows) return;
+
+        // providers/endpoint requests are independent — load in parallel
+        const results = await Promise.all(rows.map(row => this.api(row.endpoint)));
+        if (requestId !== this._rowsRequestId) return;
+
         this.elements.rows.innerHTML = "";
-        for (const row of rows) {
-            const data = await this.api(row.endpoint);
-            if (!data || !data.results) continue;
-            const movies = data.results.map(item => this.formatMedia(item)).filter(Boolean);
+        let failed = 0;
+        rows.forEach((row, index) => {
+            const data = results[index];
+            if (!data || !data.results) { failed++; return; }
+            const sourceResults = this.state.tab === "anime"
+                ? this.filterAnimeItems(data.results)
+                : data.results;
+            const movies = sourceResults.map(item => this.formatMedia(item)).filter(Boolean);
             this.renderRow(row.title, movies);
+        });
+
+        if (failed === rows.length) {
+            const error = document.createElement("div");
+            error.className = "ui-error watch-load-error";
+            error.innerHTML = `
+                <span>Couldn't load content right now. Check your connection.</span>
+                <button type="button" class="small-button ui-button ui-button--secondary ui-button--sm" data-retry-rows>Retry</button>
+            `;
+            error.querySelector("[data-retry-rows]").addEventListener("click", () => this.loadRows());
+            this.elements.rows.appendChild(error);
         }
     },
 
@@ -519,9 +629,9 @@ const Watch = {
         section.innerHTML = `
             <div class="row-title"><h2>${title}</h2></div>
             <div class="row-wrapper">
-                <button class="row-arrow left">‹</button>
+                <button type="button" class="row-arrow left" aria-label="Scroll ${title} left">‹</button>
                 <div class="row-scroll"></div>
-                <button class="row-arrow right">›</button>
+                <button type="button" class="row-arrow right" aria-label="Scroll ${title} right">›</button>
             </div>
         `;
         const container = section.querySelector(".row-scroll");
@@ -535,19 +645,25 @@ const Watch = {
 
     createMovieCard: function(movie) {
         const card = document.createElement("div");
-        const isLandscape = this.state.view === "browse" && this.state.tab === "home";
+        const isLandscape = false;
         card.className = isLandscape ? "movie-card landscape" : "movie-card";
-        const imgSrc = isLandscape && movie.backdrop ? movie.backdrop : (movie.poster || "assets/no-poster.png");
+        const imgSrc = movie.poster || "assets/no-poster.png";
         card.innerHTML = `
             <div class="poster-wrap">
                 <img src="${imgSrc}" loading="lazy" onerror="this.src='assets/no-poster.png'">
-            </div>
-            <div class="movie-card-info">
-                <h3>${movie.title}</h3>
-                <p>⭐ ${movie.rating}</p>
+                <div class="movie-card-info"><h3></h3></div>
             </div>
         `;
+        card.querySelector(".movie-card-info h3").textContent = movie.title;
+        card.setAttribute("role", "button");
+        card.setAttribute("aria-label", `View ${movie.title}`);
+        card.tabIndex = 0;
         card.onclick = async () => this.openDetails(await this.getDetails(movie));
+        card.onkeydown = event => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            card.click();
+        };
         return card;
     },
 
@@ -586,25 +702,53 @@ const Watch = {
     getCredits: async function(movie) {
         const endpoint = movie.type === "tv" ? `/tv/${movie.id}/credits` : `/movie/${movie.id}/credits`;
         const data = await this.api(endpoint);
-        if (!data || !data.cast) return [];
-        return data.cast.slice(0, 12).map(p => ({
-            name: p.name,
-            character: p.character || "",
-            photo: this.image(p.profile_path, "w300")
-        }));
+        if (!data) return { cast: [], crew: [] };
+        return {
+            cast: (data.cast || []).slice(0, 12).map(p => ({
+                name: p.name,
+                character: p.character || "",
+                photo: this.image(p.profile_path, "w300")
+            })),
+            crew: this.getKeyCrew(data.crew || [], movie.type)
+        };
+    },
+
+    getKeyCrew: function(crew, mediaType) {
+        const roles = [
+            ...(mediaType === "tv" ? [{ label: "Created by", matches: job => /creator|created by/.test(job) }] : []),
+            { label: "Director", matches: job => /^(co-)?director$|^series director$/.test(job) },
+            { label: "Writing", matches: job => /writer|screenplay|story|teleplay|script|adaptation|author/.test(job) },
+            { label: "Production", matches: job => /producer/.test(job) },
+            { label: "Cinematography", matches: job => /cinematograph|director of photography/.test(job) },
+            { label: "Production Design", matches: job => /production design|production designer|art director|art direction|set decoration/.test(job) },
+            { label: "Music", matches: job => /composer|music/.test(job) },
+            { label: "Editing", matches: job => /editor/.test(job) }
+        ];
+
+        return roles.map(role => {
+            const names = [...new Set(crew
+                .filter(person => role.matches(String(person.job || "").toLowerCase()))
+                .map(person => person.name)
+                .filter(Boolean))];
+            return names.length ? { label: role.label, names } : null;
+        }).filter(Boolean);
     },
 
     getRecommendations: async function(movie) {
         const endpoint = movie.type === "tv" ? `/tv/${movie.id}/recommendations` : `/movie/${movie.id}/recommendations`;
         const data = await this.api(endpoint);
         if (!data || !data.results) return [];
-        return data.results.map(item => {
+        const results = this.state.tab === "anime"
+            ? this.filterAnimeItems(data.results)
+            : data.results;
+        return results.map(item => {
             item.media_type = item.media_type || movie.type;
             return this.formatMedia(item);
         }).filter(item => item && item.poster).slice(0, 12);
     },
 
     openDetails: function(movie) {
+        this.state.browseScroll = this.elements.app.scrollTop;
         this.state.selectedMovie = movie;
         this.state.selectedSeason = (movie.type === "tv" && movie.seasons?.length) ? movie.seasons[0].number : 1;
         this.state.selectedEpisode = 1;
@@ -616,6 +760,7 @@ const Watch = {
 
         this.elements.detailsImage.src = movie.backdrop;
         this.elements.detailsPoster.src = movie.poster;
+        document.querySelectorAll(".details-horizontal-scroll").forEach(row => { row.scrollLeft = 0; });
         this.elements.detailsTitle.textContent = movie.title;
         this.elements.detailsDescription.textContent = movie.description;
 
@@ -648,6 +793,9 @@ const Watch = {
         this.elements.browseView.classList.remove("hidden");
         this.elements.seasonDropdown.classList.remove("open");
         this.elements.providerDropdown.classList.remove("open");
+        this.elements.seasonCurrent.setAttribute("aria-expanded", "false");
+        this.elements.providerCurrent.setAttribute("aria-expanded", "false");
+        this.elements.app.scrollTop = this.state.browseScroll || 0;
     },
 
     loadSeasonDropdown: function(movie) {
@@ -658,7 +806,7 @@ const Watch = {
 
         movie.seasons.forEach(season => {
             const item = document.createElement("button");
-            item.className = "provider-item";
+            item.className = "provider-item ui-menu__item";
             if (season.number === this.state.selectedSeason) item.classList.add("selected");
             item.innerHTML = `
                 <span>${season.name || `Season ${season.number}`}</span>
@@ -668,6 +816,7 @@ const Watch = {
                 this.state.selectedSeason = season.number;
                 this.state.selectedEpisode = 1;
                 dropdown.classList.remove("open");
+                this.elements.seasonCurrent.setAttribute("aria-expanded", "false");
                 this.loadSeasonDropdown(movie);
                 this.loadEpisodes(movie, season.number);
             };
@@ -677,10 +826,11 @@ const Watch = {
 
     loadEpisodes: async function(movie, seasonNumber) {
         const container = this.elements.episodeList;
+        const requestId = this._episodeRequestId = (this._episodeRequestId || 0) + 1;
         container.innerHTML = `<div class="episode-row-skeleton"></div><div class="episode-row-skeleton"></div><div class="episode-row-skeleton"></div>`;
 
         const episodes = await this.getSeasonDetails(movie.id, seasonNumber);
-        if (!this.state.selectedMovie || this.state.selectedMovie.id !== movie.id) return;
+        if (requestId !== this._episodeRequestId || !this.state.selectedMovie || this.state.selectedMovie.id !== movie.id || this.state.selectedSeason !== seasonNumber) return;
 
         if (!episodes.length) {
             container.innerHTML = `<p class="episode-loading">No episode data.</p>`;
@@ -713,20 +863,27 @@ const Watch = {
 
     loadCast: async function(movie) {
         this.elements.castSection.classList.remove("hidden");
+        this.elements.castTitle.hidden = false;
+        this.elements.castCarousel.hidden = false;
+        this.elements.crewSection.classList.add("hidden");
         this.elements.castRow.innerHTML = `
             <div class="cast-skeleton"><div class="cast-skeleton-photo"></div><div class="skeleton-line short"></div></div>
             <div class="cast-skeleton"><div class="cast-skeleton-photo"></div><div class="skeleton-line short"></div></div>
             <div class="cast-skeleton"><div class="cast-skeleton-photo"></div><div class="skeleton-line short"></div></div>
         `;
 
-        const cast = await this.getCredits(movie);
-        if (this.state.selectedMovie?.id !== movie.id) return;
+        const credits = await this.getCredits(movie);
+        if (this.state.selectedMovie?.id !== movie.id || this.state.selectedMovie?.type !== movie.type) return;
+        const { cast, crew } = credits;
 
-        if (!cast.length) {
+        if (!cast.length && !crew.length) {
             this.elements.castSection.classList.add("hidden");
             return;
         }
 
+        this.elements.castTitle.hidden = !cast.length;
+        this.elements.castCarousel.hidden = !cast.length;
+        this.elements.crewSection.classList.toggle("hidden", !crew.length);
         this.elements.castRow.innerHTML = "";
         cast.forEach(person => {
             const card = document.createElement("div");
@@ -738,6 +895,27 @@ const Watch = {
             `;
             this.elements.castRow.appendChild(card);
         });
+        this.elements.crewRow.replaceChildren();
+        crew.forEach(credit => {
+            const card = document.createElement("div");
+            card.className = "crew-credit";
+            card.setAttribute("role", "listitem");
+
+            const role = document.createElement("span");
+            role.className = "crew-credit-role";
+            role.textContent = credit.label;
+
+            const names = document.createElement("span");
+            names.className = "crew-credit-names";
+            names.textContent = credit.names.length > 3
+                ? `${credit.names.slice(0, 3).join(", ")} +${credit.names.length - 3}`
+                : credit.names.join(", ");
+
+            card.append(role, names);
+            this.elements.crewRow.appendChild(card);
+        });
+        this.updateDetailsScrollControls(this.elements.castRow.closest(".details-carousel"));
+        this.updateDetailsScrollControls(this.elements.crewRow.closest(".details-carousel"));
     },
 
     loadRelated: async function(movie) {
@@ -759,6 +937,7 @@ const Watch = {
 
         this.elements.relatedRow.innerHTML = "";
         related.forEach(item => this.elements.relatedRow.appendChild(this.createMovieCard(item)));
+        this.updateDetailsScrollControls(this.elements.relatedRow.closest(".details-carousel"));
     },
 
     loadProviders: function(movie) {
@@ -770,7 +949,7 @@ const Watch = {
 
         this.providers.forEach(provider => {
             const item = document.createElement("button");
-            item.className = "provider-item";
+            item.className = "provider-item ui-menu__item";
             if (provider.id === saved) item.classList.add("selected");
             item.innerHTML = `
                 <span>${provider.name}</span>
@@ -780,6 +959,7 @@ const Watch = {
                 localStorage.setItem("blurProvider", provider.id);
                 this.elements.providerCurrentName.textContent = provider.name;
                 dropdown.classList.remove("open");
+                this.elements.providerCurrent.setAttribute("aria-expanded", "false");
                 this.loadProviders(movie);
             };
             dropdown.appendChild(item);
@@ -787,13 +967,59 @@ const Watch = {
     },
 
     setupDetails: function() {
-        this.elements.seasonCurrent.onclick = () => this.elements.seasonDropdown.classList.toggle("open");
-        this.elements.providerCurrent.onclick = () => this.elements.providerDropdown.classList.toggle("open");
+        this.elements.seasonCurrent.onclick = () => {
+            const open = !this.elements.seasonDropdown.classList.contains("open");
+            this.elements.seasonDropdown.classList.toggle("open", open);
+            this.elements.seasonCurrent.setAttribute("aria-expanded", String(open));
+        };
+        this.elements.providerCurrent.onclick = () => {
+            const open = !this.elements.providerDropdown.classList.contains("open");
+            this.elements.providerDropdown.classList.toggle("open", open);
+            this.elements.providerCurrent.setAttribute("aria-expanded", String(open));
+        };
+
+        this.setupDetailsScrollControls();
 
         document.addEventListener("click", (e) => {
-            if (!e.target.closest(".provider-selector")) this.elements.providerDropdown.classList.remove("open");
-            if (!e.target.closest(".season-selector")) this.elements.seasonDropdown.classList.remove("open");
+            if (!e.target.closest(".provider-selector")) {
+                this.elements.providerDropdown.classList.remove("open");
+                this.elements.providerCurrent.setAttribute("aria-expanded", "false");
+            }
+            if (!e.target.closest(".season-selector")) {
+                this.elements.seasonDropdown.classList.remove("open");
+                this.elements.seasonCurrent.setAttribute("aria-expanded", "false");
+            }
         });
+    },
+
+    setupDetailsScrollControls: function() {
+        document.querySelectorAll(".details-carousel").forEach(wrapper => {
+            const scroller = wrapper.querySelector(".details-horizontal-scroll");
+            if (!scroller) return;
+            wrapper.querySelectorAll("[data-scroll-step]").forEach(button => {
+                button.addEventListener("click", () => {
+                    const distance = Math.max(scroller.clientWidth * .82, 200);
+                    scroller.scrollBy({ left: distance * Number(button.dataset.scrollStep), behavior: "smooth" });
+                });
+            });
+            scroller.addEventListener("scroll", () => this.updateDetailsScrollControls(wrapper), { passive: true });
+            this.updateDetailsScrollControls(wrapper);
+        });
+
+        window.addEventListener("resize", () => {
+            document.querySelectorAll(".details-carousel").forEach(wrapper => this.updateDetailsScrollControls(wrapper));
+        }, { passive: true });
+    },
+
+    updateDetailsScrollControls: function(wrapper) {
+        if (!wrapper) return;
+        const scroller = wrapper.querySelector(".details-horizontal-scroll");
+        if (!scroller) return;
+        const [leftButton, rightButton] = wrapper.querySelectorAll("[data-scroll-step]");
+        const canScroll = scroller.scrollWidth > scroller.clientWidth + 2;
+        wrapper.classList.toggle("is-scrollable", canScroll);
+        if (leftButton) leftButton.disabled = !canScroll || scroller.scrollLeft <= 2;
+        if (rightButton) rightButton.disabled = !canScroll || scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 2;
     },
 
     /* =========================
@@ -801,34 +1027,252 @@ const Watch = {
     ========================= */
     searchTimer: null,
 
-    searchMedia: async function(query) {
-        if (!query.trim()) { this.loadRows(); return; }
-        const data = await this.api(`/search/multi?query=${encodeURIComponent(query)}`);
-        if (!data || !data.results) return;
-        const results = data.results
-            .filter(item => item.media_type === "movie" || item.media_type === "tv")
-            .map(item => this.formatMedia(item));
-        this.showSearchResults(results);
+    updateSearchContext: function() {
+        const labels = {
+            home: { placeholder: "Search movies and shows", aria: "Search movies and TV shows" },
+            movies: { placeholder: "Search movies", aria: "Search movies" },
+            tv: { placeholder: "Search TV shows", aria: "Search TV shows" },
+            anime: { placeholder: "Search anime", aria: "Search anime" }
+        };
+        const context = labels[this.state.tab] || labels.home;
+        this.elements.search.placeholder = context.placeholder;
+        this.elements.search.setAttribute("aria-label", context.aria);
     },
 
-    showSearchResults: function(results) {
+    searchMedia: async function(query, options = {}) {
+        const cleanQuery = query.trim();
+        const requestId = this._searchRequestId = (this._searchRequestId || 0) + 1;
+        this.state.searchQuery = cleanQuery;
+        this._activeSuggestionIndex = -1;
+        if (!cleanQuery) {
+            this.closeSearchSuggestions();
+            this.loadRows();
+            return;
+        }
+        if (options.hideSuggestions) this.closeSearchSuggestions();
+        const tab = this.state.tab;
+        const categoryLabel = tab === "movies" ? "movies" : tab === "tv" ? "TV shows" : tab === "anime" ? "anime" : "movies and shows";
+        this.elements.rows.innerHTML = `
+            <div class="watch-empty-state" role="status"><div><strong>Searching</strong><p>Finding ${categoryLabel}…</p></div></div>
+        `;
+        const encodedQuery = encodeURIComponent(cleanQuery);
+        const endpoint = tab === "movies"
+            ? `/search/movie?query=${encodedQuery}`
+            : tab === "tv"
+                ? `/search/tv?query=${encodedQuery}`
+                : `/search/multi?query=${encodedQuery}`;
+        const data = await this.api(endpoint);
+        if (requestId !== this._searchRequestId) return;
+        if (!data || !data.results) {
+            if (!options.hideSuggestions) this.showSearchSuggestionStatus("Suggestions couldn’t load");
+            this.showSearchMessage("Search couldn’t load", "Check your connection and try again.", cleanQuery, true);
+            return;
+        }
+        const results = data.results
+            .filter(item => {
+                const type = item.media_type || (item.title ? "movie" : "tv");
+                if (type !== "movie" && type !== "tv") return false;
+                if (tab === "movies") return type === "movie";
+                if (tab === "tv") return type === "tv";
+                if (tab === "anime") return (item.genre_ids || []).includes(16) && item.original_language === "ja" && this.animeContentFilter.allows(item);
+                return true;
+            })
+            .map(item => this.formatMedia(item))
+            .filter(Boolean);
+        if (!options.hideSuggestions) this.showSearchSuggestions(results.slice(0, 6), cleanQuery);
+        this.showSearchResults(results, cleanQuery);
+    },
+
+    showSearchSuggestions: function(results, query) {
+        const panel = document.querySelector("#watchSearchSuggestions");
+        if (!panel || query !== this.elements.search.value.trim()) return;
+        this._searchSuggestions = results;
+        this._suggestionQuery = query;
+        this._activeSuggestionIndex = -1;
+        panel.replaceChildren();
+
+        if (!results.length) {
+            const empty = document.createElement("div");
+            empty.className = "watch-search-suggestion-empty";
+            empty.textContent = `No matches for “${query}”`;
+            panel.appendChild(empty);
+        } else {
+            results.forEach((movie, index) => {
+                const option = document.createElement("div");
+                option.className = "watch-search-suggestion";
+                option.id = `watchSearchSuggestion${index}`;
+                option.setAttribute("role", "option");
+                option.setAttribute("aria-selected", "false");
+                option.dataset.suggestionIndex = String(index);
+
+                const image = document.createElement("img");
+                image.src = movie.poster || "assets/no-poster.png";
+                image.alt = "";
+                image.loading = "lazy";
+                image.onerror = () => { image.src = "assets/no-poster.png"; };
+
+                const copy = document.createElement("span");
+                copy.className = "watch-search-suggestion-copy";
+                const title = document.createElement("strong");
+                title.textContent = movie.title;
+                const meta = document.createElement("span");
+                meta.textContent = [movie.type === "tv" ? "TV show" : "Movie", movie.year].filter(Boolean).join(" · ");
+                copy.append(title, meta);
+                option.append(image, copy);
+                option.addEventListener("click", () => this.selectSearchSuggestion(index));
+                panel.appendChild(option);
+            });
+        }
+
+        panel.hidden = false;
+        this.elements.search.setAttribute("aria-expanded", "true");
+        this.elements.search.removeAttribute("aria-activedescendant");
+    },
+
+    showSearchSuggestionStatus: function(message) {
+        const panel = document.querySelector("#watchSearchSuggestions");
+        if (!panel) return;
+        this._suggestionQuery = "";
+        panel.replaceChildren();
+        const status = document.createElement("div");
+        status.className = "watch-search-suggestion-empty";
+        status.textContent = message;
+        panel.appendChild(status);
+        panel.hidden = false;
+        this.elements.search.setAttribute("aria-expanded", "true");
+        this.elements.search.removeAttribute("aria-activedescendant");
+    },
+
+    closeSearchSuggestions: function() {
+        const panel = document.querySelector("#watchSearchSuggestions");
+        if (panel) panel.hidden = true;
+        this.elements.search?.setAttribute("aria-expanded", "false");
+        this.elements.search?.removeAttribute("aria-activedescendant");
+        this._activeSuggestionIndex = -1;
+    },
+
+    moveSearchSuggestion: function(direction) {
+        const panel = document.querySelector("#watchSearchSuggestions");
+        const options = panel ? [...panel.querySelectorAll("[role=option]")] : [];
+        if (!options.length) return;
+        const next = this._activeSuggestionIndex + direction;
+        this._activeSuggestionIndex = (next + options.length) % options.length;
+        options.forEach((option, index) => {
+            const selected = index === this._activeSuggestionIndex;
+            option.setAttribute("aria-selected", String(selected));
+            option.classList.toggle("active", selected);
+        });
+        const active = options[this._activeSuggestionIndex];
+        this.elements.search.setAttribute("aria-activedescendant", active.id);
+        active.scrollIntoView({ block: "nearest" });
+    },
+
+    selectSearchSuggestion: async function(index) {
+        const movie = this._searchSuggestions?.[index];
+        if (!movie) return;
+        clearTimeout(this.searchTimer);
+        this._searchRequestId = (this._searchRequestId || 0) + 1;
+        this.closeSearchSuggestions();
+        this.elements.search.value = movie.title;
+        this.state.searchQuery = movie.title;
+        this.openDetails(await this.getDetails(movie));
+    },
+
+    showSearchResults: function(results, query = "") {
         this.elements.rows.innerHTML = "";
+        if (!results.length) {
+            const category = this.state.tab === "movies" ? "movies" : this.state.tab === "tv" ? "TV shows" : this.state.tab === "anime" ? "anime" : "movies or shows";
+            this.showSearchMessage("No matches found", `No ${category} matched “${query}”.`, query);
+            return;
+        }
         const section = document.createElement("section");
         section.className = "watch-row search-results";
-        section.innerHTML = `<div class="row-title"><h2>Search Results</h2></div><div class="row-scroll"></div>`;
+        section.innerHTML = `<div class="row-title"><h2>Search Results</h2><span class="watch-result-count"></span></div><div class="row-scroll"></div>`;
+        const count = section.querySelector(".watch-result-count");
+        count.textContent = `${results.length} ${results.length === 1 ? "result" : "results"}`;
+        count.setAttribute("aria-label", `Search for ${query}: ${count.textContent}`);
         const container = section.querySelector(".row-scroll");
         results.forEach(movie => container.appendChild(this.createMovieCard(movie)));
         this.elements.rows.appendChild(section);
     },
 
+    showSearchMessage: function(title, message, query = "", retry = false) {
+        const state = document.createElement("div");
+        state.className = "watch-empty-state";
+        state.setAttribute("role", "status");
+        const copy = document.createElement("div");
+        const heading = document.createElement("strong");
+        const description = document.createElement("p");
+        heading.textContent = title;
+        description.textContent = message;
+        copy.append(heading, description);
+        state.appendChild(copy);
+        if (retry) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "Try again";
+            button.addEventListener("click", () => this.searchMedia(query));
+            state.appendChild(button);
+        }
+        this.elements.rows.replaceChildren(state);
+    },
+
     setupSearch: function() {
         const input = this.elements.search;
         if (!input) return;
+        this.updateSearchContext();
         input.addEventListener("input", () => {
             clearTimeout(this.searchTimer);
-            this.searchTimer = setTimeout(() => this.searchMedia(input.value), 500);
+            this._searchRequestId = (this._searchRequestId || 0) + 1;
+            this._activeSuggestionIndex = -1;
+            if (!input.value.trim()) {
+                this.state.searchQuery = "";
+                this._suggestionQuery = "";
+                this._searchSuggestions = [];
+                this.closeSearchSuggestions();
+                this.loadRows();
+                return;
+            }
+            this.showSearchSuggestionStatus("Searching…");
+            this.searchTimer = setTimeout(() => this.searchMedia(input.value), 320);
         });
-        input.addEventListener("keydown", e => { if (e.key === "Enter") this.searchMedia(input.value); });
+        input.addEventListener("focus", () => {
+            if (input.value.trim() && input.value.trim() === this._suggestionQuery && this._searchSuggestions?.length) {
+                const panel = document.querySelector("#watchSearchSuggestions");
+                if (panel) {
+                    panel.hidden = false;
+                    input.setAttribute("aria-expanded", "true");
+                }
+            }
+        });
+        input.addEventListener("keydown", event => {
+            const suggestions = document.querySelector("#watchSearchSuggestions");
+            if (event.key === "ArrowDown" && suggestions && !suggestions.hidden) {
+                event.preventDefault();
+                this.moveSearchSuggestion(1);
+                return;
+            }
+            if (event.key === "ArrowUp" && suggestions && !suggestions.hidden) {
+                event.preventDefault();
+                this.moveSearchSuggestion(-1);
+                return;
+            }
+            if (event.key === "Escape") {
+                this.closeSearchSuggestions();
+                return;
+            }
+            if (event.key === "Enter") {
+                event.preventDefault();
+                if (this._activeSuggestionIndex >= 0) this.selectSearchSuggestion(this._activeSuggestionIndex);
+                else {
+                    clearTimeout(this.searchTimer);
+                    this.searchMedia(input.value, { hideSuggestions: true });
+                }
+            }
+        });
+        document.addEventListener("click", event => {
+            if (!event.target.closest(".watch-search")) this.closeSearchSuggestions();
+        });
     },
 
     /* =========================
@@ -843,6 +1287,13 @@ const Watch = {
         // Store the current movie and URL for popout
         this._currentMovie = movie;
         this._currentUrl = url;
+        const episodeLabel = movie.type === "tv"
+            ? `Season ${this.state.selectedSeason}, episode ${this.state.selectedEpisode}`
+            : "";
+        window.BlurPresence?.setActivity("movie", {
+            title: movie.title,
+            subtitle: episodeLabel
+        });
 
         // Set poster
         if (this.elements.playerPoster) {
@@ -861,6 +1312,11 @@ const Watch = {
 
         // Load iframe
         const frame = this.elements.playerFrame;
+        if (String(url).includes("/stigstream/") || String(url).includes("provider=stigstream")) {
+            frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-presentation");
+        } else {
+            frame.removeAttribute("sandbox");
+        }
         frame.src = url;
 
         // Store original URL for reload
@@ -918,6 +1374,7 @@ const Watch = {
         if (this._monitorInterval) clearInterval(this._monitorInterval);
         this._currentMovie = null;
         this._currentUrl = null;
+        window.BlurPresence?.clearActivity("movie");
     },
 
     setupPlayer: function() {
@@ -957,7 +1414,6 @@ const Watch = {
             const original = frame.dataset.originalUrl || frame.src;
             if (original && original !== "about:blank") {
                 frame.src = original;
-                console.log("🔄 Reloaded");
             }
         };
 
@@ -970,7 +1426,6 @@ const Watch = {
             if (url && url !== "about:blank" && url !== "") {
                 // Open in new tab
                 window.open(url, "_blank");
-                console.log("📤 Opened in new tab:", url);
             } else {
                 console.warn("No URL to popout");
             }

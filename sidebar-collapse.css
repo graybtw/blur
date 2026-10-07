@@ -1,0 +1,429 @@
+/* Compact navigation rail. This is intentionally a small layer over the
+   existing sidebar so every tab, route and nav handler keeps working. */
+
+:root{
+  --sidebar-rail:68px;
+  --sidebar-wide:216px;
+}
+
+.sidebar{
+  width:var(--sidebar-rail);
+  padding:16px 10px;
+  overflow:visible;
+  /* Keep the rail and its hover labels above Browser's agreement layer. */
+  z-index:80;
+  transition:width var(--speed-slow) var(--curve), padding var(--speed-slow) var(--curve);
+}
+
+.sidebar-resize-handle{
+  position:absolute;
+  top:0;
+  right:-6px;
+  z-index:24;
+  width:12px;
+  height:100%;
+  cursor:col-resize;
+  touch-action:none;
+  user-select:none;
+  outline:none;
+}
+
+html.sidebar-resize-disabled .sidebar-resize-handle{
+  display:none;
+}
+
+.sidebar-resize-handle::after{
+  position:absolute;
+  top:calc(50% - 18px);
+  left:5px;
+  width:2px;
+  height:36px;
+  border-radius:2px;
+  background:var(--border-strong);
+  content:"";
+  opacity:0;
+  transition:opacity var(--speed) var(--curve),background var(--speed) var(--curve);
+}
+
+.sidebar-resize-handle:hover::after,
+.sidebar-resize-handle:focus-visible::after{
+  background:var(--muted-dim);
+  opacity:.65;
+}
+
+html.sidebar-resizing,
+html.sidebar-resizing *{
+  cursor:col-resize !important;
+  user-select:none !important;
+}
+
+html.sidebar-resizing .sidebar,
+html.sidebar-resizing #gamesPlayerView,
+html.sidebar-resizing .player-modal,
+html.sidebar-resizing .details-back-btn{
+  transition:none !important;
+}
+
+.side-content{
+  overflow:visible;
+}
+
+.brand{
+  height:34px;
+  justify-content:center;
+  padding:0;
+  margin:0 0 16px;
+  position:relative;
+}
+
+.brand-name{
+  display:block;
+  width:34px;
+  height:34px;
+  border:1px solid var(--border-strong);
+  border-radius:var(--radius-md);
+  font-family:var(--font-body);
+  font-size:0;
+  font-weight:600;
+  line-height:32px;
+  letter-spacing:-.04em;
+  text-align:center;
+  color:var(--text);
+  overflow:hidden;
+}
+
+.brand-name::before{
+  content:"b";
+  font-size:17px;
+  color:var(--accent);
+}
+
+.brand-dot,
+.brand-tag{
+  display:none;
+}
+
+nav{
+  gap:6px;
+}
+
+nav a,
+.bottom > a,
+.acct-bar > a,
+.legal-toggle{
+  width:48px;
+  height:42px;
+  margin:0 auto;
+  justify-content:center;
+  gap:0;
+  padding:0;
+  border-radius:var(--radius-md);
+  color:var(--muted);
+  position:relative;
+}
+
+nav a span,
+.acct-nav-text,
+.legal-toggle span,
+.legal-row{
+  display:none;
+}
+
+nav a .icon-slot,
+.acct-bar .icon-slot{
+  width:18px;
+  height:18px;
+}
+
+nav a:hover,
+.acct-bar > a:hover{
+  background:var(--surface);
+  color:var(--text);
+}
+
+nav a.active,
+.bottom a.active{
+  background:var(--surface-2);
+  color:var(--text);
+}
+
+nav a.active::before,
+.bottom a.active::before{
+  left:-10px;
+  right:auto;
+  top:10px;
+  bottom:10px;
+  width:2px;
+  border-radius:0 2px 2px 0;
+  background:var(--accent);
+}
+
+.bottom{
+  padding-top:16px;
+  overflow:visible;
+}
+
+.acct-bar{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+
+.sidebar .acct-bar > .acct-nav{
+  flex:0 0 auto;
+  width:48px;
+  min-width:48px;
+  height:42px;
+  padding:0;
+  justify-content:center;
+}
+
+.sidebar .acct-bar > .acct-settings{
+  flex:0 0 auto;
+  width:48px;
+  height:42px;
+  padding:0;
+}
+
+.sidebar .acct-nav-text{
+  display:none;
+}
+
+.acct-settings svg{
+  width:18px;
+  height:18px;
+}
+
+.legal-container{
+  display:none;
+}
+
+nav a span.nav-mention-dot{
+  display:block;
+  position:absolute;
+  top:6px;
+  right:6px;
+  margin-left:0;
+}
+
+/* Labels stay available without widening the rail. */
+html:not(.sidebar-expanded) nav a[data-label]::after,
+html:not(.sidebar-expanded) .acct-bar a[data-label]::after{
+  content:attr(data-label);
+  position:absolute;
+  left:calc(100% + 10px);
+  top:50%;
+  transform:translateY(-50%) translateX(-4px);
+  opacity:0;
+  pointer-events:none;
+  white-space:nowrap;
+  padding:7px 9px;
+  border:1px solid var(--border-strong);
+  border-radius:var(--radius-sm);
+  background:var(--surface-overlay);
+  color:var(--text);
+  font-size:11px;
+  line-height:1;
+  box-shadow:var(--shadow-overlay);
+  transition:opacity var(--speed) var(--curve), transform var(--speed) var(--curve);
+  z-index:90;
+}
+
+html:not(.sidebar-expanded) nav a[data-label]:hover::after,
+html:not(.sidebar-expanded) nav a[data-label]:focus-visible::after,
+html:not(.sidebar-expanded) .acct-bar a[data-label]:hover::after,
+html:not(.sidebar-expanded) .acct-bar a[data-label]:focus-visible::after{
+  opacity:1;
+  transform:translateY(-50%) translateX(0);
+}
+
+html.sidebar-expanded .sidebar{
+  width:var(--sidebar-wide);
+  padding:22px 14px;
+}
+
+html.sidebar-expanded .brand{
+  height:auto;
+  justify-content:flex-start;
+  padding:0 6px;
+  margin:0 0 8px;
+}
+
+html.sidebar-expanded .brand-name{
+  width:auto;
+  height:auto;
+  border:0;
+  border-radius:0;
+  font-family:var(--font-display);
+  font-size:22px;
+  line-height:normal;
+  letter-spacing:-.01em;
+  text-align:left;
+}
+
+html.sidebar-expanded .brand-name::before{
+  display:none;
+}
+
+html.sidebar-expanded .brand-tag{
+  display:block;
+}
+
+html.sidebar-expanded .brand-dot{
+  display:block;
+}
+
+html.sidebar-expanded nav{
+  gap:2px;
+}
+
+html.sidebar-expanded nav a,
+html.sidebar-expanded .bottom > a,
+html.sidebar-expanded .acct-bar > a,
+html.sidebar-expanded .legal-toggle{
+  width:auto;
+  height:40px;
+  margin:0;
+  justify-content:flex-start;
+  gap:12px;
+  padding:0 10px;
+}
+
+html.sidebar-expanded nav a span,
+html.sidebar-expanded .acct-nav-text,
+html.sidebar-expanded .legal-toggle span{
+  display:block;
+}
+
+html.sidebar-expanded .acct-nav-text{
+  display:flex;
+}
+
+html.sidebar-expanded .acct-bar{
+  flex-direction:row;
+  align-items:center;
+  gap:6px;
+}
+
+html.sidebar-expanded .sidebar .acct-bar > .acct-nav{
+  flex:1;
+  width:auto;
+  min-width:0;
+  height:auto;
+  padding:6px 10px;
+  justify-content:flex-start;
+}
+
+html.sidebar-expanded .sidebar .acct-bar > .acct-settings{
+  flex:0 0 36px;
+  width:36px;
+  height:36px;
+  padding:0;
+  align-items:center;
+  justify-content:center;
+}
+
+/* The expanded nav reveals text spans, but the Browser lock remains a
+   compact circular badge anchored to the icon, not a text row. */
+html.sidebar-expanded .sidebar nav a .icon-slot .lock-badge{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+html.sidebar-expanded .legal-container{
+  display:block;
+}
+
+html.sidebar-expanded .legal-row{
+  display:flex;
+}
+
+html.sidebar-expanded nav a.active::before,
+html.sidebar-expanded .bottom a.active::before{
+  left:-14px;
+  top:8px;
+  bottom:8px;
+  width:2px;
+}
+
+@media (max-width:960px){
+  .sidebar,
+  html.sidebar-expanded .sidebar{
+    width:100%;
+    padding:8px 6px;
+  }
+
+  .side-content{
+    flex-direction:row;
+    align-items:center;
+    height:100%;
+  }
+
+  .brand,
+  .brand-tag,
+  .legal-row{
+    display:none;
+  }
+
+  nav{
+    flex-direction:row;
+    flex:1;
+    justify-content:space-around;
+    gap:0;
+  }
+
+  .bottom{
+    margin-top:0;
+    padding-top:0;
+  }
+
+  .acct-bar{
+    flex-direction:row;
+    gap:0;
+  }
+
+  nav a span,
+  .bottom a span,
+  html.sidebar-expanded nav a span,
+  html.sidebar-expanded .bottom a span,
+  html.sidebar-expanded .acct-nav-text,
+  .sidebar .acct-nav-text{
+    display:none;
+  }
+
+  nav a,
+  .bottom > a,
+  .acct-bar > a,
+  html.sidebar-expanded nav a,
+  html.sidebar-expanded .bottom > a,
+  html.sidebar-expanded .acct-bar > a{
+    width:auto;
+    height:auto;
+    margin:0;
+    padding:8px;
+    justify-content:center;
+  }
+
+  .sidebar-resize-handle{
+    display:none;
+  }
+
+  nav a span.nav-mention-dot{
+    display:block;
+  }
+
+  html.sidebar-expanded .sidebar nav a span.nav-mention-dot{
+    display:block;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sidebar,
+  .sidebar-resize-handle::after,
+  nav a[data-label]::after,
+  .acct-bar a[data-label]::after{
+    transition:none;
+  }
+}

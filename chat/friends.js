@@ -16,21 +16,29 @@ const Friends = {
   _rows: [],
   _channel: null,
   _listeners: [],
+  _generation: 0,
 
   /** Load all friendships involving this user and start listening for live changes. */
   async init(userId){
+    // Auth can switch accounts without a reload. Remove the previous
+    // subscription/state before loading the new user's friendships so rows
+    // and realtime callbacks cannot leak across sessions.
+    this.teardown();
+    const generation = ++this._generation;
     this._userId = userId;
     const { data, error } = await sb
       .from("friendships")
       .select("*")
       .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`);
     if (error) throw error;
+    if (generation !== this._generation) return;
     this._rows = data || [];
-    this._subscribe();
+    this._subscribe(generation);
   },
 
   /** Call on sign-out to stop listening and clear state. */
   teardown(){
+    this._generation++;
     if (this._channel) {
       sb.removeChannel(this._channel);
       this._channel = null;
@@ -45,17 +53,28 @@ const Friends = {
     this._listeners.push(cb);
   },
 
+  offChange(cb){
+    this._listeners = this._listeners.filter(listener => listener !== cb);
+  },
+
   _notify(){
     this._listeners.forEach(fn => {
       try { fn(); } catch (err) { console.error("Friends listener failed:", err); }
     });
   },
 
-  _subscribe(){
+  _subscribe(generation = this._generation){
     this._channel = sb
       .channel(`friendships:${this._userId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, (payload) => {
-        const row = payload.eventType === "DELETE" ? payload.old : payload.new;
+        if (generation !== this._generation) return;
+        if (!payload?.eventType) return;
+        const raw = payload.eventType === "DELETE" ? payload.old : payload.new;
+        // DELETE/UPDATE payloads can contain only the primary key when the
+        // table does not use REPLICA IDENTITY FULL. Merge the event with the
+        // row we already have so a remote unfriend still removes immediately.
+        const existing = raw?.id ? this._rows.find(item => item.id === raw.id) : null;
+        const row = existing ? { ...existing, ...raw } : raw;
         if (!row || (row.requester_id !== this._userId && row.addressee_id !== this._userId)) return;
 
         if (payload.eventType === "DELETE") {
@@ -108,7 +127,12 @@ const Friends = {
       .select()
       .single();
     if (error) throw error;
-    this._rows.push(data);
+    // The INSERT is also delivered by the friendships realtime channel.
+    // Upsert locally so the optimistic result and the realtime echo cannot
+    // create duplicate rows in Friends/Requests after sending a request.
+    const existingIndex = this._rows.findIndex(row => row.id === data?.id);
+    if (existingIndex >= 0) this._rows[existingIndex] = data;
+    else this._rows.push(data);
     this._notify();
     return data;
   },
@@ -138,10 +162,11 @@ const Friends = {
   async search(query){
     const q = query.trim();
     if (!q) return [];
+    const like = q.replace(/[\\%_]/g, ch => "\\" + ch);
     const { data, error } = await sb
       .from("profiles")
       .select("id, username, display_name, avatar_url")
-      .ilike("username", `%${q}%`)
+      .ilike("username", `%${like}%`)
       .neq("id", this._userId)
       .limit(20);
     if (error) throw error;
@@ -152,14 +177,15 @@ const Friends = {
   // UI: renders into the #friends-view container in chat.js
   // ---------------------------------------------------------
 
-  async renderBody(container, tab){
+  async renderBody(container, tab, isCurrent = () => true){
     this._renderToken = (this._renderToken || 0) + 1;
     const token = this._renderToken;
+    if (!isCurrent()) return;
     container.innerHTML = `<div class="friends-loading">Loading…</div>`;
 
     if (tab === "all") {
       const items = await this._withProfiles(this.friends());
-      if (token !== this._renderToken) return;
+      if (token !== this._renderToken || !isCurrent()) return;
       container.innerHTML = items.length
         ? `<div class="friends-list">${items.map(({ row, other }) => this._friendRowHtml(row, other)).join("")}</div>`
         : `<div class="friends-empty">No friends yet — try the Add Friend tab.</div>`;
@@ -169,7 +195,7 @@ const Friends = {
         this._withProfiles(this.incoming()),
         this._withProfiles(this.outgoing())
       ]);
-      if (token !== this._renderToken) return;
+      if (token !== this._renderToken || !isCurrent()) return;
       const nothing = !incomingItems.length && !outgoingItems.length;
       container.innerHTML = `
         ${incomingItems.length ? `
@@ -184,8 +210,9 @@ const Friends = {
       `;
 
     } else if (tab === "add") {
+      if (!isCurrent()) return;
       container.innerHTML = `
-        <div class="friends-search-wrap">
+        <div class="friends-search-wrap ui-field">
           <input type="text" class="friends-search-input" placeholder="Search by username…" autocomplete="off">
         </div>
         <div class="friends-search-results"></div>
@@ -193,17 +220,21 @@ const Friends = {
       const input = container.querySelector(".friends-search-input");
       const results = container.querySelector(".friends-search-results");
       let debounceTimer;
+      let searchToken = 0;
       input.addEventListener("input", () => {
         clearTimeout(debounceTimer);
+        const searchSeq = ++searchToken;
         const q = input.value.trim();
         if (!q) { results.innerHTML = ""; return; }
         debounceTimer = setTimeout(async () => {
           try {
             const found = await this.search(q);
+            if (searchSeq !== searchToken || input.value.trim() !== q || this._renderToken !== token || !isCurrent()) return;
             results.innerHTML = found.length
               ? found.map(p => this._searchRowHtml(p)).join("")
               : `<div class="friends-empty">No users found.</div>`;
           } catch (err) {
+            if (searchSeq !== searchToken || this._renderToken !== token || !isCurrent()) return;
             console.error("Friend search failed:", err);
           }
         }, 250);
@@ -218,14 +249,27 @@ const Friends = {
   },
 
   async _withProfiles(rows){
-    return Promise.all(rows.map(async row => ({ row, other: await Profiles.getById(this.otherId(row)) })));
+    const list = Array.isArray(rows) ? rows : [];
+    await Profiles.prefetch(list.map(row => this.otherId(row)));
+    const hydrated = await Promise.all(list.map(async row => {
+      try {
+        const id = this.otherId(row);
+        return { row, other: Profiles.cache.get(id) || await Profiles.getById(id) };
+      } catch (error) {
+        // One deleted/temporarily unavailable profile should not blank the
+        // entire Friends view. Keep the row so the UI can simply omit it.
+        console.warn("Friend profile unavailable:", error?.message || error);
+        return { row, other: null };
+      }
+    }));
+    return hydrated.filter(item => item.other);
   },
 
   _friendRowHtml(row, other){
     if (!other) return "";
     return `
       <div class="friend-row">
-        <img class="friend-row-avatar" src="${other.avatar_url}" alt="" data-user="${other.id}">
+        <img class="friend-row-avatar" src="${escapeAttr(Profiles.safeImageUrl(other.avatar_url, other.username || "?"))}" alt="" data-user="${other.id}">
         <div class="friend-row-info" data-user="${other.id}">
           <div class="friend-row-name">${escapeHtml(other.display_name || other.username)}</div>
           <div class="friend-row-username">@${escapeHtml(other.username)}</div>
@@ -248,7 +292,7 @@ const Friends = {
       : `<button type="button" class="friend-row-action friend-row-cancel" data-friend-remove="${row.id}">Cancel</button>`;
     return `
       <div class="friend-row">
-        <img class="friend-row-avatar" src="${other.avatar_url}" alt="" data-user="${other.id}">
+        <img class="friend-row-avatar" src="${escapeAttr(Profiles.safeImageUrl(other.avatar_url, other.username || "?"))}" alt="" data-user="${other.id}">
         <div class="friend-row-info" data-user="${other.id}">
           <div class="friend-row-name">${escapeHtml(other.display_name || other.username)}</div>
           <div class="friend-row-username">@${escapeHtml(other.username)}</div>
@@ -268,7 +312,7 @@ const Friends = {
 
     return `
       <div class="friend-row">
-        <img class="friend-row-avatar" src="${profile.avatar_url}" alt="" data-user="${profile.id}">
+        <img class="friend-row-avatar" src="${escapeAttr(Profiles.safeImageUrl(profile.avatar_url, profile.username || "?"))}" alt="" data-user="${profile.id}">
         <div class="friend-row-info" data-user="${profile.id}">
           <div class="friend-row-name">${escapeHtml(profile.display_name || profile.username)}</div>
           <div class="friend-row-username">@${escapeHtml(profile.username)}</div>
@@ -343,7 +387,7 @@ const Friends = {
     if (userTarget) {
       Profiles.renderProfilePopup(document.getElementById("chat-overlay"), userTarget.dataset.user, {
         isSelf: userTarget.dataset.user === this._userId
-      });
+      }).catch(error => console.error("Profile popup failed:", error));
     }
   }
 };

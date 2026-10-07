@@ -63,6 +63,9 @@ with check (auth.uid() = id);
 create table public.channels (
   id          uuid primary key default gen_random_uuid(),
   name        text unique not null,
+  type        text not null default 'text' check (type in ('text', 'announcement', 'forum')),
+  visibility  text not null default 'public' check (visibility in ('public','staff')),
+  is_log      boolean not null default false,
   created_at  timestamptz not null default now()
 );
 
@@ -74,12 +77,21 @@ to authenticated
 using (true);
 
 -- Default channels
-insert into public.channels (name) values
-  ('global'),
-  ('gaming'),
-  ('movies'),
-  ('ai'),
-  ('announcements');
+insert into public.channels (name, type) values
+  ('global', 'text'),
+  ('gaming', 'text'),
+  ('movies', 'text'),
+  ('suggestions', 'forum'),
+  ('ai', 'text'),
+  ('announcements', 'announcement'),
+  ('updates', 'announcement'),
+  ('sneak-peaks', 'announcement'),
+  ('to-do', 'announcement');
+
+insert into public.channels (name, type, visibility, is_log) values
+  ('logs', 'text', 'staff', true),
+  ('mod-chat', 'text', 'staff', false),
+  ('mod-announcements', 'announcement', 'staff', false);
 
 
 -- =========================================================
@@ -91,6 +103,11 @@ create table public.messages (
   channel_id  uuid not null references public.channels(id) on delete cascade,
   user_id     uuid not null references public.profiles(id) on delete cascade,
   content     text not null check (char_length(content) between 1 and 2000),
+  forum_title text check (forum_title is null or char_length(forum_title) between 1 and 120),
+  is_pinned   boolean not null default false,
+  is_ai       boolean not null default false,
+  ai_model    text,
+  edited_at   timestamptz,
   created_at  timestamptz not null default now()
 );
 
@@ -121,7 +138,13 @@ with check (auth.uid() = user_id);
 --    publication so INSERTs stream to subscribed clients.
 -- =========================================================
 
-alter publication supabase_realtime add table public.messages;
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'messages') then
+    execute 'alter publication supabase_realtime add table public.messages';
+  end if;
+end
+$$;
 
 
 -- =========================================================
@@ -134,7 +157,11 @@ alter table public.profiles add column if not exists display_name text check (ch
 alter table public.profiles add column if not exists pronouns text check (char_length(pronouns) <= 40);
 alter table public.profiles add column if not exists status_message text check (char_length(status_message) <= 60);
 alter table public.profiles add column if not exists accent_color text;
-
+alter table public.profiles add column if not exists badges jsonb not null default '[]'::jsonb;
+alter table public.profiles drop constraint if exists profiles_badges_array_check;
+alter table public.profiles add constraint profiles_badges_array_check
+  check (jsonb_typeof(badges) = 'array');
+notify pgrst, 'reload schema';
 
 -- =========================================================
 -- 6. message_reactions
@@ -191,7 +218,13 @@ using (auth.uid() = user_id);
 --    that just means this line already ran — ignore it.
 -- =========================================================
 
-alter publication supabase_realtime add table public.message_reactions;
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'message_reactions') then
+    execute 'alter publication supabase_realtime add table public.message_reactions';
+  end if;
+end
+$$;
 
 
 -- =========================================================
@@ -205,8 +238,15 @@ alter publication supabase_realtime add table public.message_reactions;
 alter table public.messages
   add column if not exists reply_to_id bigint references public.messages(id) on delete set null;
 
+-- Forum thread membership is separate from an optional message-to-message
+-- reply, so ordinary comments do not all appear to quote the root post.
+alter table public.messages
+  add column if not exists forum_post_id bigint references public.messages(id) on delete cascade;
+
 create index if not exists messages_reply_to_idx
   on public.messages (reply_to_id);
+create index if not exists messages_forum_post_idx
+  on public.messages (forum_post_id, created_at);
 
 
 -- =========================================================
@@ -276,7 +316,13 @@ using (auth.uid() = requester_id or auth.uid() = addressee_id);
 --    that just means this line already ran — ignore it.
 -- =========================================================
 
-alter publication supabase_realtime add table public.friendships;
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'friendships') then
+    execute 'alter publication supabase_realtime add table public.friendships';
+  end if;
+end
+$$;
 
 -- =========================================================
 -- 11. dm_conversations
@@ -294,6 +340,10 @@ create table if not exists public.dm_conversations (
   id                    uuid primary key default gen_random_uuid(),
   user_a                uuid not null references public.profiles(id) on delete cascade,
   user_b                uuid not null references public.profiles(id) on delete cascade,
+  is_group              boolean not null default false,
+  name                  text,
+  bio                   text,
+  created_by            uuid references public.profiles(id) on delete set null,
   created_at            timestamptz not null default now(),
   last_message_at       timestamptz not null default now(),
   user_a_last_read_at   timestamptz not null default now(),
@@ -301,8 +351,10 @@ create table if not exists public.dm_conversations (
   constraint dm_conversations_no_self check (user_a <> user_b)
 );
 
+drop index if exists public.dm_conversations_unique_pair_idx;
 create unique index if not exists dm_conversations_unique_pair_idx
-  on public.dm_conversations (least(user_a,user_b), greatest(user_a,user_b));
+  on public.dm_conversations (least(user_a,user_b), greatest(user_a,user_b))
+  where is_group = false;
 
 create index if not exists dm_conversations_user_a_idx on public.dm_conversations (user_a);
 create index if not exists dm_conversations_user_b_idx on public.dm_conversations (user_b);
@@ -358,6 +410,7 @@ create table if not exists public.dm_messages (
   conversation_id  uuid not null references public.dm_conversations(id) on delete cascade,
   sender_id        uuid not null references public.profiles(id) on delete cascade,
   content          text not null check (char_length(content) between 1 and 2000),
+  edited_at        timestamptz,
   created_at       timestamptz not null default now()
 );
 
@@ -422,18 +475,36 @@ for each row execute function public.bump_dm_conversation_last_message();
 --    that just means this line already ran — ignore it.
 -- =========================================================
 
-alter publication supabase_realtime add table public.dm_conversations;
-alter publication supabase_realtime add table public.dm_messages;
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'dm_conversations') then
+    execute 'alter publication supabase_realtime add table public.dm_conversations';
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'dm_messages') then
+    execute 'alter publication supabase_realtime add table public.dm_messages';
+  end if;
+end
+$$;
 
 -- =========================================================
--- 14. Profile roles (cosmetic badge only)
+-- 14. Profile roles (global permission source)
 --    Not settable by users — no insert/update policy touches
 --    this column from the client. Set it yourself via the
 --    Supabase table editor or SQL editor, e.g.:
 --      update public.profiles set role = 'Owner' where username = 'yourname';
 -- =========================================================
 
-alter table public.profiles add column if not exists role text check (char_length(role) <= 24);
+alter table public.profiles add column if not exists role text not null default 'member' check (role in ('owner','admin','community_manager','moderator','member'));
+
+-- Existing owner profiles receive the built-in developer badge. The client
+-- also derives it from the owner role so the badge remains visible while an
+-- older database is waiting for this migration to be applied.
+update public.profiles
+set badges = case
+  when badges @> '["developer"]'::jsonb then badges
+  else badges || '["developer"]'::jsonb
+end
+where coalesce(role, '') = 'owner';
 
 -- Prevent users from setting their own role via the client update policy.
 create or replace function public.protect_role_column()
@@ -443,8 +514,14 @@ security definer
 set search_path = public
 as $$
 begin
-  if new.role is distinct from old.role then
-    new.role := old.role;
+  -- Normal authenticated client updates cannot change role. SQL editor or
+  -- trusted server-side maintenance (without a user JWT) can assign roles.
+  if auth.uid() is not null then
+    if tg_op = 'INSERT' then
+      new.role := 'member';
+    elsif new.role is distinct from old.role then
+      new.role := old.role;
+    end if;
   end if;
   return new;
 end;
@@ -452,5 +529,5 @@ $$;
 
 drop trigger if exists profiles_protect_role on public.profiles;
 create trigger profiles_protect_role
-before update on public.profiles
+before insert or update on public.profiles
 for each row execute function public.protect_role_column();

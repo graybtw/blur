@@ -1,0 +1,243 @@
+/* ============================================================
+   Blur product cohesion layer
+
+   Small, loaded-last adjustments that keep each tab's identity while
+   sharing the same page rhythm, control chrome, surface language, and
+   feedback states. Feature-specific styles remain in their own files.
+============================================================ */
+
+:root {
+  --site-gutter: clamp(20px, 3vw, 32px);
+  --site-control-border: var(--border-subtle);
+  --site-control-surface: var(--surface-raised);
+}
+
+/* Page rhythm ----------------------------------------------------------- */
+
+.watch-app,
+.games-app {
+  padding: var(--site-gutter);
+}
+
+.music-view {
+  padding: var(--site-gutter) var(--site-gutter) 24px;
+}
+
+.settings-panel,
+.account-panel {
+  width: min(720px, calc(100% - (var(--site-gutter) * 2)));
+}
+
+/* Shared controls ------------------------------------------------------- */
+
+:where(.watch-search, .games-search, .music-search-input,
+        .games-dropdown-btn, .provider-selector, .season-selector,
+        .cloak-select, .panic-input) {
+  border-color: var(--site-control-border);
+  border-radius: var(--radius-md);
+  background: var(--site-control-surface);
+  transition: background var(--speed) var(--ease-standard),
+              border-color var(--speed) var(--ease-standard),
+              box-shadow var(--speed) var(--ease-standard);
+}
+
+:where(.watch-search, .games-search, .music-search-input,
+        .games-dropdown-btn, .provider-selector, .season-selector,
+        .cloak-select, .panic-input):hover {
+  border-color: var(--border-emphasis);
+}
+
+:where(.watch-search, .games-search, .music-search-input,
+        .games-dropdown-btn, .provider-selector, .season-selector,
+        .cloak-select, .panic-input):focus-within,
+:where(.music-search-input, .cloak-select, .panic-input):focus {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+:where(.small-button, .games-player-btn, .player-btn, .music-mode-btn,
+        .hero-info-button, .details-watch, .hero-watch-button) {
+  border-radius: var(--radius-md);
+  transition: background var(--speed) var(--ease-standard),
+              border-color var(--speed) var(--ease-standard),
+              color var(--speed) var(--ease-standard),
+              transform var(--speed) var(--ease-standard),
+              opacity var(--speed) var(--ease-standard);
+}
+
+/* Surface language ------------------------------------------------------ */
+
+:where(.action-primary, .action-card, .acct-card, .song-card,
+        .playlist-card, .watch-hero, .preview-panel) {
+  border-color: var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+:where(.action-primary, .action-card, .acct-card, .song-card,
+        .playlist-card):hover {
+  border-color: var(--border-emphasis);
+  background: var(--surface-selected);
+}
+
+/* Selected navigation uses the same quiet inset edge as active cards. */
+
+:where(nav a.active, .bottom > a.active, .music-nav-btn.active,
+        .ai-sidebar-nav-item.active, .ai-sidebar-item.active) {
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
+
+/* Common popover / menu chrome ----------------------------------------- */
+
+:where(.games-collect-popover, .acct-popover) {
+  border-color: var(--border-emphasis);
+  border-radius: var(--radius-lg);
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-overlay);
+}
+
+/* Feedback states ------------------------------------------------------- */
+
+:where(.music-empty, .games-empty, .watch-load-error, .music-error) {
+  font-family: var(--font-body);
+}
+
+.music-error {
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-md);
+  background: var(--danger-dim);
+  color: var(--text-secondary);
+}
+
+:where(.music-empty, .games-empty) {
+  color: var(--text-tertiary);
+}
+
+/* Keyboard affordances are consistent even for legacy controls. */
+
+:where(.watch-search, .games-search, .music-search-input,
+        .games-dropdown-btn, .provider-selector, .season-selector,
+        .small-button, .player-btn, .games-player-btn):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (max-width: 900px) {
+  :root { --site-gutter: 16px; }
+  .watch-details-view { margin: calc(var(--site-gutter) * -1); }
+}
+
+@media (max-width: 600px) {
+  :root { --site-gutter: 14px; }
+}
+
+@media (max-width: 480px) {
+  :root { --site-gutter: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.watch-search, .games-search, .music-search-input,
+         .games-dropdown-btn, .provider-selector, .season-selector,
+         .small-button, .player-btn, .games-player-btn, .music-mode-btn) {
+    transition: none;
+  }
+}
+
+html.performance-mode :where(.watch-search, .games-search,
+  .music-search-input, .games-dropdown-btn, .provider-selector,
+  .season-selector, .small-button, .player-btn, .games-player-btn,
+  .music-mode-btn) {
+  transition: none;
+}
+
+/* Search uses one quiet vector mark everywhere. Keeping the stroke and
+   sizing here prevents legacy tabs from drifting into different icon styles. */
+
+:is(.search-icon, .games-search-icon, .music-search-wrap, .ai-models-search > span) {
+  color: var(--text-tertiary);
+}
+
+:is(.search-icon svg, .games-search-icon svg, .music-search-wrap svg,
+        .ai-models-search svg) {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Chat's three destinations are one compact control, not a second nav
+   language. The active state uses the same inset edge as site controls. */
+
+.chat-app .sidebar-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 3px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.chat-app .sidebar-tab {
+  flex: 1 1 0;
+  height: 32px;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font: 500 var(--text-xs)/1 var(--font-body);
+  letter-spacing: 0;
+}
+
+.chat-app .sidebar-tab:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.chat-app .sidebar-tab.active {
+  background: var(--surface-selected);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.chat-app .sidebar-tab.active::after,
+.chat-app .sidebar-tab.active::before {
+  content: none;
+}
+
+.chat-app .sidebar-tab-icon {
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+.chat-app .sidebar-tab.active .sidebar-tab-icon {
+  color: var(--accent);
+}
+
+.chat-app :where(.friends-badge, .mentions-badge) {
+  margin-left: 0;
+}
+
+/* Chat and AI keep their different heights, but share one Blur composer
+   shell so message entry feels like the same product in both places. */
+
+:is(.chat-composer, .ai-composer) {
+  border: 1px solid var(--border-emphasis);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+:is(.chat-composer, .ai-composer):focus-within {
+  border-color: var(--accent);
+  background: var(--surface-2);
+  box-shadow: var(--focus-ring);
+}
+
+.chat-composer {
+  padding-left: 14px;
+}

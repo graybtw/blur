@@ -1,0 +1,68 @@
+.ai-file-input { display: none; }
+.ai-attachment-tray { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.ai-attachment-chip { display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 260px; padding: 5px 7px 5px 6px; background: var(--surface-2, rgba(255,255,255,.06)); border: 1px solid var(--border-subtle, rgba(255,255,255,.12)); border-radius: 7px; color: var(--text-primary, #f4f4f4); }
+.ai-attachment-chip > svg { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.ai-attachment-thumb { width: 28px; height: 28px; object-fit: cover; border-radius: 4px; flex: 0 0 auto; }
+.ai-attachment-chip span { display: grid; min-width: 0; gap: 1px; }
+.ai-attachment-chip strong, .ai-attachment-chip small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-attachment-chip strong { font-size: 11px; font-weight: 600; }
+.ai-attachment-chip small { color: var(--text-muted, #9b9b9b); font-size: 10px; }
+.ai-attachment-chip button { width: 19px; height: 19px; margin-left: 2px; padding: 0; border: 0; background: transparent; color: var(--text-muted, #9b9b9b); cursor: pointer; font-size: 16px; line-height: 1; }
+.ai-attachment-chip button:hover { color: var(--text-primary, #fff); background: var(--surface-hover, rgba(255,255,255,.1)); }
+.ai-image-toggle.active { color: var(--accent, #b79a5b); background: var(--surface-active, rgba(183,154,91,.15)); }
+.ai-msg-attachments, .ai-generated-images { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ai-msg-attachment-image, .ai-generated-image { display: block; max-width: min(360px, 100%); max-height: 360px; object-fit: contain; border-radius: 7px; border: 1px solid var(--border-subtle, rgba(255,255,255,.12)); background: var(--surface-1, rgba(0,0,0,.12)); }
+.ai-msg-attachment-image { width: 180px; height: 120px; object-fit: cover; }
+.ai-generated-image { width: min(360px, 100%); }
+.ai-msg-attachment-file { display: inline-flex; align-items: center; gap: 8px; min-width: 170px; max-width: 260px; padding: 8px 10px; border: 1px solid var(--border-subtle, rgba(255,255,255,.12)); border-radius: 7px; background: var(--surface-2, rgba(255,255,255,.05)); }
+.ai-msg-attachment-file svg { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.ai-msg-attachment-file span { display: grid; gap: 2px; min-width: 0; }
+.ai-msg-attachment-file strong, .ai-msg-attachment-file small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-msg-attachment-file strong { font-size: 12px; }
+.ai-msg-attachment-file small { color: var(--text-muted, #9b9b9b); font-size: 10px; }
+
+/* Empty AI state: keep the prompt focused and let the composer occupy the
+   center of the workspace. Once a message exists, the existing bottom dock
+   layout takes over automatically because :has(.ai-empty) no longer matches. */
+.ai-app .ai-empty { place-content: center; padding: 0 18px 150px; text-align: center; transform: translateY(88px); }
+.ai-app .ai-empty h2 { margin-inline: auto; }
+.ai-app .ai-empty > p { margin-inline: auto; }
+.ai-app .ai-empty .ai-suggest-grid { display: none !important; }
+.ai-app .ai-main:has(.ai-empty) .ai-composer-wrap {
+  top: 58%;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+.ai-app .ai-main:has(.ai-empty) .ai-empty h2 {
+  font-size: clamp(32px, 4vw, 42px);
+  line-height: 1.06;
+}
+.ai-app .ai-main:has(.ai-empty) .ai-composer {
+  width: min(100%, 860px);
+  min-height: 112px;
+  padding: 13px 14px 11px;
+}
+.ai-app .ai-main:has(.ai-empty) .ai-composer textarea {
+  min-height: 48px;
+  font-size: 14px;
+}
+.ai-msg-main { min-width: 0; width: 100%; }
+.ai-msg-actions { display: flex; align-items: center; justify-content: flex-start; gap: 2px; width: max-content; margin: 6px 0 0; opacity: 0; transition: opacity 120ms ease; }
+.ai-msg:hover .ai-msg-actions, .ai-msg:focus-within .ai-msg-actions { opacity: 1; }
+.ai-msg-action { display: grid; width: 23px; height: 23px; place-items: center; padding: 0; border: 0; border-radius: 4px; color: var(--text-tertiary, #9b9b9b); background: transparent; cursor: pointer; }
+.ai-msg-action:hover, .ai-msg-action:focus-visible { color: var(--text-primary, #fff); background: var(--surface-selected, rgba(255,255,255,.08)); outline: none; }
+.ai-msg-action svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.ai-msg.user .ai-msg-head { width: min(76%, 620px); margin-left: auto; }
+.ai-msg.user .ai-msg-main { width: min(100%, 620px); max-width: min(100%, 620px); margin-left: auto; }
+.ai-msg.user .ai-msg-actions { width: min(100%, 620px); margin-left: auto; justify-content: flex-end; }
+.ai-msg.user .ai-msg-content { max-width: 100%; }
+.ai-msg.user .ai-msg-attachments { width: fit-content; max-width: 100%; margin-left: auto; justify-content: flex-end; }
+.ai-msg.user .ai-msg-attachment-file, .ai-msg.user .ai-msg-attachment-image { max-width: 100%; }
+@media (max-width: 760px) {
+  .ai-app .ai-empty { padding-bottom: 128px; transform: translateY(68px); }
+  .ai-app .ai-main:has(.ai-empty) .ai-composer-wrap { top: 60%; }
+  .ai-app .ai-main:has(.ai-empty) .ai-composer { min-height: 104px; }
+  .ai-app .ai-main:has(.ai-empty) .ai-composer textarea { min-height: 42px; }
+  .ai-msg.user .ai-msg-head { width: 84%; }
+  .ai-msg.user .ai-msg-main, .ai-msg.user .ai-msg-actions { width: 84%; max-width: 84%; }
+}

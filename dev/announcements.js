@@ -245,10 +245,19 @@ popup.className =
 "blur-announcement";
 
 
-popup.style.setProperty(
-"--announcement-color",
-color || "#ffffff"
-);
+const announcementStyle =
+String(color || "#ffffff").trim().toLowerCase();
+
+if(announcementStyle === "rainbow"){
+  popup.classList.add("announcement-style-rainbow");
+}else if(announcementStyle === "admin"){
+  popup.classList.add("announcement-style-admin");
+}else{
+  popup.style.setProperty(
+  "--announcement-color",
+  color || "#ffffff"
+  );
+}
 
 
 const text =
@@ -264,6 +273,21 @@ message;
 
 
 popup.appendChild(text);
+
+let colorTimer = null;
+if(announcementStyle === "rainbow" || announcementStyle === "admin"){
+  const colors = announcementStyle === "rainbow"
+    ? ["#f45b69", "#ffca3a", "#8ac926", "#1982c4", "#6a4c93"]
+    : ["#f04444", "#f04444", "#111111", "#f04444"];
+  let colorIndex = 0;
+  text.style.animation = "none";
+  text.style.transition = "color 180ms linear";
+  text.style.setProperty("color", colors[0], "important");
+  colorTimer = window.setInterval(() => {
+    colorIndex = (colorIndex + 1) % colors.length;
+    text.style.setProperty("color", colors[colorIndex], "important");
+  }, announcementStyle === "rainbow" ? 260 : 420);
+}
 
 
 
@@ -289,6 +313,10 @@ setTimeout(()=>{
 popup.classList.remove(
 "active"
 );
+
+if(colorTimer)
+  window.clearInterval(colorTimer);
+
 
 
 setTimeout(()=>{

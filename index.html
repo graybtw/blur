@@ -6,24 +6,141 @@
 
 <title>blur</title>
 
+<link rel="icon" type="image/png" href="assets/images/logo.png">
+<link rel="apple-touch-icon" href="assets/images/logo.png">
+
+<!-- Blur handles unknown paths (404 view) by serving index.html for
+     any route — absolute base keeps asset URLs resolving at the root -->
+<base href="/">
+
 <script defer src="https://cloud.umami.is/script.js" data-website-id="0f5beed4-a838-456e-b4c7-333b27b4801d"></script>
 
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="ui-foundations.css">
+<link rel="stylesheet" href="main.css?v=monochrome1">
+  <link rel="stylesheet" href="ui-foundations.css?v=phase4-3">
 <link rel="stylesheet" href="legal.css">
-<link rel="stylesheet" href="settings.css">
-<link rel="stylesheet" href="watch.css">
-<link rel="stylesheet" href="themes.css">
-<link rel="stylesheet" href="proxy.css">
-<link rel="stylesheet" href="ai.css">
-<link rel="stylesheet" href="games.css">
-<link rel="stylesheet" href="chat/chat.css">
-<link rel="stylesheet" href="music.css">
-<link rel="stylesheet" href="dev/dev.css">
+<link rel="stylesheet" href="settings.css?v=about-v3">
+<link rel="stylesheet" href="watch.css?v=3">
+<link rel="stylesheet" href="themes.css?v=10">
+<link rel="stylesheet" href="proxy.css?v=2">
+<link rel="stylesheet" href="ai.css?v=20">
+<link rel="stylesheet" href="games.css?v=2">
+<link rel="stylesheet" href="chat/chat.css?v=typing-indicator1">
+<link rel="stylesheet" href="account.css?v=badges7">
+<link rel="stylesheet" href="music.css?v=12">
+<link rel="stylesheet" href="dev/dev.css?v=46">
+<link rel="stylesheet" href="cohesion.css?v=4">
+<link rel="stylesheet" href="sidebar-collapse.css?v=5">
+<link rel="stylesheet" href="site-polish.css?v=20">
+<link rel="stylesheet" href="ai-redesign.css?v=3">
+<link rel="stylesheet" href="chat-tabs-redesign.css?v=24">
+  <link rel="stylesheet" href="watch-refresh.css?v=17">
+  <link rel="stylesheet" href="tab-cohesion.css?v=17">
+<link rel="stylesheet" href="product-cohesion.css?v=34">
+<link rel="stylesheet" href="ai-media.css?v=6">
+<link rel="stylesheet" href="responsible-use.css?v=2">
+    <link rel="stylesheet" href="settings-overhaul.css?v=profile-v61">
+<link rel="stylesheet" href="profile-effects.css?v=84">
+<link rel="stylesheet" href="chat/chromebook.css?v=1">
 
 </head>
 
 <body>
+
+<!-- Reversible shutdown notice. Keep BLUR_SHUTDOWN_MODE disabled in main.js
+     until the decision is final; the existing app remains fully intact. -->
+<div id="blur-shutdown-overlay" class="blur-shutdown-overlay" hidden aria-hidden="true">
+    <section class="blur-shutdown-letter" role="dialog" aria-modal="true" aria-labelledby="blur-shutdown-title">
+        <header class="blur-shutdown-header">
+            <div class="blur-shutdown-brand">
+                <div class="blur-shutdown-mark"><img src="assets/images/logo.png" alt="Blur"></div>
+                <div>
+                    <span class="blur-shutdown-kicker">a note from me</span>
+                    <span class="blur-shutdown-date">for the people who made this real</span>
+                </div>
+            </div>
+            <span class="blur-shutdown-status">an important update</span>
+        </header>
+
+        <div class="blur-shutdown-intro">
+            <h1 id="blur-shutdown-title">i gotta be honest.</h1>
+            <p>this is probably the hardest thing i’ve had to write about Blur.</p>
+        </div>
+
+        <div class="blur-shutdown-sections">
+            <article class="blur-shutdown-box blur-shutdown-box-note">
+                <span class="blur-shutdown-box-label">01 · a note from me</span>
+                <p>Blur started as a small project i made because i wanted somewhere fun to build, watch stuff, play games, and hang out. Then u guys found it. Somehow it became a real little community, and i still don’t think i’ve fully processed that.</p>
+            </article>
+
+            <article class="blur-shutdown-box">
+                <span class="blur-shutdown-box-label">02 · why this is happening</span>
+                <p>The site grew way faster than i expected, and with that came risks i can’t just pretend aren’t there. The chance of getting in serious trouble is too high for me to keep running Blur the same way. I hate that this is where things are, but keeping everyone safe has to matter more than keeping the site online.</p>
+            </article>
+
+            <article class="blur-shutdown-box">
+                <span class="blur-shutdown-box-label">03 · what this means</span>
+                <p>For now, Blur may be paused or shut down while i figure out what’s actually responsible to do next. This isn’t me being mad at anyone, and it isn’t because the community did something wrong. I’m just trying to make the safest choice before the situation gets worse.</p>
+            </article>
+
+            <article class="blur-shutdown-box">
+                <span class="blur-shutdown-box-label">04 · what i’ll remember</span>
+                <p>I’ll remember the messages, movie nights, games, playlists, bug reports, and all the random jokes that only made sense here. That stuff wasn’t just website activity to me. It proved that something i made could actually mean something to people.</p>
+            </article>
+        </div>
+
+        <footer class="blur-shutdown-footer">
+            <div class="blur-shutdown-signoff">
+                <span class="blur-shutdown-signoff-line">thanks for giving Blur a life.</span>
+                <span class="blur-shutdown-signature">— Grayson</span>
+            </div>
+            <span class="blur-shutdown-footer-note">
+                <span>whatever happens next, i’ll remember that u were here. <span class="blur-shutdown-heart" aria-hidden="true">♥</span></span>
+                <button type="button" class="blur-shutdown-mod-note" data-blur-mod-note>p.s. if ur a mod, click <kbd>v</kbd></button>
+            </span>
+        </footer>
+    </section>
+
+    <section id="blur-shutdown-mod-page" class="blur-shutdown-letter blur-shutdown-mod-page" role="dialog" aria-modal="true" aria-labelledby="blur-shutdown-mod-title" hidden>
+        <header class="blur-shutdown-header">
+            <div class="blur-shutdown-brand">
+                <div class="blur-shutdown-mark"><img src="assets/images/logo.png" alt="Blur"></div>
+                <div>
+                    <span class="blur-shutdown-kicker">for the people who helped hold this together</span>
+                    <span class="blur-shutdown-date">a private thank-you</span>
+                </div>
+            </div>
+            <span class="blur-shutdown-status">mods</span>
+        </header>
+
+        <div class="blur-shutdown-intro">
+            <h1 id="blur-shutdown-mod-title">this part is for u.</h1>
+            <p>i didn’t want to leave without saying this properly.</p>
+        </div>
+
+        <div class="blur-shutdown-sections blur-shutdown-mod-sections">
+            <article class="blur-shutdown-box blur-shutdown-box-note">
+                <span class="blur-shutdown-box-label">thank you, seriously</span>
+                <p>U gave up your time to help make Blur feel like a real place. U answered questions, dealt with problems, kept conversations moving, and looked out for people even when nobody was watching. I know that work can be invisible a lot of the time, but I saw it. I’m genuinely grateful for every bit of it.</p>
+            </article>
+
+            <article class="blur-shutdown-box">
+                <span class="blur-shutdown-box-label">none of this was expected</span>
+                <p>When I started Blur, I never imagined I’d have people helping me take care of it. That still means more than I’m probably able to explain without sounding cheesy.</p>
+            </article>
+
+            <article class="blur-shutdown-box">
+                <span class="blur-shutdown-box-label">whatever happens next</span>
+                <p>Please don’t feel like any of this was your fault or your responsibility to fix. You already did more than enough. I hope u know that.</p>
+            </article>
+        </div>
+
+        <footer class="blur-shutdown-mod-footer">
+            <p>Thank you for believing in something that was still being figured out.</p>
+            <span class="blur-shutdown-signature">— Grayson</span>
+            <button type="button" class="blur-shutdown-back" data-blur-mod-back>← back to the note</button>
+        </footer>
+    </section>
+</div>
 
 <div id="beta-toast" class="beta-toast">
     <div class="beta-toast-icon">
@@ -41,8 +158,8 @@
 </div>
 
 <!-- ===== changelog popup ===== -->
-<div id="changelog-overlay" class="changelog-overlay">
-    <div class="changelog-modal">
+<div id="changelog-overlay" class="changelog-overlay ui-overlay">
+    <div class="changelog-modal ui-dialog">
 
         <button id="changelog-close" class="changelog-close" aria-label="Close">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -67,8 +184,47 @@
     </div>
 </div>
 
-<div id="redeem-overlay" class="changelog-overlay">
-    <div class="changelog-modal redeem-modal">
+<!-- First-run responsible-use notice. This is intentionally separate from the
+     reversible shutdown notice above so either feature can be changed without
+     affecting the other. It is dismissed once per browser. -->
+<div id="responsible-use-overlay" class="responsible-use-overlay ui-overlay" hidden aria-hidden="true">
+    <section class="responsible-use-modal ui-dialog ui-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="responsible-use-title">
+        <header class="responsible-use-header">
+            <div class="responsible-use-mark" aria-hidden="true"><img src="assets/images/logo.png" alt=""></div>
+            <div class="responsible-use-kicker">Before you continue</div>
+            <span class="responsible-use-status">Blur / public beta</span>
+        </header>
+        <h2 id="responsible-use-title">Welcome to Blur</h2>
+        <p class="responsible-use-lede">Blur is an independent entertainment and web platform. Please use it responsibly and take a moment to review the policies that apply to you.</p>
+
+        <div class="responsible-use-section-label">Review the basics</div>
+        <div class="responsible-use-links" aria-label="Policies">
+            <a href="#" data-welcome-tab="legal">Legal</a>
+            <a href="#" data-welcome-tab="privacy">Privacy</a>
+            <a href="#" data-welcome-tab="dmca">DMCA</a>
+            <a href="#" data-welcome-tab="school-use">School &amp; Network Use</a>
+        </div>
+
+        <div class="responsible-use-grid">
+            <article>
+                <span class="responsible-use-label">Using Blur at school or work</span>
+                <p>Follow your school, workplace, and network rules. Blur does not encourage anyone to bypass filters, access controls, or other restrictions.</p>
+            </article>
+            <article>
+                <span class="responsible-use-label">For administrators &amp; IT</span>
+                <p>Blur is a general-purpose public project. Organizations can restrict access according to their own policies. Safety, content, and copyright concerns can be sent to blurstudios22@gmail.com.</p>
+            </article>
+        </div>
+
+        <div class="responsible-use-actions">
+            <span>By continuing, you agree to use Blur in a way that respects the rules around you.</span>
+            <button type="button" class="responsible-use-continue" data-responsible-use-continue>Continue to Blur</button>
+        </div>
+    </section>
+</div>
+
+<div id="redeem-overlay" class="changelog-overlay ui-overlay">
+    <div class="changelog-modal redeem-modal ui-dialog">
 
         <button id="redeem-close" class="changelog-close" aria-label="Close">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -87,12 +243,9 @@
             <form id="redeem-form" class="redeem-form">
                 <div class="redeem-form-top">
                     <div class="redeem-input-wrap">
-                        <span class="redeem-icon">
-                            <svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2V7z"/><path d="M12 22V7M12 7c-1.5 0-3-1-3-2.5S10 2 12 2s3 1 3 2.5S13.5 7 12 7z"/></svg>
-                        </span>
                         <input
                             id="redeem-input"
-                            class="redeem-input"
+                            class="redeem-input ui-input"
                             type="text"
                             placeholder="Enter your code..."
                             autocomplete="off"
@@ -100,22 +253,12 @@
                             spellcheck="false"
                         >
                     </div>
-                    <button type="submit" id="redeem-submit" class="redeem-submit">
+                    <button type="submit" id="redeem-submit" class="redeem-submit ui-button ui-button--primary">
                         <span class="btn-text">Redeem</span>
                         <svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" fill="none" stroke-width="2"/><path d="M12 2a10 10 0 0 1 8.5 4.5" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
                     </button>
                 </div>
 
-                <div class="redeem-divider">
-                    <span class="redeem-divider-line"></span>
-                    <span>or</span>
-                    <span class="redeem-divider-line"></span>
-                </div>
-
-                <div class="redeem-hint">
-                    <span>Get codes from</span>
-                    <span class="key">Grayson</span>
-                </div>
             </form>
 
             <p id="redeem-status" class="redeem-status hidden"></p>
@@ -131,6 +274,7 @@
 
 
         <div class="brand">
+            <img class="brand-logo" src="assets/images/logo.png" alt="Blur">
             <span class="brand-name">blur</span>
             <span class="brand-dot"></span>
         </div>
@@ -142,7 +286,7 @@
         <nav>
 
 
-            <a class="active" data-tab="home">
+            <a class="active" data-tab="home" data-label="Home">
                 <div class="icon-slot">
                     <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 10v9.5a1 1 0 0 0 1 1H10v-6h4v6h3.5a1 1 0 0 0 1-1V10"></path></svg>
                 </div>
@@ -150,7 +294,7 @@
             </a>
 
 
-            <a data-tab="watch">
+            <a data-tab="watch" data-label="Watch">
                 <div class="icon-slot">
                     <svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="13" rx="2"></rect><path d="M8 21h8M12 18v3"></path></svg>
                 </div>
@@ -158,25 +302,14 @@
             </a>
 
 
-            <a data-tab="games">
+            <a data-tab="games" data-label="Games">
                 <div class="icon-slot">
                     <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="4"></rect><path d="M7 10v4M5 12h4"></path><circle cx="15.5" cy="11" r="1"></circle><circle cx="18" cy="13.5" r="1"></circle></svg>
                 </div>
                 <span>Games</span>
             </a>
 
-<a data-tab="proxy">
-    <div class="icon-slot">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.4 2.6 3.7 5.7 3.7 9s-1.3 6.4-3.7 9c-2.4-2.6-3.7-5.7-3.7-9S9.6 5.6 12 3z"></path></svg>
-        <span class="lock-badge">
-            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </span>
-    </div>
-    <span>Browser</span>
-</a>
-
-
-            <a data-tab="ai">
+            <a data-tab="ai" data-label="AI">
                 <div class="icon-slot">
                     <svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path><circle cx="12" cy="12" r="3.2"></circle></svg>
                 </div>
@@ -184,15 +317,16 @@
             </a>
 
 
-            <a data-tab="chat">
+            <a data-tab="chat" data-label="Chat">
                 <div class="icon-slot">
                     <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z"></path></svg>
                 </div>
                 <span>Chat</span>
+                <span class="nav-mention-dot" id="chat-nav-mention" hidden aria-hidden="true"></span>
             </a>
 
 
-            <a data-tab="music">
+            <a data-tab="music" data-label="Music">
                 <div class="icon-slot">
                     <svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="17" cy="16" r="3"></circle></svg>
                 </div>
@@ -209,38 +343,30 @@
 
     <div class="bottom">
 
-        <a data-tab="settings">
-            <div class="icon-slot">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 13a7.9 7.9 0 0 0 .1-2l2-1.6-2-3.4-2.4 1a8 8 0 0 0-1.7-1L15 3h-4l-.4 2.5a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L6.5 11a7.9 7.9 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.75 1.7 1L11 21h4l.4-2.5c.6-.25 1.2-.6 1.7-1l2.4 1 2-3.4-2.1-1.1z"></path></svg>
-            </div>
-            <span>
-                Settings
-            </span>
-        </a>
+<div class="acct-bar">
 
-<div class="legal-container">
-
-    <a class="legal-toggle" data-tab="legal">
+    <a data-tab="settings" data-settings-target="profile" id="acct-nav" class="acct-nav" tabindex="0" aria-label="Profile settings" data-label="Profile">
         <div class="icon-slot">
-            <svg viewBox="0 0 24 24"><path d="M12 3v18M5 6l-2.5 6a3 3 0 0 0 6 0L6 6M19 6l-2.5 6a3 3 0 0 0 6 0L20 6M4 6h16"></path></svg>
+            <img class="acct-nav-avatar" alt="" hidden>
+            <svg class="acct-nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg>
         </div>
-
-        <span>Legal</span>
+        <span class="acct-nav-text">
+            <span class="acct-nav-name">Sign in</span>
+            <span class="acct-nav-sub">Create account</span>
+        </span>
     </a>
 
-
-    <div class="legal-row">
-        <a data-tab="legal">Legal</a>
-        <span class="legal-dot">&middot;</span>
-        <a data-tab="dmca">DMCA</a>
-        <span class="legal-dot">&middot;</span>
-        <a data-tab="privacy">Privacy</a>
-    </div>
+    <a data-tab="settings" class="acct-settings" aria-label="Settings" title="Settings" data-label="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+    </a>
 
 </div>
 
     </div>
 
+    <div class="sidebar-resize-handle" id="sidebar-resize-handle" role="separator" tabindex="0"
+         aria-label="Resize navigation sidebar" aria-orientation="vertical"
+         aria-valuemin="68" aria-valuemax="320" aria-valuenow="68" aria-valuetext="Collapsed to icon rail"></div>
 
 </aside>
 
@@ -268,6 +394,7 @@
         <div class="home-meta">
             <span class="home-meta-line"><strong>07</strong> - tabs</span>
             <span class="home-meta-line">no ads &middot; no tracking</span>
+            <span class="home-meta-line">last update: <strong id="home-last-update">00:00:00</strong></span>
         </div>
 
     </div>
@@ -339,10 +466,10 @@
     <div class="announcement-item">
         <div class="announcement-header">
             <span class="announcement-badge">Announcement</span>
-            <span class="announcement-date">Sep 1, 2026</span>
+            <span class="announcement-date">Sep 9, 2026</span>
         </div>
-        <div class="announcement-title">Taking A Break.</div>
-        <div class="announcement-body">I am going to stop working on tabs like chat, music, and settings in-order to focus on improving other tabs!</div>
+        <div class="announcement-title">Chat Focused</div>
+        <div class="announcement-body">With the continuing growth of the site, i will be constantly improving and making changes to the chat tab for a better experience for everyone!</div>
     </div>
 
     <div class="announcement-item">
@@ -350,8 +477,8 @@
             <span class="announcement-badge">Announcement</span>
             <span class="announcement-date">Sep 1, 2026</span>
         </div>
-        <div class="announcement-title">4000+ Games Added</div>
-        <div class="announcement-body">We've added over 4000 games from multiple providers. Check out the Games tab!</div>
+        <div class="announcement-title">Taking A Break.</div>
+        <div class="announcement-body">I am going to stop working on tabs like chat, music, and settings in-order to focus on improving other tabs!</div>
     </div>
 
 </div>
@@ -383,125 +510,99 @@
  
     <div class="music-sidebar">
  
-      <div class="music-sidebar-brand">music</div>
- 
       <nav class="music-nav">
  
-        <button class="music-nav-btn active" data-view="home">
+        <button class="music-nav-btn active" data-view="home" title="Home">
           <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"></path><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"></path></svg>
           <span>Home</span>
         </button>
  
-        <button class="music-nav-btn" data-view="search">
+        <button class="music-nav-btn" data-view="search" title="Search">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <span>Search</span>
         </button>
- 
-      </nav>
- 
-      <div class="music-nav-divider"></div>
- 
-      <nav class="music-nav">
- 
-        <button class="music-nav-btn" data-view="favorites">
-          <svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg>
-          <span>Favorites</span>
-        </button>
- 
-        <button class="music-nav-btn" data-view="playlists">
-          <svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-          <span>Playlists</span>
-        </button>
- 
-        <button class="music-nav-btn" data-view="queue">
-          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-          <span>Up Next</span>
+
+        <button class="music-nav-btn" data-view="library" title="Library">
+          <svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="14" height="14" rx="1.5"></rect><path d="M7 20h12a1.5 1.5 0 0 0 1.5-1.5V7"></path><path d="M7 8h7M7 11.5h7"></path></svg>
+          <span>Library</span>
           <span id="music-queue-badge" class="music-nav-badge" hidden>0</span>
         </button>
- 
-        <button class="music-nav-btn" data-view="history">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
-          <span>Recently Played</span>
-        </button>
- 
+
       </nav>
- 
+
       <div class="music-sidebar-footer">
-        <div class="music-mode-row">
-          <button id="music-shuffle" class="music-mode-btn" aria-label="Shuffle" title="Shuffle">
-            <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
-          </button>
-          <button id="music-repeat" class="music-mode-btn" aria-label="Repeat" title="Repeat" data-mode="off">
-            <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-            <span class="music-repeat-one" hidden>1</span>
-          </button>
-          <button id="music-lyrics-btn-sidebar" class="music-mode-btn js-toggle-np" aria-label="Lyrics" title="Lyrics">
-            <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-          </button>
-        </div>
+        <p>Powered by external services. Downtime is outside our control.</p>
       </div>
- 
+
     </div>
  
     <div class="music-main">
  
     <div class="music-content">
- 
+
       <div class="music-views-wrap">
 
       <div class="music-view active" data-view-panel="home">
 
-        <div id="music-home-view">
+        <div id="music-home-view" class="music-home-view">
+
+          <div class="music-home-heading">
+            <div>
+              <h1 class="music-title-heading">Music</h1>
+            </div>
+            <button id="music-home-search" class="music-home-search" type="button">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+              <span>Find music</span>
+            </button>
+          </div>
 
           <div id="music-home-hero" class="music-hero loading">
-            <p class="music-empty">Loading featured track...</p>
+            <p class="music-empty">Loading today's selection...</p>
           </div>
 
-          <div class="music-home-section">
-            <h2 class="music-section-label">Trending</h2>
+          <div class="music-home-section music-home-mix">
+            <div class="music-section-heading">
+              <div>
+                <p id="music-home-recommendation-eyebrow" class="music-eyebrow">Popular right now</p>
+                <h2 class="music-section-title">Recommended for you</h2>
+              </div>
+              <button id="music-home-play-all" class="music-text-action" type="button" disabled>Play all</button>
+            </div>
             <div id="music-home-trending" class="music-card-grid">
-              <p class="music-empty">Loading trending songs...</p>
+              <p class="music-empty">Loading recommendations...</p>
             </div>
           </div>
 
-          <div class="music-home-section">
-            <h2 class="music-section-label">Charts</h2>
-            <div id="music-home-charts" class="music-card-grid">
-              <p class="music-empty">Loading charts...</p>
-            </div>
-          </div>
-
-          <div class="music-home-section">
-            <h2 class="music-section-label">Top Artists</h2>
-            <div id="music-home-top-artists" class="music-card-grid music-card-grid-artists">
-              <p class="music-empty">Loading top artists...</p>
-            </div>
-          </div>
-
-          <div class="music-home-section">
-            <h2 class="music-section-label">Browse by Mood</h2>
-            <div id="music-home-moods" class="mood-grid">
-              <p class="music-empty">Loading moods...</p>
-            </div>
-          </div>
-
-        </div>
-
-        <div id="music-mood-detail-view" hidden>
-          <div class="music-header">
-            <div class="music-playlist-detail-header">
-              <button id="music-mood-back" class="music-playlist-back" aria-label="Back to home">
-                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              </button>
-              <div class="music-playlist-detail-heading">
-                <h1 id="music-mood-detail-title">Mood</h1>
+          <div class="music-home-section music-home-genres">
+            <div class="music-section-heading">
+              <div>
+                <p class="music-eyebrow">Find your next sound</p>
+                <h2 class="music-section-title">Explore genres</h2>
               </div>
             </div>
+            <div id="music-home-genres" class="music-genre-grid" aria-label="Explore genres">
+              <button type="button" class="music-genre-button" data-music-genre="Pop">Pop</button>
+              <button type="button" class="music-genre-button" data-music-genre="R&amp;B">R&amp;B</button>
+              <button type="button" class="music-genre-button" data-music-genre="Hip-Hop">Hip-hop</button>
+              <button type="button" class="music-genre-button" data-music-genre="Alternative Rock">Alternative</button>
+              <button type="button" class="music-genre-button" data-music-genre="Indie Pop">Indie pop</button>
+              <button type="button" class="music-genre-button" data-music-genre="Electronic">Electronic</button>
+              <button type="button" class="music-genre-button" data-music-genre="Country">Country</button>
+              <button type="button" class="music-genre-button" data-music-genre="Jazz">Jazz</button>
+            </div>
           </div>
 
-          <div id="music-mood-detail-list" class="music-results">
-            <p class="music-empty">Loading...</p>
+          <div id="music-home-library-section" class="music-home-section music-home-shelf" hidden>
+            <div class="music-section-heading">
+              <div>
+                <p class="music-eyebrow">From your library</p>
+                <h2 class="music-section-title">Your listening shelf</h2>
+              </div>
+              <button id="music-home-library-open" class="music-text-action" type="button">Open library</button>
+            </div>
+            <div id="music-home-charts" class="music-results music-card-grid music-home-library"></div>
           </div>
+
         </div>
 
       </div>
@@ -509,18 +610,54 @@
       <div class="music-view" data-view-panel="search">
  
         <div class="music-header">
-          <h1 class="music-title-heading">Search</h1>
- 
           <div class="music-search-wrap">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input id="music-search" class="music-search-input" placeholder="Search songs, albums, artists..." autocomplete="off">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+            <input id="music-search" class="music-search-input ui-input" placeholder="Search songs, artists, or albums..." autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="music-search-suggestions" aria-label="Search music">
             <div id="music-search-spinner" class="music-search-spinner" hidden></div>
+            <div id="music-search-suggestions" class="music-search-suggestions" role="listbox" aria-label="Music search suggestions" hidden></div>
+          </div>
+
+          <div class="music-page-heading">
+            <h1 class="music-title-heading">Search results <span id="music-search-query" class="music-search-query"></span></h1>
           </div>
  
-          <div class="music-filters">
-            <button class="music-filter active" data-filter="songs">Songs</button>
-            <button class="music-filter" data-filter="albums">Albums</button>
-            <button class="music-filter" data-filter="artists">Artists</button>
+          <div class="music-search-controls">
+            <div class="music-search-tabs" role="tablist" aria-label="Search type">
+              <button class="music-search-tab active" data-search-type="songs" type="button" role="tab" aria-selected="true">Songs</button>
+              <button class="music-search-tab" data-search-type="artists" type="button" role="tab" aria-selected="false">Artists</button>
+              <button class="music-search-tab" data-search-type="albums" type="button" role="tab" aria-selected="false">Albums</button>
+            </div>
+            <div class="music-filter-wrap">
+              <button id="music-filter-btn" class="music-filter-btn" type="button" aria-expanded="false" aria-controls="music-filter-panel">
+                <svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
+                <span>Filter</span><span id="music-filter-count" class="music-filter-count" hidden>0</span>
+              </button>
+              <div id="music-filter-panel" class="music-filter-panel ui-menu" hidden>
+                <div class="music-filter-heading ui-menu__header"><strong>Search filters</strong><button id="music-filter-close" type="button" aria-label="Close filters">×</button></div>
+                <label class="music-filter-label">Source
+              <select id="music-filter-source" class="music-filter-select ui-select">
+                    <option value="all">All sources</option>
+                    <option value="netease">NetEase</option>
+                    <option value="joox">JOOX</option>
+                    <option value="bilibili">Bilibili</option>
+                  </select>
+                </label>
+                <label class="music-filter-label">Release period
+              <select id="music-filter-period" class="music-filter-select ui-select">
+                    <option value="any">Any time</option>
+                    <option value="year">This year</option>
+                    <option value="five">Last 5 years</option>
+                    <option value="custom">Custom year range</option>
+                  </select>
+                </label>
+                <div id="music-custom-years" class="music-custom-years" hidden>
+                <label>From <input id="music-filter-from" class="ui-input" type="number" min="1900" max="2100" placeholder="2010"></label>
+                <label>To <input id="music-filter-to" class="ui-input" type="number" min="1900" max="2100" placeholder="2024"></label>
+                </div>
+                <p id="music-filter-note" class="music-filter-note">Release filters apply when the provider includes release-year metadata.</p>
+              <button id="music-filter-clear" class="music-filter-clear ui-button ui-button--quiet ui-button--sm" type="button">Clear filters</button>
+              </div>
+            </div>
           </div>
         </div>
  
@@ -530,105 +667,115 @@
  
       </div>
 
-      <div class="music-view" data-view-panel="favorites">
-
-        <div class="music-header">
-          <h1 class="music-title-heading">Favorites</h1>
+      <section id="music-detail-view" class="music-detail-view" hidden aria-live="polite">
+        <div class="music-detail-toolbar">
+          <button id="music-detail-back" class="music-detail-back" type="button">
+            <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+            <span>Back</span>
+          </button>
+          <span id="music-detail-breadcrumb" class="music-detail-breadcrumb">Music</span>
         </div>
+        <div id="music-detail-content" class="music-detail-content"></div>
+      </section>
 
-        <div id="music-favorites-list" class="music-card-grid">
-          <p class="music-empty">No favorites yet. Tap the heart on any song to save it here.</p>
-        </div>
-
-      </div>
-
-      <div class="music-view" data-view-panel="playlists">
- 
-        <div class="music-header">
-          <h1 class="music-title-heading">Playlists</h1>
-          <div class="music-new-playlist-row">
-            <input id="music-new-playlist-input" class="music-new-playlist-input" type="text" placeholder="Create new playlist..." autocomplete="off">
-            <button id="music-new-playlist-btn" class="music-new-playlist-btn">Create</button>
-          </div>
-        </div>
-
-        <div id="music-playlists-grid-view">
-          <div id="music-playlists-grid" class="playlists-grid">
-            <p class="music-empty">No playlists yet. Create one above to get started.</p>
-          </div>
-        </div>
-
-        <div id="music-playlist-detail-view" hidden>
+      <div class="music-view" data-view-panel="library">
+        <div class="music-library-shell">
           <div class="music-header">
-            <div class="music-playlist-detail-header">
-              <button id="music-playlist-back" class="music-playlist-back" aria-label="Back to playlists">
-                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              </button>
-              <div class="music-playlist-detail-heading">
-                <h1 id="music-playlist-detail-title">Playlist</h1>
-                <p id="music-playlist-detail-count">0 tracks</p>
-              </div>
-              <div class="music-playlist-detail-actions">
-                <button id="music-playlist-play-all" class="music-playlist-action-btn primary">
-                  <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                  <span>Play</span>
-                </button>
-                <button id="music-playlist-delete" class="music-playlist-action-btn danger" title="Delete playlist">
-                  <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                </button>
-              </div>
+            <div class="music-page-heading">
+              <h1 class="music-title-heading">Library</h1>
             </div>
           </div>
 
-          <div id="music-playlist-detail-list" class="music-results">
-            <p class="music-empty">This playlist is empty.</p>
+          <div class="music-library-tabs" role="tablist" aria-label="Library">
+            <button class="music-library-tab active" type="button" role="tab" aria-selected="true" aria-controls="music-library-playlists" data-library-view="playlists">Playlists</button>
+            <button class="music-library-tab" type="button" role="tab" aria-selected="false" aria-controls="music-library-favorites" data-library-view="favorites">Favorites</button>
+            <button class="music-library-tab" type="button" role="tab" aria-selected="false" aria-controls="music-library-history" data-library-view="history">Recently played</button>
+            <button class="music-library-tab" type="button" role="tab" aria-selected="false" aria-controls="music-library-queue" data-library-view="queue">Up next</button>
           </div>
-        </div>
 
-      </div>
- 
-      <div class="music-view" data-view-panel="queue">
- 
-        <div class="music-header">
-          <h1 class="music-title-heading">Up Next</h1>
+          <section id="music-library-playlists" class="music-library-panel active" role="tabpanel" data-library-panel="playlists">
+            <div class="music-library-panel-heading">
+              <h2 class="music-section-title">Playlists</h2>
+              <div class="music-new-playlist-row">
+                <input id="music-new-playlist-input" class="music-new-playlist-input ui-input" type="text" placeholder="New playlist" autocomplete="off" aria-label="New playlist name">
+                <button id="music-new-playlist-btn" class="music-new-playlist-btn ui-button ui-button--primary">Create</button>
+              </div>
+            </div>
+
+            <div id="music-playlists-grid-view">
+              <div id="music-playlists-grid" class="playlists-grid">
+                <p class="music-empty">No playlists yet. Create one to get started.</p>
+              </div>
+            </div>
+
+            <div id="music-playlist-detail-view" hidden>
+              <div class="music-header">
+                <div class="music-playlist-detail-header">
+                  <button id="music-playlist-back" class="music-playlist-back" aria-label="Back to playlists">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div class="music-playlist-detail-heading">
+                    <h1 id="music-playlist-detail-title">Playlist</h1>
+                    <p id="music-playlist-detail-count">0 tracks</p>
+                  </div>
+                  <div class="music-playlist-detail-actions">
+                    <button id="music-playlist-play-all" class="music-playlist-action-btn primary ui-button ui-button--primary">
+                      <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                      <span>Play</span>
+                    </button>
+                    <button id="music-playlist-delete" class="music-playlist-action-btn danger ui-button ui-button--danger" title="Delete playlist">
+                      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="music-playlist-detail-list" class="music-results">
+                <p class="music-empty">This playlist is empty.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="music-library-favorites" class="music-library-panel" role="tabpanel" data-library-panel="favorites" hidden>
+            <div class="music-library-panel-heading"><h2 class="music-section-title">Favorites</h2></div>
+            <div id="music-favorites-list" class="music-card-grid">
+              <p class="music-empty">No favorites yet. Tap the heart on a song to save it here.</p>
+            </div>
+          </section>
+
+          <section id="music-library-history" class="music-library-panel" role="tabpanel" data-library-panel="history" hidden>
+            <div class="music-library-panel-heading"><h2 class="music-section-title">Recently played</h2></div>
+            <div id="music-history-list" class="music-results">
+              <p class="music-empty">Tracks you play will show up here.</p>
+            </div>
+          </section>
+
+          <section id="music-library-queue" class="music-library-panel" role="tabpanel" data-library-panel="queue" hidden>
+            <div class="music-library-panel-heading"><h2 class="music-section-title">Up next</h2></div>
+            <div id="music-queue-list" class="music-results">
+              <p class="music-empty">Nothing queued. Play a song and the rest of your results will line up here.</p>
+            </div>
+            <div class="music-related-section">
+              <h2 class="music-section-label">More by this artist</h2>
+              <div id="music-related-list" class="music-results">
+                <p class="music-empty">Play something to see related tracks.</p>
+              </div>
+            </div>
+          </section>
         </div>
- 
-        <div id="music-queue-list" class="music-results">
-          <p class="music-empty">Nothing queued. Play a song and the rest of your results will line up here.</p>
-        </div>
- 
-        <div class="music-related-section">
-          <h2 class="music-section-label">Related to what's playing</h2>
-          <div id="music-related-list" class="music-results">
-            <p class="music-empty">Play something to see related tracks.</p>
-          </div>
-        </div>
- 
-      </div>
- 
-      <div class="music-view" data-view-panel="history">
- 
-        <div class="music-header">
-          <h1 class="music-title-heading">Recently Played</h1>
-        </div>
- 
-        <div id="music-history-list" class="music-results">
-          <p class="music-empty">Tracks you play will show up here.</p>
-        </div>
- 
       </div>
  
       </div>
  
     </div>
  
-    <div class="music-player">
+    <div class="music-player" hidden>
  
     <div class="music-player-track js-toggle-np" title="Open Now Playing">
       <img id="music-cover" class="music-player-cover" src="assets/icons/music.png">
       <div class="music-player-info">
         <h3 id="music-title">Nothing playing</h3>
-        <p id="music-artist">&nbsp;</p>
+        <button id="music-artist" class="music-artist-link" type="button" aria-label="Open artist">&nbsp;</button>
       </div>
       <button id="music-favorite-btn" class="music-player-favorite" aria-label="Add to favorites" title="Add to favorites">
         <svg viewBox="0 0 24 24" fill="none"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg>
@@ -636,7 +783,19 @@
     </div>
  
     <div class="music-player-controls">
- 
+      <div class="music-scrub">
+        <span id="music-time-current" class="music-time">0:00</span>
+        <div id="music-progress" class="music-progress">
+          <div id="music-progress-fill" class="music-progress-fill"></div>
+          <div id="music-progress-handle" class="music-progress-handle"></div>
+        </div>
+        <span id="music-time-total" class="music-time">0:00</span>
+      </div>
+
+      <div class="music-player-transport">
+      <button id="music-shuffle" class="music-mode-btn" aria-label="Shuffle" title="Shuffle">
+        <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+      </button>
       <button id="music-prev" class="music-transport-btn" aria-label="Previous">
         <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
       </button>
@@ -650,20 +809,24 @@
       <button id="music-next" class="music-transport-btn" aria-label="Next">
         <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
       </button>
- 
-      <div class="music-scrub">
-        <span id="music-time-current" class="music-time">0:00</span>
-        <div id="music-progress" class="music-progress">
-          <div id="music-progress-fill" class="music-progress-fill"></div>
-          <div id="music-progress-handle" class="music-progress-handle"></div>
-        </div>
-        <span id="music-time-total" class="music-time">0:00</span>
+      <button id="music-repeat" class="music-mode-btn" aria-label="Repeat" title="Repeat" data-mode="off">
+        <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+        <span class="music-repeat-one" hidden>1</span>
+      </button>
+
       </div>
- 
+
     </div>
- 
+
     <div class="music-player-side">
- 
+      <div class="music-player-tools" aria-label="Player tools">
+        <button id="music-queue-open" class="music-mode-btn" aria-label="Open queue" title="Up next">
+          <svg viewBox="0 0 24 24"><path d="M4 6h12M4 12h9M4 18h7"></path><path d="m16 15 5 3-5 3z"></path></svg>
+        </button>
+        <button id="music-lyrics-btn-sidebar" class="music-mode-btn js-toggle-np" aria-label="Lyrics" title="Lyrics">
+          <svg viewBox="0 0 24 24"><path d="M6 3.5h8l4 4V20H6z"></path><path d="M14 3.5v4h4M9 11h6M9 14.5h6M9 18h4"></path></svg>
+        </button>
+      </div>
       <div class="music-volume">
         <svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>
         <input id="music-volume" type="range" min="0" max="100" value="100">
@@ -699,7 +862,7 @@
           <img id="np-cover" class="np-cover" src="assets/icons/music.png">
           <div class="np-meta">
             <h2 id="np-title">Nothing playing</h2>
-            <p id="np-artist">&nbsp;</p>
+            <button id="np-artist" class="music-artist-link" type="button" aria-label="Open artist">&nbsp;</button>
           </div>
           <button id="np-favorite-btn" class="music-player-favorite np-favorite" aria-label="Add to favorites" title="Add to favorites">
             <svg viewBox="0 0 24 24" fill="none"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg>
@@ -768,6 +931,21 @@
 
 </section>
 
+<section class="panel account-panel" data-panel="account"></section>
+
+<section class="panel notfound-panel" data-panel="notfound">
+    <div class="nf-eyebrow-row">
+        <span class="nf-eyebrow-rule"></span>
+        <span class="nf-eyebrow">Error 404</span>
+    </div>
+    <h1 class="nf-code">404</h1>
+    <h2 class="nf-title">Page not found</h2>
+    <p class="nf-text">The page you're looking for doesn't exist or may have moved.</p>
+    <div class="nf-actions">
+        <button type="button" class="nf-home-btn" id="nfBackBtn">Back to Blur</button>
+    </div>
+</section>
+
 <section class="panel settings-panel" data-panel="settings">
 
 </section>
@@ -778,39 +956,84 @@
 
 <section class="panel doc-panel" data-panel="privacy"></section>
 
+<section class="panel doc-panel" data-panel="school-use"></section>
+
 
 </main>
 
+<aside id="music-floating-player" class="music-floating-player" data-collapsed="false" aria-label="Mini music player" hidden>
+  <div class="music-floating-head">
+    <img id="music-floating-cover" class="music-floating-cover" src="assets/icons/music.png" alt="">
+    <div class="music-floating-meta">
+      <strong id="music-floating-title">Nothing playing</strong>
+      <span id="music-floating-artist" class="music-floating-artist"></span>
+    </div>
+    <div class="music-floating-actions">
+      <button id="music-floating-play" class="music-play-btn" type="button" aria-label="Play" data-state="idle" disabled>
+        <svg class="icon-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+        <svg class="icon-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        <svg class="icon-loading" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle></svg>
+      </button>
+      <button id="music-floating-next" class="music-transport-btn music-floating-next" type="button" aria-label="Next song" title="Next song">
+        <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+      </button>
+      <button id="music-floating-collapse" class="music-floating-collapse" type="button" aria-label="Collapse mini player" aria-expanded="true" title="Collapse">
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+    </div>
+  </div>
+  <div class="music-floating-progress-row">
+    <span id="music-floating-time-current">0:00</span>
+    <div id="music-floating-progress" class="music-floating-progress" role="slider" aria-label="Seek song" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+      <div id="music-floating-progress-fill" class="music-floating-progress-fill"></div>
+    </div>
+    <span id="music-floating-time-total">0:00</span>
+  </div>
+</aside>
 
 
-<script src="legal.js"></script>
-<script src="changelog.js"></script>
-<script src="codes.js"></script>
 
-<script src="settings.js"></script>
-<script src="watch.js"></script>
+<script src="legal.js?v=contact1"></script>
+<script src="changelog.js?v=2"></script>
+<script src="responsible-use.js?v=1"></script>
+<script src="codes.js?v=badges2"></script>
+
+    <script src="settings.js?v=about-v15"></script>
+<script src="watch.js?v=25"></script>
 <script src="proxy.js"></script>
-<script src="ai.js"></script>
-<script src="games.js"></script>
-<script src="music.js"></script>
+<script src="ai.js?v=69"></script>
+<script src="games.js?v=12"></script>
+<script src="music.js?v=28"></script>
 <script src="np-bg-canvas.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="chat/supabaseClient.js"></script>
+<script src="account.js?v=roles2"></script>
+<script src="permissions.js?v=roles4"></script>
 <script src="chat/auth.js"></script>
-<script src="chat/friends.js"></script>
-<script src="chat/profiles.js"></script>
-<script src="chat/channels.js"></script>
-<script src="chat/messages.js"></script>
+<script src="chat/friends.js?v=dm-friend-fix2"></script>
+<script src="chat/profiles.js?v=badges5"></script>
+<script src="chat/channels.js?v=10"></script>
+<script src="chat/moderation.js"></script>
+<script src="chat/attachments.js?v=3"></script>
+<script src="chat/messages.js?v=media-preview2"></script>
 <script src="chat/reactions.js"></script>
-<script src="chat/presence.js"></script>
-<script src="chat/direct-messages.js"></script>
-<script src="chat/chat.js"></script>
+<script src="chat/presence.js?v=3"></script>
+<script src="chat/mentions.js"></script>
+<script src="chat/direct-messages.js?v=6"></script>
+<script src="chat/unread.js"></script>
+<script src="chat/chat.js?v=typing-indicator1"></script>
+    <script src="account-ui.js?v=profile-v7"></script>
+    <script src="decorations/catalog.js?v=2"></script>
+    <script src="profile-effects.js?v=87"></script>
+<script src="profile-settings-bridge.js?v=10"></script>
 
-<script src="main.js"></script>
-<script src="dev/dev.js"></script>
-<script src="dev/announcements.js"></script>
-<script src="dev/events.js"></script>
+<script src="main.js?v=last-update2"></script>
+<script src="analytics.js?v=2"></script>
+<script src="dev/dev.js?v=8"></script>
+<script src="dev/announcements.js?v=5"></script>
+<script src="dev/events.js?v=32"></script>
+<script src="dev/analytics.js?v=2"></script>
 
 </body>
 </html>

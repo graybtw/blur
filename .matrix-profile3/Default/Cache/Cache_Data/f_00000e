@@ -1,0 +1,816 @@
+/* ============================================================
+   Blur AI
+
+   A small, local-first client for the OpenAI-compatible BlurGPT API.
+   Conversations stay in this browser. The service credential is injected at
+   deploy time; no key is shipped with Blur's public source.
+============================================================ */
+
+(function(){
+  "use strict";
+
+  const STORAGE_CONVOS = "blur.ai.conversations";
+  const STORAGE_MODEL = "blur.ai.crax.model";
+  const STORAGE_DAILY = "blur.ai.daily-usage";
+  const STORAGE_COWORK = "blur.ai.cowork";
+  const STORAGE_SEARCH = "blur.ai.search";
+  const CRAX_API = String(window.BLUR_AI_CONFIG?.endpoint || "https://svvgovbyzirdsjdcznyn.supabase.co/functions/v1/crax-proxy").replace(/\/$/, "");
+  // Direct mode is for local development only. Production uses the same-origin
+  // proxy so the credential never enters this public bundle.
+  const CRAX_API_KEY = String(window.BLUR_AI_CONFIG?.craxApiKey || "").trim();
+  const USE_PROXY = CRAX_API.startsWith("/") || CRAX_API.includes("/functions/v1/crax-proxy");
+  const SERVICE_CONFIGURED = USE_PROXY || !!CRAX_API_KEY;
+  let serviceReady = !!CRAX_API_KEY;
+  let serviceError = "";
+  const MEMBER_DAILY_LIMIT = 20;
+  const STAFF_DAILY_LIMIT = 30;
+
+  const PROVIDER_LOGOS = Object.freeze({
+    // OpenAI is no longer served by the Simple Icons CDN endpoint, so use
+    // the same official icon source through jsDelivr instead.
+    openai: "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/openai.svg",
+    anthropic: "https://cdn.simpleicons.org/anthropic",
+    gemini: "https://cdn.simpleicons.org/googlegemini",
+    google: "https://cdn.simpleicons.org/google",
+    meta: "https://cdn.simpleicons.org/meta",
+    deepseek: "https://cdn.simpleicons.org/deepseek",
+    qwen: "https://cdn.simpleicons.org/qwen",
+    alibaba: "https://cdn.simpleicons.org/alibabacloud",
+    mistral: "https://cdn.simpleicons.org/mistralai",
+    xai: "https://cdn.simpleicons.org/x",
+    grok: "https://cdn.simpleicons.org/x",
+    moonshot: "https://cdn.simpleicons.org/moonshotai",
+    nvidia: "https://cdn.simpleicons.org/nvidia",
+    bytedance: "https://cdn.simpleicons.org/bytedance",
+    perplexity: "https://cdn.simpleicons.org/perplexity",
+    openrouter: "https://cdn.simpleicons.org/openrouter",
+    huggingface: "https://cdn.simpleicons.org/huggingface",
+    // BlurGPT has no public provider favicon, so keep its mark self-contained
+    // and reliable instead of depending on a missing remote favicon.
+    crax: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23b79a5b' d='m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z'/%3E%3C/svg%3E",
+    blurgpt: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23b79a5b' d='m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z'/%3E%3C/svg%3E",
+  });
+
+  // The catalog is loaded after a key is connected. This fallback keeps the
+  // selector useful before the first catalog request (and on old keys).
+  const FALLBACK_MODELS = Object.freeze([
+    { id: "qwen3.8-max", name: "Qwen 3.8 Max", provider: "BlurGPT", description: "High-capability general assistant", tag: "MAX" },
+    { id: "qwen3.8-plus", name: "Qwen 3.8 Plus", provider: "BlurGPT", description: "Balanced reasoning and speed", tag: "PLUS" },
+    { id: "qwen3.8-flash", name: "Qwen 3.8 Flash", provider: "BlurGPT", description: "Fast everyday answers", tag: "FAST" },
+  ]);
+
+  const SUGGESTIONS = [
+    { title: "Explore an idea", detail: "Break down a complicated topic", prompt: "Help me explore this idea: " },
+    { title: "Build something", detail: "Turn a rough thought into a plan", prompt: "Turn this rough idea into a clear plan: " },
+    { title: "Work with code", detail: "Debug, explain, or improve code", prompt: "Help me understand or improve this code:\n" },
+    { title: "Make a decision", detail: "Compare options without the noise", prompt: "Help me compare these options and choose a direction:\n" },
+  ];
+
+  let models = FALLBACK_MODELS.slice();
+  let state = { conversations: [], activeId: null, model: FALLBACK_MODELS[0].id, apiKey: "", dailyCount: 0, cowork: false, search: false };
+  let els = {};
+  let isSending = false;
+  let currentController = null;
+  let modelDropdownEl = null;
+  let modelDropdownOpen = false;
+  let coworkPopoverEl = null;
+  let coworkPopoverOpen = false;
+  let noticeTimer = null;
+  let scrollFrame = 0;
+  let modelProviderFilter = "all";
+  let modelQuery = "";
+
+  function accountService(){ return typeof Account !== "undefined" ? Account : null; }
+  function currentProfile(){
+    const account = accountService();
+    return account?.profile || (typeof Chat !== "undefined" ? Chat.profile : null) || null;
+  }
+  function isStaffAiUser(){
+    return typeof Permissions !== "undefined" && Permissions.isStaff(currentProfile());
+  }
+  function dailyLimit(){ return isStaffAiUser() ? STAFF_DAILY_LIMIT : MEMBER_DAILY_LIMIT; }
+  function requestBody(body){
+    const next = { ...body };
+    // Crax accepts the OpenAI-compatible reasoning_effort field. Keep the
+    // deeper setting exclusive to staff while leaving member requests as-is.
+    if (isStaffAiUser()) next.reasoning_effort = "high";
+    return next;
+  }
+  function accountScope(){ const account = accountService(); return account?.user?.id ? `user:${account.user.id}` : "browser"; }
+  function localDay(){ const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`; }
+  function dailyKey(){ return `${accountScope()}:${localDay()}`; }
+  function uid(){ return Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+
+  function providerKey(provider){ return String(provider || "").toLowerCase().replace(/[^a-z0-9]+/g, ""); }
+  function providerLogo(provider){
+    const key = providerKey(provider);
+    return Object.entries(PROVIDER_LOGOS).find(([name]) => key.includes(name))?.[1] || "";
+  }
+  function providerInitials(provider){
+    const words = String(provider || "AI").trim().split(/\s+/).filter(Boolean);
+    return (words.length > 1 ? words.map(word => word[0]) : [words[0]?.[0] || "A"]).join("").slice(0, 2).toUpperCase();
+  }
+  function providerLabel(provider){ return providerKey(provider).includes("crax") ? "BlurGPT" : String(provider || "BlurGPT"); }
+  function providerMark(provider, extra = ""){
+    const logo = providerLogo(provider);
+    return `<span class="ai-provider-mark ${extra}" aria-hidden="true">${logo ? `<img src="${escapeAttr(logo)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false">` : ""}<span ${logo ? "hidden" : ""}>${escapeHtml(providerInitials(provider))}</span></span>`;
+  }
+
+  function escapeHtml(value){ const div = document.createElement("div"); div.textContent = value == null ? "" : String(value); return div.innerHTML; }
+  function escapeAttr(value){ return escapeHtml(value).replace(/`/g, "&#96;"); }
+  function icon(path, extra = ""){ return `<svg viewBox="0 0 24 24" ${extra}>${path}</svg>`; }
+
+  function normalizeModel(raw){
+    const id = String(raw?.id || raw?.name || "").trim();
+    if (!id) return null;
+    const provider = String(raw?.provider || id.split("/")[0] || "BlurGPT").trim();
+    const context = raw?.context_length || raw?.contextLength;
+    return {
+      id,
+      name: String(raw?.name || id.split("/").pop() || id),
+      provider,
+      description: String(raw?.description || (context ? `${Number(context).toLocaleString()} token context` : "Available through BlurGPT")),
+      tag: String(raw?.tag || (raw?.reasoning ? "REASONING" : "MODEL")).toUpperCase(),
+      context,
+      inRate: raw?.inRate,
+      outRate: raw?.outRate,
+    };
+  }
+
+  function findModel(id){ return models.find(model => model.id === id) || models[0] || FALLBACK_MODELS[0]; }
+  function formatTime(ts){ const date = new Date(ts); return Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+  function resetLabel(){
+    const next = new Date();
+    next.setHours(24, 0, 0, 0);
+    return `Resets ${next.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+  }
+
+  function loadState(){
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_CONVOS) || "[]");
+      state.conversations = Array.isArray(parsed) ? parsed.filter(convo => convo && convo.id).map(convo => ({ ...convo, cowork: !!convo.cowork, search: !!convo.search, messages: Array.isArray(convo.messages) ? convo.messages.filter(message => message && message.role && typeof message.content === "string") : [], updatedAt: Number(convo.updatedAt) || Date.now() })) : [];
+    } catch { state.conversations = []; }
+    state.model = localStorage.getItem(STORAGE_MODEL) || FALLBACK_MODELS[0].id;
+    state.cowork = localStorage.getItem(STORAGE_COWORK) === "true";
+    state.search = localStorage.getItem(STORAGE_SEARCH) === "true";
+    state.apiKey = CRAX_API_KEY;
+    if (state.conversations.length) state.activeId = state.conversations.slice().sort((a, b) => b.updatedAt - a.updatedAt)[0].id;
+    loadDailyUsage();
+  }
+
+  function saveConversations(){ try { localStorage.setItem(STORAGE_CONVOS, JSON.stringify(state.conversations)); } catch (error) { console.warn("AI conversation save failed:", error); } }
+
+  function loadDailyUsage(){
+    state.dailyCount = 0;
+    try {
+      const all = JSON.parse(localStorage.getItem(STORAGE_DAILY) || "{}");
+      const record = all[dailyKey()];
+      if (record?.day === localDay()) state.dailyCount = Math.max(0, Math.min(dailyLimit(), Number(record.count) || 0));
+    } catch { state.dailyCount = 0; }
+  }
+
+  function saveDailyUsage(){
+    try {
+      const all = JSON.parse(localStorage.getItem(STORAGE_DAILY) || "{}");
+      all[dailyKey()] = { day: localDay(), count: state.dailyCount };
+      const keys = Object.keys(all);
+      if (keys.length > 14) keys.sort().slice(0, keys.length - 14).forEach(key => delete all[key]);
+      localStorage.setItem(STORAGE_DAILY, JSON.stringify(all));
+    } catch { /* local storage is optional */ }
+  }
+
+  function consumeDailyMessage(){ loadDailyUsage(); state.dailyCount = Math.min(dailyLimit(), state.dailyCount + 1); saveDailyUsage(); updateUsage(); }
+  function getActive(){ return state.conversations.find(convo => convo.id === state.activeId) || null; }
+  function conversationTitle(convo){ const first = convo?.messages?.find(message => message.role === "user")?.content; if (!first) return "New chat"; const flat = first.replace(/\s+/g, " ").trim(); return flat.length > 42 ? `${flat.slice(0, 42).trimEnd()}…` : flat; }
+
+  function updateUsage(){
+    loadDailyUsage();
+    const limit = dailyLimit();
+    const remaining = Math.max(0, limit - state.dailyCount);
+    if (els.usageLabel) els.usageLabel.textContent = `${remaining} message${remaining === 1 ? "" : "s"} left today`;
+    if (els.usageCount) els.usageCount.textContent = `${state.dailyCount} / ${limit}`;
+    if (els.usageReset) els.usageReset.textContent = resetLabel();
+    if (els.usageFill) els.usageFill.style.width = `${Math.min(100, (state.dailyCount / limit) * 100)}%`;
+    const emptyLimit = els.messages?.querySelector("#aiEmptyLimit");
+    if (emptyLimit) emptyLimit.textContent = `Choose a model below · ${limit} messages each day`;
+    if (els.composerHint && !isSending) els.composerHint.textContent = serviceReady ? "" : "AI service unavailable";
+  }
+
+  function updateConnectionState(){
+    const connected = serviceReady;
+    const authIssue = /auth|jwt|token|401/i.test(serviceError);
+    if (els.headerStatus) els.headerStatus.textContent = connected ? "READY" : authIssue ? "SIGN IN" : "OFFLINE";
+    if (els.composerHint && !isSending) els.composerHint.textContent = connected ? "" : authIssue ? "Sign in to use AI" : "AI service unavailable";
+  }
+
+  function buildShell(panel){
+    panel.innerHTML = `
+      <div class="ai-app">
+        <aside class="ai-sidebar" aria-label="AI conversations">
+          <div class="ai-sidebar-brand"><div class="ai-brand-lockup"><span class="ai-brand-mark">✦</span><span><small>BLUR</small><strong>AI</strong></span></div></div>
+          <button class="ai-mobile-close" type="button" aria-label="Close conversations">×</button>
+          <nav class="ai-sidebar-nav" aria-label="AI navigation">
+            <button class="ai-sidebar-nav-item active" type="button" data-ai-new>${icon('<path d="M12 5v14M5 12h14"/>')}<span>New</span></button>
+            <button class="ai-sidebar-nav-item" type="button" data-ai-models>${icon('<path d="M12 3 4 7l8 4 8-4-8-4ZM4 12l8 4 8-4M4 17l8 4 8-4"/>')}<span>Models</span></button>
+            <button class="ai-sidebar-nav-item" type="button" data-ai-chats>${icon('<path d="M5 5h14v10H9l-4 4V5Z"/>')}<span>Chats</span><span class="ai-sidebar-nav-count" id="aiChatCount">0</span></button>
+          </nav>
+          <div class="ai-sidebar-section-label"><span>RECENT</span></div>
+          <div class="ai-sidebar-list" id="aiSidebarList"></div>
+          <div class="ai-sidebar-bottom"><div class="ai-usage-card"><div class="ai-usage-top"><span>Messages today</span><strong id="aiUsageCount">0 / 20</strong></div><div class="ai-usage-track"><span id="aiUsageFill"></span></div><div class="ai-usage-label"><span id="aiUsageLabel">20 messages left today</span><span id="aiUsageReset">Resets at midnight</span></div></div></div>
+        </aside>
+        <section class="ai-main" aria-label="AI conversation">
+          <header class="ai-chat-header"><button class="ui-icon-button ui-icon-button--sm ai-mobile-toggle" type="button" aria-label="Open conversations">${icon('<path d="M4 6h16M4 12h16M4 18h16"/>')}</button><div class="ai-header-copy"><span class="ai-header-kicker">BLURGPT</span><h1 id="aiChatTitle">New chat</h1></div><div class="ai-header-actions"><span class="ai-header-status" id="aiHeaderStatus">READY</span><button class="ui-icon-button ui-icon-button--sm" id="aiClearButton" type="button" title="Clear conversation" aria-label="Clear conversation">${icon('<path d="M5 7h14M10 11v6M14 11v6M7 7l1 13h8l1-13M9 7V4h6v3"/>')}</button></div></header>
+          <div class="ai-messages" id="aiMessages" aria-live="polite"></div>
+          <div class="ai-composer-wrap"><div class="ai-composer-notice" id="aiComposerNotice" role="status" hidden></div><div class="ai-composer"><textarea rows="1" placeholder="Ask BlurGPT anything" id="aiTextarea" aria-label="Message BlurGPT"></textarea><div class="ai-composer-bottom"><span class="ai-composer-hint" id="aiComposerHint"></span><div class="ai-composer-controls"><button class="ai-composer-tool" id="aiSearchToggle" type="button" aria-pressed="false">${icon('<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>')}<span>Search</span></button><button class="ai-composer-tool" id="aiCoworkToggle" type="button" aria-pressed="false">✦<span>Cowork</span></button><button class="ai-model-selector" id="aiModelSelector" type="button" aria-haspopup="listbox" aria-expanded="false"><span class="ai-model-icon" id="aiModelIcon"></span><span class="ai-model-name" id="aiModelName">Qwen 3.8 Max</span><span class="ai-model-arrow">⌄</span></button></div><button class="ui-icon-button ui-icon-button--sm ai-send" type="button" aria-label="Send message" id="aiSendBtn" disabled>${icon('<path d="M12 19V5M5 12l7-7 7 7"/>')}</button></div></div><p class="ai-composer-footnote">BlurGPT can make mistakes. Check sources.</p></div>
+          <section class="ai-models-page" id="aiModelsPage" hidden aria-label="Models"><div class="ai-models-heading"><span class="ai-header-kicker">BLURGPT</span><h2>Models</h2><p><span id="aiModelsCount">0</span> models available. Select one to use it in your next chat.</p></div><label class="ai-models-search"><span>${icon('<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>')}</span><input id="aiModelsSearch" type="search" placeholder="Search models or providers" autocomplete="off" aria-label="Search models or providers"></label><div class="ai-model-filters" id="aiModelFilters"></div><div class="ai-models-table"><div class="ai-models-table-head"><span>MODEL</span><span>CONTEXT</span><span>CAPABILITY</span><span>PRICING</span></div><div class="ai-models-list" id="aiModelsList"></div></div></section>
+        </section>
+      </div>`;
+
+    els.app = panel.querySelector(".ai-app");
+    els.sidebarList = panel.querySelector("#aiSidebarList");
+    els.sidebarSearch = panel.querySelector("#aiSidebarSearch");
+    els.chatCount = panel.querySelector("#aiChatCount");
+    els.chatTitle = panel.querySelector("#aiChatTitle");
+    els.headerStatus = panel.querySelector("#aiHeaderStatus");
+    els.messages = panel.querySelector("#aiMessages");
+    els.textarea = panel.querySelector("#aiTextarea");
+    els.sendBtn = panel.querySelector("#aiSendBtn");
+    els.modelSelector = panel.querySelector("#aiModelSelector");
+    els.modelIcon = panel.querySelector("#aiModelIcon");
+    els.modelName = panel.querySelector("#aiModelName");
+    els.usageCount = panel.querySelector("#aiUsageCount");
+    els.usageFill = panel.querySelector("#aiUsageFill");
+    els.usageLabel = panel.querySelector("#aiUsageLabel");
+    els.usageReset = panel.querySelector("#aiUsageReset");
+    els.composerHint = panel.querySelector("#aiComposerHint");
+    els.notice = panel.querySelector("#aiComposerNotice");
+    els.searchToggle = panel.querySelector("#aiSearchToggle");
+    els.coworkToggle = panel.querySelector("#aiCoworkToggle");
+    els.modelsPage = panel.querySelector("#aiModelsPage");
+    els.modelsList = panel.querySelector("#aiModelsList");
+    els.modelsCount = panel.querySelector("#aiModelsCount");
+    els.modelsSearch = panel.querySelector("#aiModelsSearch");
+    els.modelFilters = panel.querySelector("#aiModelFilters");
+
+    panel.querySelector("[data-ai-new]").addEventListener("click", () => { showConversationView(); createConversation(true); });
+    panel.querySelector("[data-ai-models]").addEventListener("click", showModelsView);
+    panel.querySelector("[data-ai-chats]").addEventListener("click", showConversationView);
+    panel.querySelector(".ai-mobile-toggle").addEventListener("click", () => els.app.classList.toggle("sidebar-open"));
+    panel.querySelector(".ai-mobile-close").addEventListener("click", () => els.app.classList.remove("sidebar-open"));
+    els.sidebarSearch?.addEventListener("input", renderSidebar);
+    els.sidebarList.addEventListener("click", event => { const del = event.target.closest("[data-delete-conversation]"); if (del) { event.stopPropagation(); deleteConversation(del.dataset.deleteConversation); return; } const row = event.target.closest("[data-conversation-id]"); if (row) { showConversationView(); selectConversation(row.dataset.conversationId); } });
+    els.textarea.addEventListener("input", handleTextareaInput);
+    els.textarea.addEventListener("keydown", handleTextareaKeydown);
+    els.sendBtn.addEventListener("click", handleSend);
+    els.coworkToggle?.addEventListener("click", toggleCoworkPopover);
+    els.searchToggle?.addEventListener("click", toggleSearch);
+    els.modelsSearch?.addEventListener("input", renderModelsView);
+    els.modelFilters?.addEventListener("click", event => { const filter = event.target.closest("[data-provider-filter]"); if (!filter) return; modelProviderFilter = filter.dataset.providerFilter; renderModelsView(); });
+    els.modelsList?.addEventListener("click", event => { const row = event.target.closest("[data-model-id]"); if (!row) return; selectModel(row.dataset.modelId); showConversationView(); });
+    els.modelSelector.addEventListener("click", event => { event.stopPropagation(); toggleModelDropdown(); });
+    panel.querySelector("#aiClearButton").addEventListener("click", clearActiveConversation);
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return;
+      if (modelDropdownOpen) closeModelDropdown();
+      if (coworkPopoverOpen) closeCoworkPopover();
+    });
+    window.addEventListener("resize", () => { if (modelDropdownOpen) positionModelDropdown(); if (coworkPopoverOpen) positionCoworkPopover(); });
+    accountService()?.onAuthStateChange?.(() => { loadDailyUsage(); updateUsage(); });
+    accountService()?.onProfileChange?.(() => { loadDailyUsage(); updateUsage(); });
+    renderAll();
+    if (SERVICE_CONFIGURED) refreshModels({ silent: true });
+    setTimeout(() => els.textarea.focus(), 120);
+  }
+
+  function renderAll(){ renderSidebar(); renderActiveConversation(); renderModelSelector(); renderCoworkState(); renderSearchState(); renderModelsView(); updateConnectionState(); updateUsage(); }
+
+  function showConversationView(){
+    if (!els.app) return;
+    els.app.classList.remove("models-view");
+    els.modelsPage?.setAttribute("hidden", "");
+    els.app.querySelectorAll("[data-ai-new],[data-ai-models],[data-ai-chats]").forEach(item => item.classList.toggle("active", item.matches("[data-ai-new]")));
+    closeModelDropdown();
+    closeCoworkPopover();
+  }
+
+  function showModelsView(){
+    if (!els.app) return;
+    els.app.classList.add("models-view");
+    els.modelsPage?.removeAttribute("hidden");
+    els.app.querySelectorAll("[data-ai-new],[data-ai-models],[data-ai-chats]").forEach(item => item.classList.toggle("active", item.matches("[data-ai-models]")));
+    closeModelDropdown();
+    closeCoworkPopover();
+    renderModelsView();
+  }
+
+  function modelPrice(value){
+    if (value == null || value === "") return "—";
+    const number = Number(value);
+    return Number.isFinite(number) ? `$${number.toFixed(number < 1 ? 2 : 1)}` : escapeHtml(String(value));
+  }
+
+  function renderModelsView(){
+    if (!els.modelsPage || els.modelsPage.hidden || !els.modelsList) return;
+    modelQuery = String(els.modelsSearch?.value || modelQuery).trim().toLowerCase();
+    const providers = [...new Set(models.map(model => providerLabel(model.provider)))].sort();
+    if (els.modelFilters) els.modelFilters.innerHTML = ["all", ...providers].map(provider => `<button type="button" class="ai-model-filter ${modelProviderFilter === provider ? "active" : ""}" data-provider-filter="${escapeAttr(provider)}">${escapeHtml(provider === "all" ? "All providers" : provider)}</button>`).join("");
+    const filtered = models.filter(model => {
+      const provider = providerLabel(model.provider);
+      const matchesProvider = modelProviderFilter === "all" || provider === modelProviderFilter;
+      const haystack = `${model.name} ${provider} ${model.id} ${model.description}`.toLowerCase();
+      return matchesProvider && (!modelQuery || haystack.includes(modelQuery));
+    });
+    if (els.modelsCount) els.modelsCount.textContent = String(filtered.length);
+    els.modelsList.innerHTML = filtered.length ? filtered.map(model => `<button type="button" class="ai-model-row ${model.id === state.model ? "active" : ""}" data-model-id="${escapeAttr(model.id)}">${providerMark(model.provider, "ai-model-row-logo")}<span class="ai-model-row-name"><strong>${escapeHtml(model.name)}</strong><small>${escapeHtml(providerLabel(model.provider))}</small></span><span class="ai-model-row-context">${model.context ? `${Number(model.context).toLocaleString()} ctx` : "—"}</span><span class="ai-model-row-capability">${escapeHtml(model.tag || "MODEL")}</span><span class="ai-model-row-price">${modelPrice(model.inRate)} <i>/</i> ${modelPrice(model.outRate)}</span><span class="ai-model-row-check">${model.id === state.model ? "Selected" : ""}</span></button>`).join("") : `<div class="ai-models-empty">No models match that search.</div>`;
+  }
+
+  function renderCoworkState(){
+    const active = getActive();
+    const enabled = active ? !!active.cowork : !!state.cowork;
+    if (els.coworkState) els.coworkState.textContent = enabled ? "ON" : "OFF";
+    if (els.coworkToggle) {
+      els.coworkToggle.classList.toggle("active", enabled);
+      els.coworkToggle.setAttribute("aria-pressed", String(enabled));
+      els.coworkToggle.title = enabled ? "Cowork enabled" : "Use multiple models";
+    }
+  }
+
+  function coworkCandidates(active){
+    const selected = findModel(active?.model || state.model);
+    const pool = [selected, ...models.filter(model => model.id !== selected.id)];
+    return pool.slice(0, Math.min(3, pool.length));
+  }
+
+  function setCoworkEnabled(enabled){
+    const next = !!enabled;
+    state.cowork = next;
+    localStorage.setItem(STORAGE_COWORK, String(next));
+    const active = getActive();
+    if (active) {
+      active.cowork = next;
+      active.updatedAt = Date.now();
+      saveConversations();
+    }
+    renderCoworkState();
+    syncCoworkPopover();
+  }
+
+  function toggleCoworkPopover(){
+    if (coworkPopoverOpen) {
+      closeCoworkPopover();
+      return;
+    }
+    closeModelDropdown();
+    coworkPopoverOpen = true;
+    const active = getActive();
+    const enabled = active ? !!active.cowork : !!state.cowork;
+    const names = coworkCandidates(active).map(model => model.name).join(" · ");
+    coworkPopoverEl = document.createElement("section");
+    coworkPopoverEl.className = "ai-cowork-popover";
+    coworkPopoverEl.setAttribute("role", "dialog");
+    coworkPopoverEl.setAttribute("aria-label", "AI coworkers");
+    coworkPopoverEl.innerHTML = `
+      <div class="ai-cowork-head">
+        <div><span>AI COWORKERS</span><h2>Use coworkers</h2></div>
+        <button type="button" class="ai-cowork-close" aria-label="Close coworkers">×</button>
+      </div>
+      <label class="ai-cowork-check">
+        <input id="aiCoworkCheck" type="checkbox" ${enabled ? "checked" : ""}>
+        <span><strong>Use coworkers for this prompt</strong><small>Three models draft, then the lead model combines the answers.</small></span>
+      </label>
+      <div class="ai-cowork-mode"><strong>Top 3 automatically</strong><span>Lead: ${escapeHtml(findModel(active?.model || state.model).name)}</span></div>
+      <p class="ai-cowork-models">${escapeHtml(names)}</p>
+      <p class="ai-cowork-note">Cowork uses extra requests and may take longer.</p>`;
+    coworkPopoverEl.querySelector("#aiCoworkCheck").addEventListener("change", event => setCoworkEnabled(event.target.checked));
+    coworkPopoverEl.querySelector(".ai-cowork-close").addEventListener("click", closeCoworkPopover);
+    coworkPopoverEl.addEventListener("click", event => event.stopPropagation());
+    document.body.appendChild(coworkPopoverEl);
+    positionCoworkPopover();
+    setTimeout(() => document.addEventListener("click", closeCoworkPopoverOutside), 0);
+  }
+
+  function syncCoworkPopover(){
+    if (!coworkPopoverEl) return;
+    const active = getActive();
+    const enabled = active ? !!active.cowork : !!state.cowork;
+    const check = coworkPopoverEl.querySelector("#aiCoworkCheck");
+    if (check) check.checked = enabled;
+  }
+
+  function positionCoworkPopover(){
+    if (!coworkPopoverEl || !els.coworkToggle) return;
+    const rect = els.coworkToggle.getBoundingClientRect();
+    const width = Math.min(396, window.innerWidth - 20);
+    const left = Math.max(10, Math.min(window.innerWidth - width - 10, rect.right - width));
+    const top = Math.max(10, rect.top - coworkPopoverEl.offsetHeight - 10);
+    coworkPopoverEl.style.width = `${width}px`;
+    coworkPopoverEl.style.left = `${left}px`;
+    coworkPopoverEl.style.top = `${top}px`;
+  }
+
+  function closeCoworkPopover(){
+    coworkPopoverOpen = false;
+    coworkPopoverEl?.remove();
+    coworkPopoverEl = null;
+    document.removeEventListener("click", closeCoworkPopoverOutside);
+  }
+
+  function closeCoworkPopoverOutside(event){
+    if (!event.target.closest(".ai-cowork-popover") && !event.target.closest("#aiCoworkToggle")) closeCoworkPopover();
+  }
+
+  function renderSearchState(){
+    const active = getActive();
+    const enabled = active ? !!active.search : !!state.search;
+    if (els.searchToggle) { els.searchToggle.classList.toggle("active", enabled); els.searchToggle.setAttribute("aria-pressed", String(enabled)); }
+  }
+
+  function renderSidebar(){
+    if (!els.sidebarList) return;
+    const query = String(els.sidebarSearch?.value || "").trim().toLowerCase();
+    const sorted = state.conversations.slice().sort((a, b) => b.updatedAt - a.updatedAt);
+    const filtered = query ? sorted.filter(convo => conversationTitle(convo).toLowerCase().includes(query)) : sorted;
+    if (els.chatCount) els.chatCount.textContent = String(filtered.length);
+    els.sidebarList.innerHTML = filtered.length ? filtered.map(convo => `<button type="button" class="ai-sidebar-item ${convo.id === state.activeId ? "active" : ""}" data-conversation-id="${escapeAttr(convo.id)}"><span class="ai-sidebar-item-copy"><strong>${escapeHtml(conversationTitle(convo))}</strong><small>${convo.messages.length ? `${convo.messages.length} message${convo.messages.length === 1 ? "" : "s"}` : "Empty chat"}</small></span><span class="ai-sidebar-item-del" role="button" tabindex="0" data-delete-conversation="${escapeAttr(convo.id)}" aria-label="Delete chat">×</span></button>`).join("") : `<div class="ai-sidebar-empty"><span>${query ? "No chats match your search." : "No chats yet."}</span><small>Start a new chat above.</small></div>`;
+  }
+
+  function renderActiveConversation(){
+    if (!els.messages) return;
+    const active = getActive();
+    els.messages.innerHTML = "";
+    if (!active || !active.messages.length) { if (els.chatTitle) els.chatTitle.textContent = "New chat"; renderEmptyState(); return; }
+    if (els.chatTitle) els.chatTitle.textContent = conversationTitle(active);
+    const fragment = document.createDocumentFragment();
+    active.messages.forEach(message => fragment.appendChild(buildMessageEl(message)));
+    els.messages.appendChild(fragment);
+    scrollMessagesToBottom();
+  }
+
+  function renderEmptyState(){
+    const wrap = document.createElement("div");
+    wrap.className = "ai-empty";
+    wrap.innerHTML = `<div class="ai-empty-mark">BLUR / AI</div><h2>What can I help you make?</h2><p>A focused workspace for questions, ideas, and projects.</p><div class="ai-suggest-grid"></div><div class="ai-empty-note"><span class="ai-empty-note-rule"></span><span id="aiEmptyLimit">Choose a model below · ${dailyLimit()} messages each day</span></div>`;
+    const grid = wrap.querySelector(".ai-suggest-grid");
+    SUGGESTIONS.forEach((suggestion, index) => { const card = document.createElement("button"); card.type = "button"; card.className = "ai-suggest-card"; card.innerHTML = `<span class="ai-suggest-index">0${index + 1}</span><span><strong>${escapeHtml(suggestion.title)}</strong><small>${escapeHtml(suggestion.detail)}</small></span>`; card.addEventListener("click", () => { els.textarea.value = suggestion.prompt; handleTextareaInput(); els.textarea.focus(); els.textarea.setSelectionRange(els.textarea.value.length, els.textarea.value.length); }); grid.appendChild(card); });
+    els.messages.appendChild(wrap);
+  }
+
+  function inlineMarkdown(value){
+    let text = escapeHtml(value);
+    const links = [];
+    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (_, label, url) => { links.push(`<a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${label}</a>`); return `@@AI_LINK_${links.length - 1}@@`; });
+    text = text.replace(/(https?:\/\/[^\s<]+)/g, url => { links.push(`<a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${url}</a>`); return `@@AI_LINK_${links.length - 1}@@`; });
+    text = text.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>").replace(/__([^_\n]+)__/g, "<strong>$1</strong>").replace(/\*([^*\n]+)\*/g, "<em>$1</em>").replace(/_([^_\n]+)_/g, "<em>$1</em>");
+    return text.replace(/@@AI_LINK_(\d+)@@/g, (_, index) => links[Number(index)] || "");
+  }
+
+  function markdownHtml(value){
+    const lines = String(value || "").replace(/\r\n/g, "\n").split("\n");
+    const html = []; let code = false; let codeLines = []; let listType = null;
+    const closeList = () => { if (listType) { html.push(`</${listType}>`); listType = null; } };
+    lines.forEach(line => {
+      if (/^\s*```/.test(line)) { if (code) { html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`); codeLines = []; } code = !code; closeList(); return; }
+      if (code) { codeLines.push(line); return; }
+      if (!line.trim()) { closeList(); return; }
+      const heading = line.match(/^\s*(#{1,3})\s+(.+?)\s*#*\s*$/);
+      if (heading) { closeList(); const level = heading[1].length; html.push(`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`); return; }
+      const bullet = line.match(/^\s*[-*+]\s+(.+)$/);
+      if (bullet) { if (listType !== "ul") { closeList(); html.push("<ul>"); listType = "ul"; } html.push(`<li>${inlineMarkdown(bullet[1])}</li>`); return; }
+      const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+      if (ordered) { if (listType !== "ol") { closeList(); html.push("<ol>"); listType = "ol"; } html.push(`<li>${inlineMarkdown(ordered[1])}</li>`); return; }
+      if (/^\s*>\s?/.test(line)) { closeList(); html.push(`<blockquote>${inlineMarkdown(line.replace(/^\s*>\s?/, ""))}</blockquote>`); return; }
+      closeList(); html.push(`<p>${inlineMarkdown(line)}</p>`);
+    });
+    if (code) html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+    closeList(); return html.join("");
+  }
+
+  function buildMessageEl(message, streaming = false){
+    const wrap = document.createElement("article");
+    wrap.className = `ai-msg ${message.role === "user" ? "user" : "assistant"}`;
+    const body = message.role === "assistant" && !streaming ? markdownHtml(message.content) : escapeHtml(message.content).replace(/\n/g, "<br>");
+    const assistant = message.role !== "user";
+    const model = assistant ? findModel(message.model || state.model) : null;
+    wrap.innerHTML = `<div class="ai-msg-head">${assistant ? `${providerMark(model.provider, "ai-message-logo")}<span>${escapeHtml(model.name || "BlurGPT")}</span>` : ""}<time>${escapeHtml(formatTime(message.ts))}</time></div><div class="ai-msg-content">${body}</div>`;
+    return wrap;
+  }
+
+  function appendTyping(){ const wrap = document.createElement("article"); wrap.className = "ai-msg assistant ai-typing-row"; const model = findModel(getActive()?.model || state.model); wrap.innerHTML = `<div class="ai-msg-head">${providerMark(model.provider, "ai-message-logo")}<span>${escapeHtml(model.name || "BlurGPT")}</span></div><div class="ai-typing"><span></span><span></span><span></span></div>`; els.messages.appendChild(wrap); scrollMessagesToBottom(); return wrap; }
+  function appendError(message){ const wrap = document.createElement("article"); wrap.className = "ai-error-message"; wrap.innerHTML = `<span>${escapeHtml(message)}</span><button type="button">Retry</button>`; wrap.querySelector("button").addEventListener("click", () => { wrap.remove(); retryLastMessage(); }); els.messages.appendChild(wrap); scrollMessagesToBottom(); }
+  function scrollMessagesToBottom(){ if (scrollFrame || !els.messages) return; scrollFrame = requestAnimationFrame(() => { scrollFrame = 0; if (els.messages) els.messages.scrollTop = els.messages.scrollHeight; }); }
+  function handleTextareaInput(){ if (!els.textarea) return; els.textarea.style.height = "auto"; els.textarea.style.height = `${Math.min(180, Math.max(24, els.textarea.scrollHeight))}px`; els.sendBtn.disabled = !els.textarea.value.trim() || isSending; }
+  function handleTextareaKeydown(event){ if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); handleSend(); } }
+  function stopCurrentRequest(){ if (currentController) { currentController.abort(); currentController = null; } }
+
+  function createConversation(focus = false){ stopCurrentRequest(); const convo = { id: uid(), model: state.model, cowork: state.cowork, search: state.search, messages: [], updatedAt: Date.now() }; state.conversations.unshift(convo); state.activeId = convo.id; saveConversations(); renderAll(); if (focus) setTimeout(() => els.textarea.focus(), 80); }
+  function selectConversation(id){ if (!state.conversations.some(convo => convo.id === id)) return; stopCurrentRequest(); state.activeId = id; els.app.classList.remove("sidebar-open"); renderAll(); setTimeout(() => els.textarea.focus(), 80); }
+  function deleteConversation(id){ if (state.activeId === id) stopCurrentRequest(); state.conversations = state.conversations.filter(convo => convo.id !== id); if (state.activeId === id) state.activeId = state.conversations[0]?.id || null; saveConversations(); renderAll(); }
+  function clearActiveConversation(){ const active = getActive(); if (!active) return; stopCurrentRequest(); active.messages = []; active.updatedAt = Date.now(); saveConversations(); renderAll(); }
+
+  function showNotice(message, kind = ""){ if (!els.notice) return; clearTimeout(noticeTimer); els.notice.textContent = message; els.notice.className = `ai-composer-notice ${kind}`; els.notice.hidden = false; noticeTimer = setTimeout(() => { if (els.notice) els.notice.hidden = true; }, 4500); }
+
+  async function readErrorResponse(response){ let body = ""; try { body = await response.text(); } catch { /* noop */ } try { const parsed = JSON.parse(body); return parsed?.error?.message || parsed?.message || `Request failed (${response.status})`; } catch { return body.slice(0, 240) || `Request failed (${response.status})`; } }
+
+  async function craxFetch(path, init = {}){
+    const headers = new Headers(init.headers || {});
+    headers.set("Accept", "application/json, text/event-stream");
+    if (USE_PROXY) {
+      if (window.SUPABASE_ANON_KEY) headers.set("apikey", window.SUPABASE_ANON_KEY);
+      try {
+        const session = await window.sb?.auth?.getSession?.();
+        const token = session?.data?.session?.access_token;
+        if (token) headers.set("Authorization", `Bearer ${token}`);
+      } catch { /* the function will return a clear auth error */ }
+    } else if (CRAX_API_KEY) {
+      headers.set("Authorization", `Bearer ${CRAX_API_KEY}`);
+    }
+    try {
+      const response = await fetch(`${CRAX_API}${path}`, { ...init, headers, mode: "cors", referrerPolicy: "no-referrer" });
+      if (USE_PROXY && (response.headers.get("content-type") || "").includes("text/html")) throw new Error("The AI proxy is not deployed yet.");
+      return response;
+    } catch (error) {
+      if (error?.name === "TypeError") throw new Error("The BlurGPT service could not be reached from this browser. Check the connection or network.");
+      throw error;
+    }
+  }
+
+  // Shared entry point for surfaces that want a BlurGPT answer without
+  // recreating the AI client. Chat uses this for shared channel prompts;
+  // model selection, proxy/auth handling, and the shared daily quota all stay
+  // in one place.
+  async function askFromChat(prompt, options = {}){
+    const text = String(prompt || "").trim();
+    if (!text) throw new Error("Ask BlurGPT a question first.");
+    if (!SERVICE_CONFIGURED) throw new Error("BlurGPT is not configured right now.");
+    if (!serviceReady) {
+      const refreshed = await refreshModels({ silent: true });
+      if (!refreshed) throw new Error("BlurGPT is unavailable right now.");
+    }
+    loadDailyUsage();
+    const limit = dailyLimit();
+    if (state.dailyCount >= limit) {
+      const error = new Error(`You’ve reached the ${limit}-message daily limit. It resets tomorrow.`);
+      error.code = "DAILY_LIMIT";
+      throw error;
+    }
+    const selected = findModel(options.model || state.model);
+    const messages = [
+      { role: "system", content: "You are BlurGPT, the helpful AI inside Blur Chat. Answer the user's question directly and clearly. Keep the response useful for a shared chat channel and do not address or ping other users." },
+      { role: "user", content: text }
+    ];
+    consumeDailyMessage();
+    const response = await craxFetch("/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody({ model: selected.id, messages, stream: false, temperature: 0.7 })),
+    });
+    if (!response.ok) throw new Error(await readErrorResponse(response));
+    const data = await response.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (typeof content !== "string" || !content.trim()) throw new Error("BlurGPT returned an empty answer.");
+    return { content: content.trim(), model: selected.id, remaining: Math.max(0, limit - state.dailyCount) };
+  }
+
+  async function readSse(response, onDelta){
+    const reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = "";
+    const consume = text => { buffer += text; const lines = buffer.split(/\r?\n/); buffer = lines.pop() || ""; lines.forEach(line => { const value = line.trim(); if (!value.startsWith("data:")) return; const payload = value.slice(5).trim(); if (!payload || payload === "[DONE]") return; try { const parsed = JSON.parse(payload); if (parsed?.error) throw new Error(parsed.error.message || "The model returned an error."); const delta = parsed?.choices?.[0]?.delta?.content; if (typeof delta === "string") onDelta(delta); } catch (error) { if (error instanceof SyntaxError) return; throw error; } }); };
+    while (true) { const { value, done } = await reader.read(); if (done) break; consume(decoder.decode(value, { stream: true })); }
+    consume(decoder.decode());
+  }
+
+  function coworkPromptMessages(active, model){
+    const messages = active.messages.map(message => ({ role: message.role, content: message.content }));
+    messages.unshift({ role: "system", content: `You are a specialist coworker inside BlurGPT. Draft a useful candidate answer for the user's request. Be concrete and concise; another lead model will combine your work. You are model ${model.name}.` });
+    if (active.search) messages.unshift({ role: "system", content: "Use web search when it improves accuracy or freshness. Distinguish sourced facts from your own reasoning." });
+    return messages;
+  }
+
+  async function requestCoworkCandidate(model, messages, controller, searchEnabled){
+    const response = await craxFetch("/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody({ model: model.id, messages, stream: false, temperature: 0.7, web_search: !!searchEnabled })),
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error(await readErrorResponse(response));
+    const data = await response.json();
+    const reply = data?.choices?.[0]?.message?.content;
+    if (typeof reply !== "string" || !reply.trim()) throw new Error("A coworker returned an empty answer.");
+    return reply.trim();
+  }
+
+  async function requestCoworkReply(active, typingEl){
+    const controller = new AbortController();
+    currentController = controller;
+    const selected = findModel(active.model || state.model);
+    const candidates = coworkCandidates(active);
+    let assistant = null;
+    let assistantEl = null;
+    let content = "";
+    let visible = "";
+    let queue = "";
+    let typeTimer = null;
+    let resolveTyping = null;
+    const pump = () => {
+      if (!assistant) return;
+      if (queue) {
+        visible += queue.slice(0, 2);
+        queue = queue.slice(2);
+        assistant.content = visible;
+        const contentEl = assistantEl?.querySelector(".ai-msg-content");
+        if (contentEl) contentEl.innerHTML = escapeHtml(visible).replace(/\n/g, "<br>");
+        scrollMessagesToBottom();
+        typeTimer = setTimeout(pump, 10);
+      } else {
+        typeTimer = null;
+        if (resolveTyping) {
+          const resolve = resolveTyping;
+          resolveTyping = null;
+          resolve();
+        }
+      }
+    };
+    const waitForTyping = () => new Promise(resolve => { if (!queue) resolve(); else resolveTyping = resolve; });
+    const onDelta = delta => {
+      if (state.activeId !== active.id) return;
+      if (!assistant) {
+        typingEl.remove();
+        assistant = { role: "assistant", model: selected.id, content: "", ts: Date.now() };
+        active.messages.push(assistant);
+        assistantEl = buildMessageEl(assistant, true);
+        els.messages.appendChild(assistantEl);
+      }
+      content += delta;
+      queue += delta;
+      if (!typeTimer) pump();
+    };
+    try {
+      const results = await Promise.allSettled(candidates.map(model => requestCoworkCandidate(model, coworkPromptMessages(active, model), controller, active.search)));
+      const answers = results.filter(result => result.status === "fulfilled").map(result => result.value);
+      if (!answers.length) throw results.find(result => result.status === "rejected")?.reason || new Error("Coworkers could not answer.");
+      const original = active.messages.slice().reverse().find(message => message.role === "user")?.content || "";
+      const candidateText = answers.map((answer, index) => `Candidate ${index + 1}:\n${answer}`).join("\n\n");
+      const synthesisMessages = [
+        { role: "system", content: "You are the lead BlurGPT model. Combine the candidate answers into one accurate, polished response to the user. Resolve conflicts, remove repetition, and return only the final answer." },
+        { role: "user", content: `Original request:\n${original}\n\nCandidate answers:\n${candidateText}` }
+      ];
+      if (active.search) synthesisMessages.unshift({ role: "system", content: "Use web search when it improves accuracy or freshness, and include useful sources when available." });
+      const response = await craxFetch("/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody({ model: selected.id, messages: synthesisMessages, stream: true, temperature: 0.55, web_search: !!active.search })),
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error(await readErrorResponse(response));
+      const contentType = response.headers.get("content-type") || "";
+      if (response.body?.getReader && contentType.includes("text/event-stream")) await readSse(response, onDelta);
+      else {
+        const data = await response.json();
+        const reply = data?.choices?.[0]?.message?.content;
+        if (typeof reply === "string") onDelta(reply);
+      }
+      await waitForTyping();
+    } catch (error) {
+      error.aiPartial = { assistant, assistantEl };
+      throw error;
+    } finally {
+      if (typeTimer) clearTimeout(typeTimer);
+      typeTimer = null;
+      if (currentController === controller) currentController = null;
+    }
+    if (!content.trim()) throw new Error("The cowork lead returned an empty reply.");
+    if (state.activeId === active.id && assistant) {
+      assistant.content = content.trim();
+      assistantEl.querySelector(".ai-msg-content").innerHTML = markdownHtml(assistant.content);
+      active.updatedAt = Date.now();
+      saveConversations();
+      renderSidebar();
+    }
+  }
+
+  async function requestReply(active, typingEl){
+    if (active.cowork) return requestCoworkReply(active, typingEl);
+    const controller = new AbortController(); currentController = controller;
+    const selected = findModel(active.model || state.model); active.model = selected.id;
+    let assistant = null; let assistantEl = null; let content = ""; let visible = ""; let queue = ""; let typeTimer = null; let resolveTyping = null;
+    const pump = () => {
+      if (!assistant) return;
+      if (queue) {
+        visible += queue.slice(0, 2);
+        queue = queue.slice(2);
+        assistant.content = visible;
+        const contentEl = assistantEl?.querySelector(".ai-msg-content");
+        if (contentEl) contentEl.innerHTML = escapeHtml(visible).replace(/\n/g, "<br>");
+        scrollMessagesToBottom();
+        typeTimer = setTimeout(pump, 10);
+      } else {
+        typeTimer = null;
+        if (resolveTyping) {
+          const resolve = resolveTyping;
+          resolveTyping = null;
+          resolve();
+        }
+      }
+    };
+    const waitForTyping = () => new Promise(resolve => { if (!queue) resolve(); else resolveTyping = resolve; });
+    const onDelta = delta => { if (state.activeId !== active.id) return; if (!assistant) { typingEl.remove(); assistant = { role: "assistant", model: selected.id, content: "", ts: Date.now() }; active.messages.push(assistant); assistantEl = buildMessageEl(assistant, true); els.messages.appendChild(assistantEl); } content += delta; queue += delta; if (!typeTimer) pump(); };
+    try {
+      const messages = active.messages.map(message => ({ role: message.role, content: message.content }));
+      if (active.cowork) messages.unshift({ role: "system", content: "Work in a collaborative coworking style. Think alongside the user, make reasonable assumptions, show a concise plan when useful, and end with a practical next step. Keep the tone warm and focused." });
+      if (active.search) messages.unshift({ role: "system", content: "Use web search when it improves accuracy or freshness. Ground factual answers in the retrieved results, distinguish current facts from your own reasoning, and include useful source links when available." });
+      const response = await craxFetch("/chat/completions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(requestBody({ model: selected.id, messages, stream: true, temperature: 0.7, web_search: !!active.search })), signal: controller.signal });
+      if (!response.ok) throw new Error(await readErrorResponse(response));
+      const contentType = response.headers.get("content-type") || "";
+      if (response.body?.getReader && contentType.includes("text/event-stream")) await readSse(response, onDelta);
+      else { const data = await response.json(); const reply = data?.choices?.[0]?.message?.content; if (typeof reply === "string") onDelta(reply); }
+      await waitForTyping();
+    } catch (error) { error.aiPartial = { assistant, assistantEl }; throw error; }
+    finally { if (typeTimer) clearTimeout(typeTimer); typeTimer = null; if (currentController === controller) currentController = null; }
+    if (!content.trim()) throw new Error("The model returned an empty reply.");
+    if (state.activeId === active.id && assistant) { assistant.content = content.trim(); assistantEl.querySelector(".ai-msg-content").innerHTML = markdownHtml(assistant.content); active.updatedAt = Date.now(); saveConversations(); renderSidebar(); }
+  }
+
+  async function completeConversation(active){
+    const typing = appendTyping();
+    try { await requestReply(active, typing); }
+    catch (error) { typing.remove(); if (error?.aiPartial?.assistant) { active.messages = active.messages.filter(message => message !== error.aiPartial.assistant); error.aiPartial.assistantEl?.remove(); } throw error; }
+  }
+
+  async function handleSend(){
+    const text = els.textarea.value.trim(); if (!text || isSending) return;
+    if (!serviceReady) { showNotice("AI service is not available right now.", "warning"); return; }
+    const limit = dailyLimit();
+    loadDailyUsage(); if (state.dailyCount >= limit) { showNotice(`You’ve reached the ${limit}-message daily limit. It resets tomorrow.`, "warning"); return; }
+    let active = getActive(); if (!active) { createConversation(false); active = getActive(); } if (!active) return;
+    if (!models.some(model => model.id === active.model)) active.model = state.model;
+    consumeDailyMessage();
+    active.messages.push({ role: "user", content: text, ts: Date.now() }); active.updatedAt = Date.now(); saveConversations();
+    els.messages.querySelector(".ai-empty")?.remove(); els.messages.appendChild(buildMessageEl(active.messages[active.messages.length - 1])); els.textarea.value = ""; els.textarea.style.height = "auto"; isSending = true; els.sendBtn.disabled = true; if (els.composerHint) els.composerHint.textContent = "Thinking…"; renderSidebar(); if (els.chatTitle) els.chatTitle.textContent = conversationTitle(active);
+    try { await completeConversation(active); } catch (error) { if (error?.name !== "AbortError") appendError(error?.message || "Couldn’t reach BlurGPT right now."); } finally { isSending = false; handleTextareaInput(); updateConnectionState(); updateUsage(); }
+  }
+
+  async function retryLastMessage(){
+    if (isSending) return;
+    const active = getActive(); const lastUser = active?.messages?.slice().reverse().find(message => message.role === "user"); if (!active || !lastUser) return;
+    if (!serviceReady) { showNotice("AI service is not available right now.", "warning"); return; }
+    const limit = dailyLimit();
+    loadDailyUsage(); if (state.dailyCount >= limit) { showNotice(`You’ve reached the ${limit}-message daily limit. It resets tomorrow.`, "warning"); return; }
+    consumeDailyMessage(); isSending = true; els.sendBtn.disabled = true; if (els.composerHint) els.composerHint.textContent = "Thinking…";
+    try { await completeConversation(active); } catch (error) { if (error?.name !== "AbortError") appendError(error?.message || "Couldn’t reach BlurGPT right now."); } finally { isSending = false; handleTextareaInput(); updateConnectionState(); updateUsage(); }
+  }
+
+  async function refreshModels({ silent = false } = {}){
+    if (!SERVICE_CONFIGURED) { models = FALLBACK_MODELS.slice(); renderModelSelector(); return false; }
+    try {
+      const response = await craxFetch("/models", { cache: "no-store" });
+      if (!response.ok) throw new Error(await readErrorResponse(response));
+      const data = await response.json(); const next = (Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []).map(normalizeModel).filter(Boolean); if (!next.length) throw new Error("BlurGPT returned no available models.");
+      models = next; serviceReady = true; serviceError = ""; if (!models.some(model => model.id === state.model)) { state.model = models[0].id; localStorage.setItem(STORAGE_MODEL, state.model); }
+      renderModelSelector(); renderModelsView(); updateConnectionState(); return true;
+    } catch (error) { serviceReady = false; serviceError = error?.message || "Could not reach the AI service"; models = FALLBACK_MODELS.slice(); renderModelSelector(); renderModelsView(); updateConnectionState(); if (silent) console.warn("BlurGPT model catalog unavailable:", serviceError); return false; }
+  }
+
+  function renderModelSelector(){
+    if (!els.modelSelector) return;
+    const model = findModel(state.model);
+    if (els.modelName) els.modelName.textContent = model.name;
+    if (els.modelIcon) els.modelIcon.innerHTML = providerMark(model.provider);
+    els.modelSelector.title = `${model.name} · ${providerLabel(model.provider)}`;
+  }
+
+  function toggleModelDropdown(){
+    if (modelDropdownOpen) { closeModelDropdown(); return; }
+    modelDropdownOpen = true; els.modelSelector.classList.add("active"); els.modelSelector.setAttribute("aria-expanded", "true"); modelDropdownEl = document.createElement("div"); modelDropdownEl.className = "ai-model-dropdown"; modelDropdownEl.setAttribute("role", "listbox");
+    const groups = {}; models.forEach(model => { (groups[model.provider] ||= []).push(model); });
+    modelDropdownEl.innerHTML = `<div class="ai-model-dropdown-head"><div><span>MODEL</span><strong>Choose a model</strong></div><button type="button" data-refresh-models>Refresh</button></div>${Object.entries(groups).map(([provider, rows]) => `<div class="ai-model-group-label">${providerMark(provider, "ai-model-group-logo")}<span>${escapeHtml(providerLabel(provider))}</span></div>${rows.map(model => `<button type="button" class="ai-model-option ${model.id === state.model ? "active" : ""}" data-model-id="${escapeAttr(model.id)}" role="option" aria-selected="${model.id === state.model}">${providerMark(model.provider, "ai-model-option-logo")}<span class="ai-model-option-copy"><strong>${escapeHtml(model.name)}</strong><small>${escapeHtml(model.description)}</small></span><span class="ai-model-option-meta">${model.context ? `${Number(model.context).toLocaleString()} ctx` : escapeHtml(model.tag)}</span><span class="ai-model-option-check">${model.id === state.model ? "✓" : ""}</span></button>`).join("")}`).join("")}`;
+    modelDropdownEl.addEventListener("click", event => { event.stopPropagation(); const refresh = event.target.closest("[data-refresh-models]"); if (refresh) { refreshModels(); return; } const option = event.target.closest("[data-model-id]"); if (option) { selectModel(option.dataset.modelId); closeModelDropdown(); } });
+    document.body.appendChild(modelDropdownEl); positionModelDropdown(); setTimeout(() => document.addEventListener("click", closeModelDropdownOutside), 0);
+  }
+
+  function positionModelDropdown(){ if (!modelDropdownEl || !els.modelSelector) return; const rect = els.modelSelector.getBoundingClientRect(); const width = Math.max(280, rect.width + 80); modelDropdownEl.style.width = `${Math.min(width, window.innerWidth - 16)}px`; modelDropdownEl.style.left = `${Math.max(8, Math.min(window.innerWidth - width - 8, rect.right - width))}px`; modelDropdownEl.style.bottom = `${Math.max(8, window.innerHeight - rect.top + 8)}px`; }
+  function closeModelDropdown(){ modelDropdownOpen = false; els.modelSelector?.classList.remove("active"); els.modelSelector?.setAttribute("aria-expanded", "false"); modelDropdownEl?.remove(); modelDropdownEl = null; document.removeEventListener("click", closeModelDropdownOutside); }
+  function closeModelDropdownOutside(event){ if (!event.target.closest(".ai-model-dropdown") && !event.target.closest(".ai-model-selector")) closeModelDropdown(); }
+
+  function selectModel(id){ if (!models.some(model => model.id === id)) return; state.model = id; localStorage.setItem(STORAGE_MODEL, id); const active = getActive(); if (active) { active.model = id; active.updatedAt = Date.now(); saveConversations(); renderSidebar(); } renderModelSelector(); }
+
+  function toggleCowork(){
+    const active = getActive();
+    const next = !(active ? !!active.cowork : state.cowork);
+    state.cowork = next;
+    localStorage.setItem(STORAGE_COWORK, String(state.cowork));
+    if (active) { active.cowork = next; active.updatedAt = Date.now(); saveConversations(); }
+    renderCoworkState();
+  }
+
+  function toggleSearch(){
+    const active = getActive();
+    const next = !(active ? !!active.search : state.search);
+    state.search = next;
+    localStorage.setItem(STORAGE_SEARCH, String(next));
+    if (active) { active.search = next; active.updatedAt = Date.now(); saveConversations(); }
+    renderSearchState();
+  }
+  function init(){ const panel = document.querySelector('[data-panel="ai"]'); if (!panel || panel.dataset.aiReady === "true") return; panel.dataset.aiReady = "true"; loadState(); buildShell(panel); }
+  window.BlurGPT = Object.freeze({ ask: askFromChat, getDailyLimit: () => dailyLimit(), getDailyUsed: () => { loadDailyUsage(); return state.dailyCount; } });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();

@@ -123,6 +123,12 @@
 
   function draw(time) {
     const w = canvas.width, h = canvas.height;
+
+    if (document.documentElement.classList.contains("performance-mode")) {
+      rafId = null;
+      return;
+    }
+
     ctx.clearRect(0, 0, w, h);
     ctx.globalCompositeOperation = "screen";
 
@@ -218,6 +224,17 @@
   }
 
   window.updateNowPlayingBackground = updateNowPlayingBackground;
+
+  window.addEventListener("blur-performance-mode-change", (event) => {
+    const enabled = event.detail?.enabled ?? document.documentElement.classList.contains("performance-mode");
+    if (enabled) {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+      return;
+    }
+    if (npRoot && npRoot.classList.contains("open") &&
+      !document.documentElement.classList.contains("performance-mode")) start();
+  });
 
   // Seed blobs immediately but don't force a render loop until the
   // panel is actually visible (see MutationObserver above) — starting
